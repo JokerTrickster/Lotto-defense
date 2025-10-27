@@ -80,3 +80,7 @@ crashlytics-build.properties
 
 # TextMesh Pro
 /[Aa]ssets/TextMesh*Pro/
+
+# CCPM (Claude Code PM) 관련
+.claude/epics/
+.claude/settings.local.json
