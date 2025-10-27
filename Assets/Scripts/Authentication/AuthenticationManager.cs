@@ -33,17 +33,19 @@ namespace LottoDefense.Authentication
         {
             if (_instance != null && _instance != this)
             {
+                Debug.Log("AuthenticationManager already exists, destroying duplicate");
                 Destroy(gameObject);
                 return;
             }
 
             _instance = this;
             DontDestroyOnLoad(gameObject);
+            Debug.Log("AuthenticationManager created and set to DontDestroyOnLoad");
         }
 
         public void AuthenticateWithGoogle()
         {
-            Debug.Log("Starting Google authentication...");
+            Debug.Log($"[AuthManager] Starting Google authentication... (Instance: {GetInstanceID()})");
 
             // TODO: Implement actual Google Sign-In integration
             // For now, simulate authentication
@@ -64,7 +66,7 @@ namespace LottoDefense.Authentication
             _isAuthenticated = true;
             _userId = "user_" + UnityEngine.Random.Range(1000, 9999);
 
-            Debug.Log($"Authentication successful. User ID: {_userId}");
+            Debug.Log($"[AuthManager] Authentication successful. User ID: {_userId}, IsAuthenticated: {_isAuthenticated} (Instance: {GetInstanceID()})");
             OnAuthenticationComplete?.Invoke(true);
         }
 

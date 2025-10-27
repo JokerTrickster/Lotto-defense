@@ -13,11 +13,15 @@ public class LoginSceneSetup : EditorWindow
         // Create new scene
         var newScene = EditorSceneManager.NewScene(NewSceneSetup.DefaultGameObjects, NewSceneMode.Single);
 
-        // Remove default camera (we'll use UI Camera)
+        // Setup Main Camera for 2D UI
         var mainCamera = GameObject.Find("Main Camera");
         if (mainCamera != null)
         {
-            DestroyImmediate(mainCamera);
+            Camera cam = mainCamera.GetComponent<Camera>();
+            cam.clearFlags = CameraClearFlags.SolidColor;
+            cam.backgroundColor = new Color(0.1f, 0.1f, 0.15f, 1f);
+            cam.orthographic = true;
+            cam.orthographicSize = 5;
         }
 
         // Create Canvas
@@ -149,7 +153,7 @@ public class LoginSceneSetup : EditorWindow
         // Create Legal Links Panel
         GameObject legalPanel = new GameObject("LegalLinksPanel");
         legalPanel.transform.SetParent(canvasObj.transform, false);
-        RectTransform legalRect = legalPanel.GetComponent<RectTransform>();
+        RectTransform legalRect = legalPanel.AddComponent<RectTransform>();
         legalRect.anchorMin = new Vector2(0.5f, 0.1f);
         legalRect.anchorMax = new Vector2(0.5f, 0.1f);
         legalRect.sizeDelta = new Vector2(800, 100);

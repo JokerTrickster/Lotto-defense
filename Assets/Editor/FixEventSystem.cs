@@ -8,7 +8,7 @@ public class FixEventSystem : EditorWindow
     [MenuItem("Lotto Defense/Fix EventSystem for New Input System")]
     public static void FixEventSystemInputModule()
     {
-        EventSystem eventSystem = FindObjectOfType<EventSystem>();
+        EventSystem eventSystem = FindFirstObjectByType<EventSystem>();
 
         if (eventSystem == null)
         {
