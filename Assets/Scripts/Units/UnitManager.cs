@@ -157,7 +157,7 @@ namespace LottoDefense.Units
             GridCell cell = GridManager.Instance.GetCellAt(gridPosition);
             if (cell != null)
             {
-                cell.SetOccupied(true);
+                cell.SetOccupied(unitObj);
             }
 
             OnUnitPlaced?.Invoke(unit, gridPosition);
@@ -189,7 +189,7 @@ namespace LottoDefense.Units
                 GridCell cell = GridManager.Instance.GetCellAt(gridPosition);
                 if (cell != null)
                 {
-                    cell.SetOccupied(false);
+                    cell.ClearOccupancy();
                 }
             }
 
