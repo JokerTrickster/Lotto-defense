@@ -185,17 +185,17 @@ namespace LottoDefense.Monsters
         /// <summary>
         /// Apply damage to this monster.
         /// </summary>
-        /// <param name="damage">Raw damage amount</param>
-        public void TakeDamage(int damage)
+        /// <param name="rawDamage">Raw attack damage from attacker</param>
+        public void TakeDamage(int rawDamage)
         {
             if (!IsActive || CurrentHealth <= 0)
                 return;
 
-            // Apply defense reduction
-            int actualDamage = Mathf.Max(1, damage - Defense);
+            // Apply defense reduction: damage = attack - defense (minimum 1)
+            int actualDamage = Mathf.Max(1, rawDamage - Defense);
             CurrentHealth -= actualDamage;
 
-            Debug.Log($"[Monster] {Data.monsterName} took {actualDamage} damage (HP: {CurrentHealth}/{MaxHealth})");
+            Debug.Log($"[Monster] {Data.monsterName} took {actualDamage} damage (raw: {rawDamage}, def: {Defense}, HP: {CurrentHealth}/{MaxHealth})");
 
             if (CurrentHealth <= 0)
             {
