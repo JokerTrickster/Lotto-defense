@@ -501,83 +501,168 @@ namespace LottoDefense.Grid
         }
         #endregion
 
-        #region Monster Paths
+        #region Unit Placement Management
         /// <summary>
-        /// Get waypoint positions for the top path (monsters spawn from top, move down).
+        /// Get the Unit component occupying a cell at the specified coordinates.
         /// </summary>
-        /// <returns>List of world positions forming the path</returns>
-        public List<Vector3> GetTopPathWaypoints()
+        /// <param name="x">X coordinate</param>
+        /// <param name="y">Y coordinate</param>
+        /// <returns>Unit component, or null if cell is empty or invalid</returns>
+        public LottoDefense.Units.Unit GetUnitAt(int x, int y)
         {
-            List<Vector3> waypoints = new List<Vector3>();
-
-            // Path goes down the middle column (x = 3) from top to bottom
-            int pathX = GRID_WIDTH / 2; // Middle column (x=3 for 6-width grid)
-
-            // Start above grid, move through all rows from top to bottom
-            for (int y = GRID_HEIGHT - 1; y >= -1; y--)
+            GridCell cell = GetCellAt(x, y);
+            if (cell != null && cell.OccupyingUnit != null)
             {
-                Vector3 waypoint;
-                if (y == GRID_HEIGHT - 1)
-                {
-                    // First waypoint: spawn point above grid
-                    waypoint = GridToWorld(new Vector2Int(pathX, y));
-                    waypoint.y += CellSize * 0.5f; // Start half cell above
-                }
-                else if (y == -1)
-                {
-                    // Last waypoint: end point below grid
-                    waypoint = GridToWorld(new Vector2Int(pathX, 0));
-                    waypoint.y -= CellSize * 0.5f; // End half cell below
-                }
-                else
-                {
-                    // Regular waypoints at cell centers
-                    waypoint = GridToWorld(new Vector2Int(pathX, y));
-                }
-
-                waypoints.Add(waypoint);
+                return cell.OccupyingUnit.GetComponent<LottoDefense.Units.Unit>();
             }
-
-            return waypoints;
+            return null;
         }
 
         /// <summary>
-        /// Get waypoint positions for the bottom path (monsters spawn from bottom, move up).
+        /// Get the Unit component occupying a cell at the specified coordinates.
         /// </summary>
-        /// <returns>List of world positions forming the path</returns>
-        public List<Vector3> GetBottomPathWaypoints()
+        /// <param name="pos">Grid coordinates</param>
+        /// <returns>Unit component, or null if cell is empty or invalid</returns>
+        public LottoDefense.Units.Unit GetUnitAt(Vector2Int pos)
         {
-            List<Vector3> waypoints = new List<Vector3>();
+            return GetUnitAt(pos.x, pos.y);
+        }
 
-            // Path goes up the middle column (x = 2) from bottom to top
-            int pathX = GRID_WIDTH / 2 - 1; // Offset column (x=2 for 6-width grid)
-
-            // Start below grid, move through all rows from bottom to top
-            for (int y = 0; y <= GRID_HEIGHT; y++)
+        /// <summary>
+        /// Place a unit at the specified grid coordinates.
+        /// Updates cell occupancy and positions the unit GameObject.
+        /// </summary>
+        /// <param name="x">X coordinate</param>
+        /// <param name="y">Y coordinate</param>
+        /// <param name="unitObject">Unit GameObject to place</param>
+        /// <returns>True if successfully placed, false if position invalid or occupied</returns>
+        public bool SetUnit(int x, int y, GameObject unitObject)
+        {
+            GridCell cell = GetCellAt(x, y);
+            if (cell == null)
             {
-                Vector3 waypoint;
-                if (y == 0)
-                {
-                    // First waypoint: spawn point below grid
-                    waypoint = GridToWorld(new Vector2Int(pathX, 0));
-                    waypoint.y -= CellSize * 0.5f; // Start half cell below
-                }
-                else if (y == GRID_HEIGHT)
-                {
-                    // Last waypoint: end point above grid
-                    waypoint = GridToWorld(new Vector2Int(pathX, GRID_HEIGHT - 1));
-                    waypoint.y += CellSize * 0.5f; // End half cell above
-                }
-                else
-                {
-                    // Regular waypoints at cell centers
-                    waypoint = GridToWorld(new Vector2Int(pathX, y));
-                }
-
-                waypoints.Add(waypoint);
+                Debug.LogWarning($"[GridManager] Cannot set unit - invalid position: ({x}, {y})");
+                return false;
             }
 
-            return waypoints;
+            if (cell.IsOccupied)
+            {
+                Debug.LogWarning($"[GridManager] Cannot set unit - cell already occupied: ({x}, {y})");
+                return false;
+            }
+
+            // Mark cell as occupied
+            cell.SetOccupied(unitObject);
+
+            // Position unit at cell center
+            unitObject.transform.position = GridToWorld(new Vector2Int(x, y));
+
+            Debug.Log($"[GridManager] Placed unit at ({x}, {y})");
+            return true;
+        }
+
+        /// <summary>
+        /// Place a unit at the specified grid coordinates.
+        /// </summary>
+        /// <param name="pos">Grid coordinates</param>
+        /// <param name="unitObject">Unit GameObject to place</param>
+        /// <returns>True if successfully placed, false if position invalid or occupied</returns>
+        public bool SetUnit(Vector2Int pos, GameObject unitObject)
+        {
+            return SetUnit(pos.x, pos.y, unitObject);
+        }
+
+        /// <summary>
+        /// Remove a unit from the specified grid coordinates.
+        /// Clears cell occupancy but does not destroy the unit GameObject.
+        /// </summary>
+        /// <param name="x">X coordinate</param>
+        /// <param name="y">Y coordinate</param>
+        /// <returns>The removed unit GameObject, or null if cell was empty</returns>
+        public GameObject RemoveUnit(int x, int y)
+        {
+            GridCell cell = GetCellAt(x, y);
+            if (cell == null)
+            {
+                Debug.LogWarning($"[GridManager] Cannot remove unit - invalid position: ({x}, {y})");
+                return null;
+            }
+
+            if (!cell.IsOccupied)
+            {
+                Debug.LogWarning($"[GridManager] Cannot remove unit - cell is empty: ({x}, {y})");
+                return null;
+            }
+
+            GameObject unitObject = cell.OccupyingUnit;
+            cell.ClearOccupancy();
+
+            Debug.Log($"[GridManager] Removed unit from ({x}, {y})");
+            return unitObject;
+        }
+
+        /// <summary>
+        /// Remove a unit from the specified grid coordinates.
+        /// </summary>
+        /// <param name="pos">Grid coordinates</param>
+        /// <returns>The removed unit GameObject, or null if cell was empty</returns>
+        public GameObject RemoveUnit(Vector2Int pos)
+        {
+            return RemoveUnit(pos.x, pos.y);
+        }
+
+        /// <summary>
+        /// Check if a cell is a valid placement location.
+        /// Valid cells are within bounds and not on monster paths.
+        /// </summary>
+        /// <param name="x">X coordinate</param>
+        /// <param name="y">Y coordinate</param>
+        /// <returns>True if unit can be placed at this position</returns>
+        public bool IsPlacementCell(int x, int y)
+        {
+            if (!IsValidPosition(x, y))
+                return false;
+
+            // Monster paths use middle columns (x=2 and x=3 for 6-width grid)
+            int pathX1 = GRID_WIDTH / 2 - 1; // x=2
+            int pathX2 = GRID_WIDTH / 2;     // x=3
+
+            return x != pathX1 && x != pathX2;
+        }
+
+        /// <summary>
+        /// Check if a cell is a valid placement location.
+        /// </summary>
+        /// <param name="pos">Grid coordinates</param>
+        /// <returns>True if unit can be placed at this position</returns>
+        public bool IsPlacementCell(Vector2Int pos)
+        {
+            return IsPlacementCell(pos.x, pos.y);
+        }
+
+        /// <summary>
+        /// Get the world position at the center of a grid cell.
+        /// </summary>
+        /// <param name="x">X coordinate</param>
+        /// <param name="y">Y coordinate</param>
+        /// <returns>World space position, or Vector3.zero if invalid</returns>
+        public Vector3 GetCellWorldPosition(int x, int y)
+        {
+            if (IsValidPosition(x, y))
+            {
+                return GridToWorld(new Vector2Int(x, y));
+            }
+            return Vector3.zero;
+        }
+
+        /// <summary>
+        /// Get the world position at the center of a grid cell.
+        /// </summary>
+        /// <param name="pos">Grid coordinates</param>
+        /// <returns>World space position, or Vector3.zero if invalid</returns>
+        public Vector3 GetCellWorldPosition(Vector2Int pos)
+        {
+            return GetCellWorldPosition(pos.x, pos.y);
         }
         #endregion
     }

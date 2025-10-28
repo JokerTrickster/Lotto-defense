@@ -1,65 +1,52 @@
 using UnityEngine;
-using System;
-using System.Collections.Generic;
-using LottoDefense.Monsters;
 using LottoDefense.Grid;
-using LottoDefense.VFX;
 
 namespace LottoDefense.Units
 {
     /// <summary>
-    /// Individual unit behavior handling combat, targeting, and grid placement.
-    /// Automatically targets and attacks monsters within range during combat phase.
+    /// MonoBehaviour component attached to placed unit instances on the grid.
+    /// Handles visual representation, grid position tracking, and selection state.
     /// </summary>
     [RequireComponent(typeof(SpriteRenderer))]
     public class Unit : MonoBehaviour
     {
+        #region Inspector Fields
+        [Header("Visual Settings")]
+        [SerializeField] private Color normalColor = Color.white;
+        [SerializeField] private Color selectedColor = Color.yellow;
+        [SerializeField] private float selectionGlowIntensity = 1.5f;
+        #endregion
+
+        #region Components
+        private SpriteRenderer spriteRenderer;
+        #endregion
+
         #region Properties
         /// <summary>
-        /// Unit data template used for this instance.
+        /// Reference to the UnitData defining this unit's stats and behavior.
         /// </summary>
         public UnitData Data { get; private set; }
 
         /// <summary>
-        /// Grid position where this unit is placed.
+        /// Current grid position of this unit.
         /// </summary>
         public Vector2Int GridPosition { get; set; }
 
         /// <summary>
-        /// Current target monster being attacked.
+        /// Whether this unit is currently selected for placement/swapping.
         /// </summary>
-        public Monster CurrentTarget { get; private set; }
+        public bool IsSelected { get; private set; }
 
         /// <summary>
-        /// Whether this unit is currently attacking.
+        /// Current upgrade level of this unit (1-10).
+        /// Level 1 is base stats, each level increases effectiveness.
         /// </summary>
-        public bool IsAttacking => CurrentTarget != null && CurrentTarget.IsActive;
+        public int UpgradeLevel { get; private set; } = 1;
 
         /// <summary>
-        /// Time when the last attack was executed.
+        /// Current attack value including upgrade multiplier.
         /// </summary>
-        public float LastAttackTime { get; private set; }
-        #endregion
-
-        #region Events
-        /// <summary>
-        /// Fired when unit attacks a monster.
-        /// </summary>
-        public event Action<Unit, Monster, int> OnAttack;
-
-        /// <summary>
-        /// Fired when unit acquires a new target.
-        /// </summary>
-        public event Action<Unit, Monster> OnTargetAcquired;
-
-        /// <summary>
-        /// Fired when unit loses its target.
-        /// </summary>
-        public event Action<Unit> OnTargetLost;
-        #endregion
-
-        #region Private Fields
-        private SpriteRenderer spriteRenderer;
+        public int CurrentAttack { get; private set; }
         #endregion
 
         #region Unity Lifecycle
@@ -67,237 +54,149 @@ namespace LottoDefense.Units
         {
             spriteRenderer = GetComponent<SpriteRenderer>();
         }
+
+        private void OnMouseDown()
+        {
+            // Notify placement manager when this placed unit is clicked
+            if (UnitPlacementManager.Instance != null)
+            {
+                UnitPlacementManager.Instance.OnPlacedUnitClicked(this);
+            }
+        }
         #endregion
 
         #region Initialization
         /// <summary>
-        /// Initialize unit with data and grid position.
+        /// Initialize this unit instance with its data and grid position.
         /// </summary>
-        /// <param name="data">Unit data template</param>
+        /// <param name="unitData">Unit data template</param>
         /// <param name="gridPos">Grid coordinates</param>
-        public void Initialize(UnitData data, Vector2Int gridPos)
+        public void Initialize(UnitData unitData, Vector2Int gridPos)
         {
-            if (data == null)
+            Data = unitData;
+            GridPosition = gridPos;
+            UpgradeLevel = 1;
+            CurrentAttack = unitData.attack; // Start with base attack
+
+            // Setup visual representation
+            if (spriteRenderer != null && unitData.icon != null)
             {
-                Debug.LogError("[Unit] Cannot initialize with null UnitData!");
+                spriteRenderer.sprite = unitData.icon;
+                spriteRenderer.color = normalColor;
+                spriteRenderer.sortingOrder = 10; // Above grid cells
+            }
+
+            // Position at grid cell center
+            if (GridManager.Instance != null)
+            {
+                transform.position = GridManager.Instance.GridToWorld(gridPos);
+            }
+
+            gameObject.name = $"Unit_{unitData.unitName}_{gridPos.x}_{gridPos.y}";
+            Debug.Log($"[Unit] Initialized {Data.GetDisplayName()} at {GridPosition}");
+        }
+        #endregion
+
+        #region Selection Management
+        /// <summary>
+        /// Mark this unit as selected with visual feedback.
+        /// </summary>
+        public void Select()
+        {
+            IsSelected = true;
+
+            if (spriteRenderer != null)
+            {
+                spriteRenderer.color = selectedColor * selectionGlowIntensity;
+            }
+
+            Debug.Log($"[Unit] Selected {Data.GetDisplayName()} at {GridPosition}");
+        }
+
+        /// <summary>
+        /// Deselect this unit and restore normal visuals.
+        /// </summary>
+        public void Deselect()
+        {
+            IsSelected = false;
+
+            if (spriteRenderer != null)
+            {
+                spriteRenderer.color = normalColor;
+            }
+
+            Debug.Log($"[Unit] Deselected {Data.GetDisplayName()} at {GridPosition}");
+        }
+        #endregion
+
+        #region Position Management
+        /// <summary>
+        /// Move this unit to a new grid position with visual update.
+        /// </summary>
+        /// <param name="newGridPos">Target grid coordinates</param>
+        public void MoveTo(Vector2Int newGridPos)
+        {
+            Vector2Int oldPos = GridPosition;
+            GridPosition = newGridPos;
+
+            // Update world position
+            if (GridManager.Instance != null)
+            {
+                transform.position = GridManager.Instance.GridToWorld(newGridPos);
+            }
+
+            // Update name for debugging
+            gameObject.name = $"Unit_{Data.unitName}_{newGridPos.x}_{newGridPos.y}";
+
+            Debug.Log($"[Unit] Moved {Data.GetDisplayName()} from {oldPos} to {newGridPos}");
+        }
+        #endregion
+
+        #region Upgrade Management
+        /// <summary>
+        /// Apply an upgrade to this unit, increasing its level and stats.
+        /// </summary>
+        /// <param name="newLevel">New upgrade level (must be greater than current)</param>
+        /// <param name="attackMultiplier">Multiplier to apply to base attack</param>
+        public void ApplyUpgrade(int newLevel, float attackMultiplier)
+        {
+            if (newLevel <= UpgradeLevel)
+            {
+                Debug.LogWarning($"[Unit] Cannot apply upgrade - new level {newLevel} <= current level {UpgradeLevel}");
                 return;
             }
 
-            Data = data;
-            GridPosition = gridPos;
-            CurrentTarget = null;
-            LastAttackTime = 0f;
-
-            // Setup visuals
-            if (spriteRenderer != null && data.icon != null)
+            if (newLevel > 10)
             {
-                spriteRenderer.sprite = data.icon;
+                Debug.LogWarning($"[Unit] Cannot apply upgrade - level {newLevel} exceeds maximum (10)");
+                return;
             }
 
-            Debug.Log($"[Unit] {data.unitName} initialized at {gridPos} - Attack: {data.attack}, Range: {data.attackRange}, Speed: {data.attackSpeed}/s");
+            int oldLevel = UpgradeLevel;
+            int oldAttack = CurrentAttack;
+
+            UpgradeLevel = newLevel;
+            CurrentAttack = Mathf.RoundToInt(Data.attack * attackMultiplier);
+
+            Debug.Log($"[Unit] {Data.GetDisplayName()} upgraded: L{oldLevel}→L{newLevel}, ATK {oldAttack}→{CurrentAttack}");
+        }
+
+        /// <summary>
+        /// Get the current attack multiplier based on upgrade level.
+        /// </summary>
+        public float GetAttackMultiplier()
+        {
+            return 1.0f + (0.1f * (UpgradeLevel - 1));
         }
         #endregion
 
-        #region Target Acquisition
+        #region Utility
         /// <summary>
-        /// Acquire the nearest monster within attack range.
-        /// Priority: Monster closest to reaching the end (highest waypoint progress).
+        /// Get a summary string for debugging.
         /// </summary>
-        /// <returns>True if target acquired</returns>
-        public bool AcquireTarget()
+        public override string ToString()
         {
-            Monster previousTarget = CurrentTarget;
-
-            // Get all monsters in range
-            List<Monster> monstersInRange = GetMonstersInRange();
-
-            if (monstersInRange.Count == 0)
-            {
-                if (CurrentTarget != null)
-                {
-                    CurrentTarget = null;
-                    OnTargetLost?.Invoke(this);
-                }
-                return false;
-            }
-
-            // Select target with highest waypoint progress (closest to end)
-            Monster bestTarget = null;
-            int highestProgress = -1;
-
-            foreach (Monster monster in monstersInRange)
-            {
-                if (monster.CurrentWaypointIndex > highestProgress)
-                {
-                    highestProgress = monster.CurrentWaypointIndex;
-                    bestTarget = monster;
-                }
-            }
-
-            CurrentTarget = bestTarget;
-
-            if (CurrentTarget != previousTarget && CurrentTarget != null)
-            {
-                OnTargetAcquired?.Invoke(this, CurrentTarget);
-                Debug.Log($"[Unit] {Data.unitName} acquired target: {CurrentTarget.Data.monsterName} (waypoint {highestProgress})");
-            }
-
-            return CurrentTarget != null;
-        }
-
-        /// <summary>
-        /// Get all monsters within this unit's attack range.
-        /// </summary>
-        /// <returns>List of monsters in range</returns>
-        public List<Monster> GetMonstersInRange()
-        {
-            List<Monster> monstersInRange = new List<Monster>();
-
-            if (Data == null || MonsterManager.Instance == null)
-                return monstersInRange;
-
-            Vector3 unitWorldPos = transform.position;
-
-            // Get all active monsters from MonsterManager
-            // Since MonsterManager doesn't expose GetActiveMonsters, we'll need to find them
-            Monster[] allMonsters = FindObjectsByType<Monster>(FindObjectsSortMode.None);
-
-            foreach (Monster monster in allMonsters)
-            {
-                if (!monster.IsActive)
-                    continue;
-
-                // Check if monster is within attack range
-                if (IsTargetInRange(monster))
-                {
-                    monstersInRange.Add(monster);
-                }
-            }
-
-            return monstersInRange;
-        }
-
-        /// <summary>
-        /// Check if a specific monster is within attack range.
-        /// </summary>
-        /// <param name="monster">Monster to check</param>
-        /// <returns>True if in range</returns>
-        public bool IsTargetInRange(Monster monster)
-        {
-            if (monster == null || !monster.IsActive || Data == null)
-                return false;
-
-            float distance = Vector3.Distance(transform.position, monster.transform.position);
-
-            // Convert attack range from cells to world units
-            float rangeInWorldUnits = Data.attackRange * (GridManager.Instance?.CellSize ?? 1f);
-
-            return distance <= rangeInWorldUnits;
-        }
-        #endregion
-
-        #region Combat
-        /// <summary>
-        /// Check if unit can attack based on attack speed cooldown.
-        /// </summary>
-        /// <returns>True if cooldown has elapsed</returns>
-        public bool CanAttack()
-        {
-            if (Data == null)
-                return false;
-
-            float timeSinceLastAttack = Time.time - LastAttackTime;
-            float attackCooldown = Data.GetAttackCooldown();
-
-            return timeSinceLastAttack >= attackCooldown;
-        }
-
-        /// <summary>
-        /// Attack the current target if in range and cooldown ready.
-        /// </summary>
-        /// <returns>True if attack was executed</returns>
-        public bool Attack()
-        {
-            if (CurrentTarget == null || !CurrentTarget.IsActive)
-            {
-                AcquireTarget();
-                return false;
-            }
-
-            if (!CanAttack())
-                return false;
-
-            if (!IsTargetInRange(CurrentTarget))
-            {
-                AcquireTarget();
-                return false;
-            }
-
-            // Calculate damage: unit attack value
-            // Monster will apply its own defense in TakeDamage
-            int damage = Data.attack;
-
-            // Play attack animation
-            if (VFXManager.Instance != null)
-            {
-                VFXManager.Instance.PlayAttackAnimation(this, CurrentTarget);
-            }
-
-            // Apply damage to monster
-            CurrentTarget.TakeDamage(damage);
-
-            // Update attack time
-            LastAttackTime = Time.time;
-
-            // Fire event
-            OnAttack?.Invoke(this, CurrentTarget, damage);
-
-            Debug.Log($"[Unit] {Data.unitName} attacked {CurrentTarget.Data.monsterName} for {damage} damage");
-
-            // Check if target died
-            if (!CurrentTarget.IsActive)
-            {
-                CurrentTarget = null;
-                OnTargetLost?.Invoke(this);
-            }
-
-            return true;
-        }
-
-        /// <summary>
-        /// Execute combat tick update.
-        /// Called by CombatManager during combat phase.
-        /// </summary>
-        public void CombatTick()
-        {
-            // Update target if needed
-            if (CurrentTarget == null || !CurrentTarget.IsActive || !IsTargetInRange(CurrentTarget))
-            {
-                AcquireTarget();
-            }
-
-            // Attack if ready
-            if (CurrentTarget != null && CanAttack())
-            {
-                Attack();
-            }
-        }
-        #endregion
-
-        #region Cleanup
-        /// <summary>
-        /// Reset unit state for reuse.
-        /// </summary>
-        public void ResetForPool()
-        {
-            Data = null;
-            GridPosition = Vector2Int.zero;
-            CurrentTarget = null;
-            LastAttackTime = 0f;
-            OnAttack = null;
-            OnTargetAcquired = null;
-            OnTargetLost = null;
-            gameObject.SetActive(false);
+            return $"{Data?.GetDisplayName() ?? "Unknown"} at {GridPosition} (L{UpgradeLevel}, ATK:{CurrentAttack})";
         }
         #endregion
     }
