@@ -14,6 +14,7 @@ namespace LottoDefense.UI
         #region Inspector Fields
         [Header("HUD Text Components")]
         [SerializeField] private TextMeshProUGUI roundText;
+        [SerializeField] private TextMeshProUGUI phaseText;
         [SerializeField] private TextMeshProUGUI timeText;
         [SerializeField] private TextMeshProUGUI monsterText;
         [SerializeField] private TextMeshProUGUI goldText;
@@ -22,6 +23,7 @@ namespace LottoDefense.UI
 
         [Header("Settings")]
         [SerializeField] private string roundFormat = "Round: {0}";
+        [SerializeField] private string phaseFormat = "Phase: {0}";
         [SerializeField] private string timeFormat = "Time: {0:00}:{1:00}";
         [SerializeField] private string monsterFormat = "Monsters: {0}";
         [SerializeField] private string goldFormat = "Gold: {0}";
@@ -31,6 +33,7 @@ namespace LottoDefense.UI
 
         #region Private Fields
         private int currentRound = 1;
+        private string currentPhase = "COUNTDOWN";
         private float currentTime = 0f;
         private int currentMonsterCount = 0;
         private int currentGold = 0;
@@ -92,6 +95,7 @@ namespace LottoDefense.UI
             UpdateLife(GameplayManager.Instance.CurrentLife);
 
             // Initialize other values to defaults
+            UpdatePhase("COUNTDOWN");
             UpdateTime(0f);
             UpdateMonsterCount(0);
             UpdateUnitCount(0);
@@ -145,6 +149,24 @@ namespace LottoDefense.UI
             else
             {
                 Debug.LogWarning("[GameHUD] Round text component not assigned");
+            }
+        }
+
+        /// <summary>
+        /// Update the phase display.
+        /// </summary>
+        /// <param name="phaseName">Phase name to display</param>
+        public void UpdatePhase(string phaseName)
+        {
+            currentPhase = phaseName;
+
+            if (phaseText != null)
+            {
+                phaseText.text = string.Format(phaseFormat, currentPhase);
+            }
+            else
+            {
+                Debug.LogWarning("[GameHUD] Phase text component not assigned");
             }
         }
 
@@ -255,6 +277,11 @@ namespace LottoDefense.UI
         /// Get the current round displayed on HUD.
         /// </summary>
         public int CurrentRound => currentRound;
+
+        /// <summary>
+        /// Get the current phase displayed on HUD.
+        /// </summary>
+        public string CurrentPhase => currentPhase;
 
         /// <summary>
         /// Get the current time displayed on HUD.

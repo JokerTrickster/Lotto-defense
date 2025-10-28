@@ -1,0 +1,8 @@
+fileFormatVersion: 2
+guid: $(uuidgen | tr '[:upper:]' '[:lower:]' | tr -d '-' | cut -c1-32)
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 11400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

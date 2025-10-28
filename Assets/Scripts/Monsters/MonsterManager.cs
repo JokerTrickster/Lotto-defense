@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using LottoDefense.Grid;
 using LottoDefense.Gameplay;
+using LottoDefense.UI;
 
 namespace LottoDefense.Monsters
 {
@@ -297,6 +298,9 @@ namespace LottoDefense.Monsters
 
             OnMonsterSpawned?.Invoke(monster, pathType);
 
+            // Update HUD
+            UpdateMonsterCountHUD();
+
             Debug.Log($"[MonsterManager] Spawned {data.monsterName} on {pathType} path (HP: {monster.CurrentHealth})");
         }
 
@@ -328,6 +332,9 @@ namespace LottoDefense.Monsters
             // Return to pool
             monsterPool.ReturnMonster(monster);
 
+            // Update HUD
+            UpdateMonsterCountHUD();
+
             // Check if round complete
             CheckRoundComplete();
         }
@@ -358,6 +365,9 @@ namespace LottoDefense.Monsters
 
             // Return to pool
             monsterPool.ReturnMonster(monster);
+
+            // Update HUD
+            UpdateMonsterCountHUD();
 
             // Check if round complete
             CheckRoundComplete();
@@ -436,6 +446,20 @@ namespace LottoDefense.Monsters
             return pathType == PathType.Top
                 ? GridManager.Instance.GetTopPathWaypoints()
                 : GridManager.Instance.GetBottomPathWaypoints();
+        }
+        #endregion
+
+        #region UI Integration
+        /// <summary>
+        /// Update GameHUD with current monster count.
+        /// </summary>
+        private void UpdateMonsterCountHUD()
+        {
+            GameHUD hud = FindFirstObjectByType<GameHUD>();
+            if (hud != null)
+            {
+                hud.UpdateMonsterCount(ActiveMonsterCount);
+            }
         }
         #endregion
 
