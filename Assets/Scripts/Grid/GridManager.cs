@@ -500,5 +500,85 @@ namespace LottoDefense.Grid
             }
         }
         #endregion
+
+        #region Monster Paths
+        /// <summary>
+        /// Get waypoint positions for the top path (monsters spawn from top, move down).
+        /// </summary>
+        /// <returns>List of world positions forming the path</returns>
+        public List<Vector3> GetTopPathWaypoints()
+        {
+            List<Vector3> waypoints = new List<Vector3>();
+
+            // Path goes down the middle column (x = 3) from top to bottom
+            int pathX = GRID_WIDTH / 2; // Middle column (x=3 for 6-width grid)
+
+            // Start above grid, move through all rows from top to bottom
+            for (int y = GRID_HEIGHT - 1; y >= -1; y--)
+            {
+                Vector3 waypoint;
+                if (y == GRID_HEIGHT - 1)
+                {
+                    // First waypoint: spawn point above grid
+                    waypoint = GridToWorld(new Vector2Int(pathX, y));
+                    waypoint.y += CellSize * 0.5f; // Start half cell above
+                }
+                else if (y == -1)
+                {
+                    // Last waypoint: end point below grid
+                    waypoint = GridToWorld(new Vector2Int(pathX, 0));
+                    waypoint.y -= CellSize * 0.5f; // End half cell below
+                }
+                else
+                {
+                    // Regular waypoints at cell centers
+                    waypoint = GridToWorld(new Vector2Int(pathX, y));
+                }
+
+                waypoints.Add(waypoint);
+            }
+
+            return waypoints;
+        }
+
+        /// <summary>
+        /// Get waypoint positions for the bottom path (monsters spawn from bottom, move up).
+        /// </summary>
+        /// <returns>List of world positions forming the path</returns>
+        public List<Vector3> GetBottomPathWaypoints()
+        {
+            List<Vector3> waypoints = new List<Vector3>();
+
+            // Path goes up the middle column (x = 2) from bottom to top
+            int pathX = GRID_WIDTH / 2 - 1; // Offset column (x=2 for 6-width grid)
+
+            // Start below grid, move through all rows from bottom to top
+            for (int y = 0; y <= GRID_HEIGHT; y++)
+            {
+                Vector3 waypoint;
+                if (y == 0)
+                {
+                    // First waypoint: spawn point below grid
+                    waypoint = GridToWorld(new Vector2Int(pathX, 0));
+                    waypoint.y -= CellSize * 0.5f; // Start half cell below
+                }
+                else if (y == GRID_HEIGHT)
+                {
+                    // Last waypoint: end point above grid
+                    waypoint = GridToWorld(new Vector2Int(pathX, GRID_HEIGHT - 1));
+                    waypoint.y += CellSize * 0.5f; // End half cell above
+                }
+                else
+                {
+                    // Regular waypoints at cell centers
+                    waypoint = GridToWorld(new Vector2Int(pathX, y));
+                }
+
+                waypoints.Add(waypoint);
+            }
+
+            return waypoints;
+        }
+        #endregion
     }
 }
