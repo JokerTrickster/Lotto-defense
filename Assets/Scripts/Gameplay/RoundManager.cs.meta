@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: $(uuidgen | tr '[:upper:]' '[:lower:]' | tr -d '-' | cut -c1-32)
+guid: ecd4874cd5c240278b5e66b2564c241a
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2

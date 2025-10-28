@@ -1,8 +1,11 @@
 fileFormatVersion: 2
-guid: $(uuidgen | tr '[:upper:]' '[:lower:]' | tr -d '-' | cut -c1-32)
-NativeFormatImporter:
+guid: 29193b402e1a4239970856cb041c2f3f
+MonoImporter:
   externalObjects: {}
-  mainObjectFileID: 11400000
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
   userData: 
   assetBundleName: 
   assetBundleVariant: 

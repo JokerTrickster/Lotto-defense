@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: $(uuidgen | tr '[:upper:]' '[:lower:]' | tr -d '-' | cut -c1-32)
+guid: bae8650056e7440b8ad5b588d782828a
 folderAsset: yes
 DefaultImporter:
   externalObjects: {}
