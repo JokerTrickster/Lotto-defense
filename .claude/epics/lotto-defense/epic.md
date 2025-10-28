@@ -4,7 +4,7 @@ status: backlog
 created: 2025-10-28T02:09:08Z
 progress: 0%
 prd: .claude/prds/lotto-defense.md
-github: [Will be updated when synced to GitHub]
+github: https://github.com/JokerTrickster/Lotto-defense/issues/11
 ---
 
 # Epic: Lotto Defense Game Implementation
