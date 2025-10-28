@@ -36,6 +36,17 @@ namespace LottoDefense.Units
         /// Whether this unit is currently selected for placement/swapping.
         /// </summary>
         public bool IsSelected { get; private set; }
+
+        /// <summary>
+        /// Current upgrade level of this unit (1-10).
+        /// Level 1 is base stats, each level increases effectiveness.
+        /// </summary>
+        public int UpgradeLevel { get; private set; } = 1;
+
+        /// <summary>
+        /// Current attack value including upgrade multiplier.
+        /// </summary>
+        public int CurrentAttack { get; private set; }
         #endregion
 
         #region Unity Lifecycle
@@ -64,6 +75,8 @@ namespace LottoDefense.Units
         {
             Data = unitData;
             GridPosition = gridPos;
+            UpgradeLevel = 1;
+            CurrentAttack = unitData.attack; // Start with base attack
 
             // Setup visual representation
             if (spriteRenderer != null && unitData.icon != null)
@@ -139,13 +152,51 @@ namespace LottoDefense.Units
         }
         #endregion
 
+        #region Upgrade Management
+        /// <summary>
+        /// Apply an upgrade to this unit, increasing its level and stats.
+        /// </summary>
+        /// <param name="newLevel">New upgrade level (must be greater than current)</param>
+        /// <param name="attackMultiplier">Multiplier to apply to base attack</param>
+        public void ApplyUpgrade(int newLevel, float attackMultiplier)
+        {
+            if (newLevel <= UpgradeLevel)
+            {
+                Debug.LogWarning($"[Unit] Cannot apply upgrade - new level {newLevel} <= current level {UpgradeLevel}");
+                return;
+            }
+
+            if (newLevel > 10)
+            {
+                Debug.LogWarning($"[Unit] Cannot apply upgrade - level {newLevel} exceeds maximum (10)");
+                return;
+            }
+
+            int oldLevel = UpgradeLevel;
+            int oldAttack = CurrentAttack;
+
+            UpgradeLevel = newLevel;
+            CurrentAttack = Mathf.RoundToInt(Data.attack * attackMultiplier);
+
+            Debug.Log($"[Unit] {Data.GetDisplayName()} upgraded: L{oldLevel}→L{newLevel}, ATK {oldAttack}→{CurrentAttack}");
+        }
+
+        /// <summary>
+        /// Get the current attack multiplier based on upgrade level.
+        /// </summary>
+        public float GetAttackMultiplier()
+        {
+            return 1.0f + (0.1f * (UpgradeLevel - 1));
+        }
+        #endregion
+
         #region Utility
         /// <summary>
         /// Get a summary string for debugging.
         /// </summary>
         public override string ToString()
         {
-            return $"{Data?.GetDisplayName() ?? "Unknown"} at {GridPosition}";
+            return $"{Data?.GetDisplayName() ?? "Unknown"} at {GridPosition} (L{UpgradeLevel}, ATK:{CurrentAttack})";
         }
         #endregion
     }
