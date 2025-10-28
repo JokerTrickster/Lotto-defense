@@ -164,6 +164,7 @@ public class LoginSceneSetup : EditorWindow
         // Privacy Policy Button
         GameObject privacyButtonObj = new GameObject("PrivacyPolicyButton");
         privacyButtonObj.transform.SetParent(legalPanel.transform, false);
+        RectTransform privacyRect = privacyButtonObj.AddComponent<RectTransform>();
         Button privacyButton = privacyButtonObj.AddComponent<Button>();
         privacyButton.onClick.AddListener(() => legalHandler.OpenPrivacyPolicy());
 
@@ -175,8 +176,6 @@ public class LoginSceneSetup : EditorWindow
         privacyText.fontSize = 28;
         privacyText.alignment = TextAnchor.MiddleCenter;
         privacyText.color = new Color(0.6f, 0.6f, 1f);
-
-        RectTransform privacyRect = privacyButtonObj.GetComponent<RectTransform>();
         privacyRect.anchorMin = new Vector2(0, 0.5f);
         privacyRect.anchorMax = new Vector2(0, 0.5f);
         privacyRect.sizeDelta = new Vector2(350, 80);
@@ -190,6 +189,7 @@ public class LoginSceneSetup : EditorWindow
         // Terms of Service Button
         GameObject termsButtonObj = new GameObject("TermsButton");
         termsButtonObj.transform.SetParent(legalPanel.transform, false);
+        RectTransform termsRect = termsButtonObj.AddComponent<RectTransform>();
         Button termsButton = termsButtonObj.AddComponent<Button>();
         termsButton.onClick.AddListener(() => legalHandler.OpenTermsOfService());
 
@@ -201,8 +201,6 @@ public class LoginSceneSetup : EditorWindow
         termsText.fontSize = 28;
         termsText.alignment = TextAnchor.MiddleCenter;
         termsText.color = new Color(0.6f, 0.6f, 1f);
-
-        RectTransform termsRect = termsButtonObj.GetComponent<RectTransform>();
         termsRect.anchorMin = new Vector2(1, 0.5f);
         termsRect.anchorMax = new Vector2(1, 0.5f);
         termsRect.sizeDelta = new Vector2(350, 80);
