@@ -1,6 +1,8 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System;
+using LottoDefense.VFX;
+using LottoDefense.Gameplay;
 
 namespace LottoDefense.Monsters
 {
@@ -195,6 +197,12 @@ namespace LottoDefense.Monsters
             int actualDamage = Mathf.Max(1, rawDamage - Defense);
             CurrentHealth -= actualDamage;
 
+            // Show damage number VFX
+            if (VFXManager.Instance != null)
+            {
+                VFXManager.Instance.ShowDamageNumber(transform.position, actualDamage, false);
+            }
+
             Debug.Log($"[Monster] {Data.monsterName} took {actualDamage} damage (raw: {rawDamage}, def: {Defense}, HP: {CurrentHealth}/{MaxHealth})");
 
             if (CurrentHealth <= 0)
@@ -212,6 +220,24 @@ namespace LottoDefense.Monsters
                 return;
 
             Debug.Log($"[Monster] {Data.monsterName} died - Awarding {goldReward} gold");
+
+            // Award gold to player
+            if (GameplayManager.Instance != null)
+            {
+                GameplayManager.Instance.ModifyGold(goldReward);
+            }
+
+            // Show gold popup VFX
+            if (VFXManager.Instance != null)
+            {
+                VFXManager.Instance.ShowGoldPopup(transform.position, goldReward);
+            }
+
+            // Play death animation
+            if (VFXManager.Instance != null)
+            {
+                VFXManager.Instance.PlayMonsterDeathEffect(this);
+            }
 
             IsActive = false;
             OnDeath?.Invoke(this);

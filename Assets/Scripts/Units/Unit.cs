@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using LottoDefense.Monsters;
 using LottoDefense.Grid;
+using LottoDefense.VFX;
 
 namespace LottoDefense.Units
 {
@@ -235,6 +236,12 @@ namespace LottoDefense.Units
             // Calculate damage: unit attack value
             // Monster will apply its own defense in TakeDamage
             int damage = Data.attack;
+
+            // Play attack animation
+            if (VFXManager.Instance != null)
+            {
+                VFXManager.Instance.PlayAttackAnimation(this, CurrentTarget);
+            }
 
             // Apply damage to monster
             CurrentTarget.TakeDamage(damage);
