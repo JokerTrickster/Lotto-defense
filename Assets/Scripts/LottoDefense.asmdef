@@ -1,7 +1,9 @@
 {
     "name": "LottoDefense",
     "rootNamespace": "LottoDefense",
-    "references": [],
+    "references": [
+        "Unity.TextMeshPro"
+    ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
