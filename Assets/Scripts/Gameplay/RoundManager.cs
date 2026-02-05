@@ -53,10 +53,10 @@ namespace LottoDefense.Gameplay
 
         [Header("Phase Durations")]
         [Tooltip("Preparation phase duration in seconds")]
-        [SerializeField] private float preparationDuration = 30f;
+        [SerializeField] private float preparationDuration = 15f;
 
-        [Tooltip("Combat phase duration in seconds")]
-        [SerializeField] private float combatDuration = 60f;
+        [Tooltip("Combat phase duration in seconds (spawn 15s, then 30s total before next round)")]
+        [SerializeField] private float combatDuration = 30f;
 
         [Header("Life Loss Settings")]
         [Tooltip("Life lost per monster remaining when combat time expires")]

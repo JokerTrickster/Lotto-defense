@@ -704,6 +704,28 @@ namespace LottoDefense.Grid
 
             return waypoints;
         }
+
+        /// <summary>
+        /// Get waypoints for a square loop around the grid boundary.
+        /// Monsters run along the rectangle (bottom-left → bottom-right → top-right → top-left → loop).
+        /// Use with Monster.Initialize(..., loopPath: true).
+        /// </summary>
+        /// <returns>List of world positions forming a closed rectangle</returns>
+        public List<Vector3> GetSquareLoopWaypoints()
+        {
+            List<Vector3> waypoints = new List<Vector3>();
+            float w = GRID_WIDTH * CellSize;
+            float h = GRID_HEIGHT * CellSize;
+            float x0 = GridOrigin.x;
+            float y0 = GridOrigin.y;
+
+            waypoints.Add(new Vector3(x0, y0, 0f));
+            waypoints.Add(new Vector3(x0 + w, y0, 0f));
+            waypoints.Add(new Vector3(x0 + w, y0 + h, 0f));
+            waypoints.Add(new Vector3(x0, y0 + h, 0f));
+
+            return waypoints;
+        }
         #endregion
     }
 }

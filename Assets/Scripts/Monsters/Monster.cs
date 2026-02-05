@@ -62,6 +62,7 @@ namespace LottoDefense.Monsters
         private SpriteRenderer spriteRenderer;
         private float moveSpeed;
         private int goldReward;
+        private bool loopPath;
         #endregion
 
         #region Unity Lifecycle
@@ -86,7 +87,8 @@ namespace LottoDefense.Monsters
         /// <param name="data">Monster data template</param>
         /// <param name="pathWaypoints">List of waypoint positions to follow</param>
         /// <param name="round">Current round number for scaling</param>
-        public void Initialize(MonsterData data, List<Vector3> pathWaypoints, int round)
+        /// <param name="loopPath">If true, monster loops path (e.g. square loop); if false, ReachEnd at path end</param>
+        public void Initialize(MonsterData data, List<Vector3> pathWaypoints, int round, bool loopPath = false)
         {
             if (data == null)
             {
@@ -103,6 +105,7 @@ namespace LottoDefense.Monsters
             Data = data;
             waypoints = new List<Vector3>(pathWaypoints);
             CurrentWaypointIndex = 0;
+            this.loopPath = loopPath;
 
             // Apply round scaling
             MaxHealth = data.GetScaledHealth(round);
@@ -164,7 +167,14 @@ namespace LottoDefense.Monsters
 
             if (CurrentWaypointIndex >= waypoints.Count)
             {
-                ReachEnd();
+                if (loopPath)
+                {
+                    CurrentWaypointIndex = 0;
+                }
+                else
+                {
+                    ReachEnd();
+                }
             }
         }
 
@@ -251,6 +261,7 @@ namespace LottoDefense.Monsters
             Defense = 0;
             CurrentWaypointIndex = 0;
             waypoints = null;
+            loopPath = false;
             Data = null;
             OnDeath = null;
             OnReachEnd = null;

@@ -14,7 +14,9 @@ namespace LottoDefense.Monsters
     public enum PathType
     {
         Top,
-        Bottom
+        Bottom,
+        /// <summary>Monsters run in a loop around the square (grid boundary).</summary>
+        SquareLoop
     }
 
     /// <summary>
@@ -51,7 +53,8 @@ namespace LottoDefense.Monsters
         #region Constants
         private const float SPAWN_INTERVAL = 0.5f; // 2 per second
         private const int MAX_SPAWNS_PER_ROUND = 30; // 30 monsters per round
-        private const int MAX_ACTIVE_MONSTERS = 150; // Game over threshold
+        private const float SPAWN_DURATION = 15f; // Spawn for 15 seconds only
+        private const int MAX_ACTIVE_MONSTERS = 100; // Game over when active monsters exceed this
         #endregion
 
         #region Inspector Fields
@@ -66,8 +69,11 @@ namespace LottoDefense.Monsters
         [Tooltip("Maximum monsters to spawn per round")]
         [SerializeField] private int maxSpawnsPerRound = MAX_SPAWNS_PER_ROUND;
 
+        [Tooltip("Only spawn for this many seconds per round (e.g. 15s = 30 monsters at 2/sec)")]
+        [SerializeField] private float spawnDuration = SPAWN_DURATION;
+
         [Header("Game Over Settings")]
-        [Tooltip("Maximum active monsters before game over")]
+        [Tooltip("Game over when active monsters exceed this count")]
         [SerializeField] private int maxActiveMonsters = MAX_ACTIVE_MONSTERS;
         #endregion
 
@@ -75,7 +81,6 @@ namespace LottoDefense.Monsters
         private MonsterPool monsterPool;
         private bool isSpawning = false;
         private int monstersSpawnedThisRound = 0;
-        private bool alternatePathFlag = false; // Toggle between top and bottom
         private Coroutine spawnCoroutine;
         private GameHUD cachedGameHUD;
         #endregion
@@ -212,7 +217,6 @@ namespace LottoDefense.Monsters
             }
 
             monstersSpawnedThisRound = 0;
-            alternatePathFlag = false;
             isSpawning = true;
 
             spawnCoroutine = StartCoroutine(SpawnRoutine());
@@ -238,32 +242,26 @@ namespace LottoDefense.Monsters
 
         /// <summary>
         /// Coroutine that handles timed monster spawning.
+        /// Spawns at most maxSpawnsPerRound and only for spawnDuration seconds (e.g. 15s = 30 at 2/sec).
         /// </summary>
         private IEnumerator SpawnRoutine()
         {
-            while (monstersSpawnedThisRound < maxSpawnsPerRound)
+            float elapsed = 0f;
+
+            while (monstersSpawnedThisRound < maxSpawnsPerRound && elapsed < spawnDuration)
             {
                 yield return new WaitForSeconds(spawnInterval);
+                elapsed += spawnInterval;
 
-                // Select random monster data
                 MonsterData data = SelectRandomMonster();
-
-                // Alternate between top and bottom paths
-                PathType path = alternatePathFlag ? PathType.Top : PathType.Bottom;
-
-                // Spawn monster
-                SpawnMonster(data, path);
-
-                // Toggle path for next spawn
-                alternatePathFlag = !alternatePathFlag;
+                SpawnMonster(data, PathType.SquareLoop);
 
                 monstersSpawnedThisRound++;
             }
 
             isSpawning = false;
-            Debug.Log($"[MonsterManager] Finished spawning {monstersSpawnedThisRound} monsters");
+            Debug.Log($"[MonsterManager] Finished spawning {monstersSpawnedThisRound} monsters (elapsed {elapsed:F1}s)");
 
-            // Check if round is complete (all spawned and no active monsters)
             CheckRoundComplete();
         }
         #endregion
@@ -290,7 +288,6 @@ namespace LottoDefense.Monsters
                 return;
             }
 
-            // Get waypoints for path
             List<Vector3> waypoints = GetPathWaypoints(pathType);
             if (waypoints == null || waypoints.Count == 0)
             {
@@ -299,9 +296,9 @@ namespace LottoDefense.Monsters
                 return;
             }
 
-            // Initialize monster
             int currentRound = GameplayManager.Instance != null ? GameplayManager.Instance.CurrentRound : 1;
-            monster.Initialize(data, waypoints, currentRound);
+            bool isLoopingPath = (pathType == PathType.SquareLoop);
+            monster.Initialize(data, waypoints, currentRound, isLoopingPath);
 
             // Subscribe to monster events
             monster.OnDeath += HandleMonsterDeath;
@@ -477,9 +474,17 @@ namespace LottoDefense.Monsters
                 return null;
             }
 
-            return pathType == PathType.Top
-                ? GridManager.Instance.GetTopPathWaypoints()
-                : GridManager.Instance.GetBottomPathWaypoints();
+            switch (pathType)
+            {
+                case PathType.Top:
+                    return GridManager.Instance.GetTopPathWaypoints();
+                case PathType.Bottom:
+                    return GridManager.Instance.GetBottomPathWaypoints();
+                case PathType.SquareLoop:
+                    return GridManager.Instance.GetSquareLoopWaypoints();
+                default:
+                    return GridManager.Instance.GetSquareLoopWaypoints();
+            }
         }
         #endregion
 

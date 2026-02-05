@@ -13,14 +13,14 @@ namespace LottoDefense.Gameplay
     }
 
     /// <summary>
-    /// ScriptableObject defining difficulty progression curve across all 30 rounds.
+    /// ScriptableObject defining difficulty progression curve across all rounds (default 5).
     /// Uses AnimationCurves for flexible, tunable difficulty scaling.
     /// </summary>
     [CreateAssetMenu(fileName = "DifficultyConfig", menuName = "Lotto Defense/Difficulty Config", order = 50)]
     public class DifficultyConfig : ScriptableObject
     {
         #region Inspector Fields
-        [Header("Difficulty Curves (Rounds 1-30)")]
+        [Header("Difficulty Curves")]
         [Tooltip("HP multiplier curve from round 1 to 30")]
         [SerializeField] private AnimationCurve hpCurve = AnimationCurve.Linear(0f, 1f, 1f, 5f);
 
@@ -36,7 +36,7 @@ namespace LottoDefense.Gameplay
 
         [Header("Round Settings")]
         [Tooltip("Maximum number of rounds in the game")]
-        [SerializeField] private int maxRounds = 30;
+        [SerializeField] private int maxRounds = 5;
         #endregion
 
         #region Properties

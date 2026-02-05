@@ -62,4 +62,4 @@ MonoBehaviour:
     m_RotationOrder: 4
   baseHpMultiplier: 1
   baseDefenseMultiplier: 1
-  maxRounds: 30
+  maxRounds: 5
