@@ -230,6 +230,17 @@ namespace LottoDefense.Monsters
         }
         #endregion
 
+        #region Active Monsters Query
+        /// <summary>
+        /// Get a copy of the active monsters list.
+        /// </summary>
+        /// <returns>List of currently active monsters</returns>
+        public List<Monster> GetActiveMonsters()
+        {
+            return new List<Monster>(activeMonsters);
+        }
+        #endregion
+
         #region Utility
         /// <summary>
         /// Clear all active monsters and return to pool.

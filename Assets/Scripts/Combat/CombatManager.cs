@@ -179,6 +179,9 @@ namespace LottoDefense.Combat
             isCombatActive = true;
             combatTickCount = 0;
 
+            // Subscribe to unit attack events
+            SubscribeToUnitEvents();
+
             combatCoroutine = StartCoroutine(CombatUpdateRoutine());
 
             OnCombatStarted?.Invoke();
@@ -202,11 +205,32 @@ namespace LottoDefense.Combat
                 combatCoroutine = null;
             }
 
+            // Unsubscribe from unit events
+            UnsubscribeFromUnitEvents();
+
+            // Reset unit combat states
+            ResetAllUnitCombatStates();
+
             isCombatActive = false;
 
             OnCombatStopped?.Invoke();
 
             Debug.Log($"[CombatManager] Combat stopped (total ticks: {combatTickCount})");
+        }
+
+        /// <summary>
+        /// Reset combat state for all placed units.
+        /// </summary>
+        private void ResetAllUnitCombatStates()
+        {
+            List<Unit> units = GetActiveUnits();
+            foreach (Unit unit in units)
+            {
+                if (unit != null)
+                {
+                    unit.ResetCombat();
+                }
+            }
         }
         #endregion
 
@@ -250,10 +274,6 @@ namespace LottoDefense.Combat
 
                 // Execute unit combat tick
                 unit.CombatTick();
-
-                // Subscribe to attack events if not already subscribed
-                unit.OnAttack -= HandleUnitAttack;
-                unit.OnAttack += HandleUnitAttack;
             }
 
             // Fire tick event
@@ -261,17 +281,44 @@ namespace LottoDefense.Combat
         }
         #endregion
 
-        #region Event Handlers
+        #region Event Subscription
         /// <summary>
-        /// Handle unit attack event.
+        /// Subscribe to all placed units' attack events when combat starts.
         /// </summary>
-        private void HandleUnitAttack(Unit unit, Monster target, int damage)
+        private void SubscribeToUnitEvents()
         {
-            if (unit == null || target == null)
-                return;
+            List<Unit> units = GetActiveUnits();
+            foreach (Unit unit in units)
+            {
+                if (unit != null)
+                {
+                    unit.OnAttack -= OnUnitAttacked;
+                    unit.OnAttack += OnUnitAttacked;
+                }
+            }
+        }
 
-            // Fire combat manager attack event
-            OnUnitAttack?.Invoke(unit, target, damage);
+        /// <summary>
+        /// Unsubscribe from all unit events when combat stops.
+        /// </summary>
+        private void UnsubscribeFromUnitEvents()
+        {
+            List<Unit> units = GetActiveUnits();
+            foreach (Unit unit in units)
+            {
+                if (unit != null)
+                {
+                    unit.OnAttack -= OnUnitAttacked;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Handle unit attack event callback.
+        /// </summary>
+        private void OnUnitAttacked(Monster target, int damage)
+        {
+            if (target == null) return;
 
             // Fire monster damaged event
             OnMonsterDamaged?.Invoke(target, damage);
@@ -291,24 +338,16 @@ namespace LottoDefense.Combat
         }
 
         /// <summary>
-        /// Get all active monsters in the scene.
+        /// Get all active monsters from MonsterManager.
+        /// Uses MonsterManager's pool tracking instead of expensive scene search.
         /// </summary>
         private List<Monster> GetActiveMonsters()
         {
-            List<Monster> activeMonsters = new List<Monster>();
+            if (MonsterManager.Instance == null)
+                return new List<Monster>();
 
-            // Find all monsters in scene
-            Monster[] allMonsters = FindObjectsByType<Monster>(FindObjectsSortMode.None);
-
-            foreach (Monster monster in allMonsters)
-            {
-                if (monster.IsActive)
-                {
-                    activeMonsters.Add(monster);
-                }
-            }
-
-            return activeMonsters;
+            // Use MonsterManager's internal tracking for efficiency
+            return MonsterManager.Instance.GetActiveMonstersList();
         }
         #endregion
 

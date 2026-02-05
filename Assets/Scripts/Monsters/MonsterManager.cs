@@ -50,7 +50,8 @@ namespace LottoDefense.Monsters
 
         #region Constants
         private const float SPAWN_INTERVAL = 0.5f; // 2 per second
-        private const int MAX_SPAWNS_PER_ROUND = 20; // 10 seconds at 2/sec
+        private const int MAX_SPAWNS_PER_ROUND = 30; // 30 monsters per round
+        private const int MAX_ACTIVE_MONSTERS = 150; // Game over threshold
         #endregion
 
         #region Inspector Fields
@@ -64,6 +65,10 @@ namespace LottoDefense.Monsters
 
         [Tooltip("Maximum monsters to spawn per round")]
         [SerializeField] private int maxSpawnsPerRound = MAX_SPAWNS_PER_ROUND;
+
+        [Header("Game Over Settings")]
+        [Tooltip("Maximum active monsters before game over")]
+        [SerializeField] private int maxActiveMonsters = MAX_ACTIVE_MONSTERS;
         #endregion
 
         #region Private Fields
@@ -72,6 +77,7 @@ namespace LottoDefense.Monsters
         private int monstersSpawnedThisRound = 0;
         private bool alternatePathFlag = false; // Toggle between top and bottom
         private Coroutine spawnCoroutine;
+        private GameHUD cachedGameHUD;
         #endregion
 
         #region Properties
@@ -106,6 +112,11 @@ namespace LottoDefense.Monsters
         /// Fired when all monsters for a round have been spawned and defeated/escaped.
         /// </summary>
         public event Action OnRoundComplete;
+
+        /// <summary>
+        /// Fired when monster count exceeds limit and triggers game over.
+        /// </summary>
+        public event Action OnMonsterOverflow;
         #endregion
 
         #region Unity Lifecycle
@@ -301,7 +312,30 @@ namespace LottoDefense.Monsters
             // Update HUD
             UpdateMonsterCountHUD();
 
-            Debug.Log($"[MonsterManager] Spawned {data.monsterName} on {pathType} path (HP: {monster.CurrentHealth})");
+            // Check for monster overflow (game over condition)
+            CheckMonsterOverflow();
+
+            Debug.Log($"[MonsterManager] Spawned {data.monsterName} on {pathType} path (HP: {monster.CurrentHealth}, Active: {ActiveMonsterCount}/{maxActiveMonsters})");
+        }
+
+        /// <summary>
+        /// Check if monster count exceeds limit and trigger game over.
+        /// </summary>
+        private void CheckMonsterOverflow()
+        {
+            if (ActiveMonsterCount > maxActiveMonsters)
+            {
+                Debug.LogWarning($"[MonsterManager] Monster overflow! {ActiveMonsterCount} > {maxActiveMonsters}");
+
+                StopSpawning();
+                OnMonsterOverflow?.Invoke();
+
+                // Trigger defeat
+                if (GameplayManager.Instance != null)
+                {
+                    GameplayManager.Instance.ChangeState(GameState.Defeat);
+                }
+            }
         }
 
         /// <summary>
@@ -451,15 +485,42 @@ namespace LottoDefense.Monsters
 
         #region UI Integration
         /// <summary>
+        /// Get cached GameHUD reference.
+        /// </summary>
+        private GameHUD GetGameHUD()
+        {
+            if (cachedGameHUD == null)
+            {
+                cachedGameHUD = FindFirstObjectByType<GameHUD>();
+            }
+            return cachedGameHUD;
+        }
+
+        /// <summary>
         /// Update GameHUD with current monster count.
         /// </summary>
         private void UpdateMonsterCountHUD()
         {
-            GameHUD hud = FindFirstObjectByType<GameHUD>();
+            GameHUD hud = GetGameHUD();
             if (hud != null)
             {
                 hud.UpdateMonsterCount(ActiveMonsterCount);
             }
+        }
+        #endregion
+
+        #region Active Monsters Query
+        /// <summary>
+        /// Get list of all currently active monsters.
+        /// Used by CombatManager for efficient combat processing.
+        /// </summary>
+        /// <returns>List of active Monster components</returns>
+        public List<Monster> GetActiveMonstersList()
+        {
+            if (monsterPool == null)
+                return new List<Monster>();
+
+            return monsterPool.GetActiveMonsters();
         }
         #endregion
 

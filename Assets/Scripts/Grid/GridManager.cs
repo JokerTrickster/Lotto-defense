@@ -665,5 +665,45 @@ namespace LottoDefense.Grid
             return GetCellWorldPosition(pos.x, pos.y);
         }
         #endregion
+
+        #region Monster Path Waypoints
+        /// <summary>
+        /// Get waypoints for the top path (enters from top, exits at bottom).
+        /// Uses x=2 column (left side of center).
+        /// </summary>
+        /// <returns>List of world positions for monster movement</returns>
+        public List<Vector3> GetTopPathWaypoints()
+        {
+            List<Vector3> waypoints = new List<Vector3>();
+            int pathX = GRID_WIDTH / 2 - 1; // x=2 for 6-width grid
+
+            // Start from top (y = GRID_HEIGHT - 1) to bottom (y = 0)
+            for (int y = GRID_HEIGHT - 1; y >= 0; y--)
+            {
+                waypoints.Add(GridToWorld(new Vector2Int(pathX, y)));
+            }
+
+            return waypoints;
+        }
+
+        /// <summary>
+        /// Get waypoints for the bottom path (enters from bottom, exits at top).
+        /// Uses x=3 column (right side of center).
+        /// </summary>
+        /// <returns>List of world positions for monster movement</returns>
+        public List<Vector3> GetBottomPathWaypoints()
+        {
+            List<Vector3> waypoints = new List<Vector3>();
+            int pathX = GRID_WIDTH / 2; // x=3 for 6-width grid
+
+            // Start from bottom (y = 0) to top (y = GRID_HEIGHT - 1)
+            for (int y = 0; y < GRID_HEIGHT; y++)
+            {
+                waypoints.Add(GridToWorld(new Vector2Int(pathX, y)));
+            }
+
+            return waypoints;
+        }
+        #endregion
     }
 }

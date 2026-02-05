@@ -114,6 +114,7 @@ namespace LottoDefense.Gameplay
         #region Private Fields
         private Coroutine phaseTimerCoroutine;
         private bool isInitialized = false;
+        private GameHUD cachedGameHUD;
         #endregion
 
         #region Unity Lifecycle
@@ -450,11 +451,23 @@ namespace LottoDefense.Gameplay
 
         #region UI Integration
         /// <summary>
+        /// Get cached GameHUD reference (avoids expensive FindFirstObjectByType each frame).
+        /// </summary>
+        private GameHUD GetGameHUD()
+        {
+            if (cachedGameHUD == null)
+            {
+                cachedGameHUD = FindFirstObjectByType<GameHUD>();
+            }
+            return cachedGameHUD;
+        }
+
+        /// <summary>
         /// Update GameHUD with current values.
         /// </summary>
         private void UpdateGameHUD()
         {
-            GameHUD hud = FindFirstObjectByType<GameHUD>();
+            GameHUD hud = GetGameHUD();
             if (hud != null)
             {
                 hud.UpdatePhase(GetPhaseDisplayName());
@@ -467,7 +480,7 @@ namespace LottoDefense.Gameplay
         /// </summary>
         private void UpdateGameHUDTime()
         {
-            GameHUD hud = FindFirstObjectByType<GameHUD>();
+            GameHUD hud = GetGameHUD();
             if (hud != null)
             {
                 hud.UpdateTime(RemainingTime);

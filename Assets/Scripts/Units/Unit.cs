@@ -1,5 +1,8 @@
 using UnityEngine;
+using System;
+using System.Collections.Generic;
 using LottoDefense.Grid;
+using LottoDefense.Monsters;
 
 namespace LottoDefense.Units
 {
@@ -47,6 +50,24 @@ namespace LottoDefense.Units
         /// Current attack value including upgrade multiplier.
         /// </summary>
         public int CurrentAttack { get; private set; }
+
+        /// <summary>
+        /// Current target monster for combat.
+        /// </summary>
+        public Monster CurrentTarget { get; private set; }
+        #endregion
+
+        #region Events
+        /// <summary>
+        /// Fired when this unit attacks a monster.
+        /// Parameters: Monster target, int damage
+        /// </summary>
+        public event Action<Monster, int> OnAttack;
+        #endregion
+
+        #region Private Combat Fields
+        private float attackCooldown;
+        private float currentCooldown;
         #endregion
 
         #region Unity Lifecycle
@@ -77,6 +98,8 @@ namespace LottoDefense.Units
             GridPosition = gridPos;
             UpgradeLevel = 1;
             CurrentAttack = unitData.attack; // Start with base attack
+            attackCooldown = 1f / unitData.attackSpeed;
+            currentCooldown = 0f;
 
             // Setup visual representation
             if (spriteRenderer != null && unitData.icon != null)
@@ -187,6 +210,79 @@ namespace LottoDefense.Units
         public float GetAttackMultiplier()
         {
             return 1.0f + (0.1f * (UpgradeLevel - 1));
+        }
+        #endregion
+
+        #region Combat System
+        /// <summary>
+        /// Called each combat tick by CombatManager.
+        /// Handles target acquisition and attack execution.
+        /// </summary>
+        public void CombatTick()
+        {
+            if (Data == null) return;
+
+            // Update cooldown
+            currentCooldown -= 0.1f; // Combat tick interval
+
+            // Find or validate target
+            if (CurrentTarget == null || !CurrentTarget.IsActive)
+            {
+                CurrentTarget = FindNearestMonster();
+            }
+
+            // Attack if ready and has target
+            if (CurrentTarget != null && currentCooldown <= 0f)
+            {
+                ExecuteAttack();
+                currentCooldown = attackCooldown;
+            }
+        }
+
+        /// <summary>
+        /// Find the nearest active monster within attack range.
+        /// </summary>
+        private Monster FindNearestMonster()
+        {
+            Monster[] allMonsters = UnityEngine.Object.FindObjectsByType<Monster>(FindObjectsSortMode.None);
+            Monster nearest = null;
+            float nearestDistance = float.MaxValue;
+
+            foreach (Monster monster in allMonsters)
+            {
+                if (!monster.IsActive) continue;
+
+                float distance = Vector3.Distance(transform.position, monster.transform.position);
+                if (distance <= Data.attackRange && distance < nearestDistance)
+                {
+                    nearest = monster;
+                    nearestDistance = distance;
+                }
+            }
+
+            return nearest;
+        }
+
+        /// <summary>
+        /// Execute an attack on the current target.
+        /// </summary>
+        private void ExecuteAttack()
+        {
+            if (CurrentTarget == null || !CurrentTarget.IsActive) return;
+
+            int damage = CurrentAttack;
+            CurrentTarget.TakeDamage(damage);
+
+            OnAttack?.Invoke(CurrentTarget, damage);
+        }
+
+        /// <summary>
+        /// Reset combat state (called when combat ends).
+        /// </summary>
+        public void ResetCombat()
+        {
+            CurrentTarget = null;
+            currentCooldown = 0f;
         }
         #endregion
 

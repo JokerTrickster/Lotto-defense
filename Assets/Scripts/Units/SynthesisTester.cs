@@ -185,7 +185,7 @@ namespace LottoDefense.Units
                 if (GameplayManager.Instance != null)
                 {
                     // Force preparation phase for testing
-                    GameplayManager.Instance.SetState(GameState.Preparation);
+                    GameplayManager.Instance.ChangeState(GameState.Preparation);
                 }
             }
 

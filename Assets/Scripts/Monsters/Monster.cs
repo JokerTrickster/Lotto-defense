@@ -213,19 +213,14 @@ namespace LottoDefense.Monsters
 
         /// <summary>
         /// Handle monster death.
+        /// Note: Gold is awarded by MonsterManager.HandleMonsterDeath to avoid duplication.
         /// </summary>
         private void Die()
         {
             if (!IsActive)
                 return;
 
-            Debug.Log($"[Monster] {Data.monsterName} died - Awarding {goldReward} gold");
-
-            // Award gold to player
-            if (GameplayManager.Instance != null)
-            {
-                GameplayManager.Instance.ModifyGold(goldReward);
-            }
+            Debug.Log($"[Monster] {Data.monsterName} died");
 
             // Show gold popup VFX
             if (VFXManager.Instance != null)

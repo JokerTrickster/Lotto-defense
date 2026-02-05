@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using LottoDefense.Gameplay;
+using LottoDefense.Grid;
 
 namespace LottoDefense.Units
 {
@@ -119,6 +120,13 @@ namespace LottoDefense.Units
         /// </summary>
         private void Initialize()
         {
+            // Auto-load units from Resources if pools are empty
+            if (normalUnits.Count == 0 && rareUnits.Count == 0 &&
+                epicUnits.Count == 0 && legendaryUnits.Count == 0)
+            {
+                LoadUnitsFromResources();
+            }
+
             ValidateUnitPools();
             Debug.Log($"[UnitManager] Initialized - Pool sizes: N={normalUnits.Count}, R={rareUnits.Count}, E={epicUnits.Count}, L={legendaryUnits.Count}");
         }
@@ -382,6 +390,128 @@ namespace LottoDefense.Units
                 Rarity.Legendary => new List<UnitData>(legendaryUnits),
                 _ => new List<UnitData>()
             };
+        }
+        #endregion
+
+        #region Placed Units Query
+        /// <summary>
+        /// Get all units currently placed on the grid.
+        /// Used by CombatManager for combat tick processing.
+        /// </summary>
+        /// <returns>List of all placed Unit components</returns>
+        public List<Unit> GetPlacedUnits()
+        {
+            List<Unit> placedUnits = new List<Unit>();
+
+            if (GridManager.Instance == null) return placedUnits;
+
+            // Iterate through all grid cells to find placed units
+            for (int x = 0; x < GridManager.GRID_WIDTH; x++)
+            {
+                for (int y = 0; y < GridManager.GRID_HEIGHT; y++)
+                {
+                    Unit unit = GridManager.Instance.GetUnitAt(x, y);
+                    if (unit != null)
+                    {
+                        placedUnits.Add(unit);
+                    }
+                }
+            }
+
+            return placedUnits;
+        }
+
+        /// <summary>
+        /// Number of units currently placed on the grid.
+        /// </summary>
+        public int PlacedUnitCount => GetPlacedUnits().Count;
+
+        /// <summary>
+        /// Place a unit on the grid at the specified position.
+        /// Creates a new Unit GameObject from UnitData.
+        /// </summary>
+        /// <param name="unitData">Data for the unit to place</param>
+        /// <param name="position">Grid position to place the unit</param>
+        /// <returns>The placed Unit component, or null if placement failed</returns>
+        public Unit PlaceUnit(UnitData unitData, Vector2Int position)
+        {
+            if (unitData == null)
+            {
+                Debug.LogError("[UnitManager] Cannot place unit - null unit data");
+                return null;
+            }
+
+            if (GridManager.Instance == null)
+            {
+                Debug.LogError("[UnitManager] Cannot place unit - GridManager not found");
+                return null;
+            }
+
+            if (!GridManager.Instance.IsPlacementCell(position.x, position.y))
+            {
+                Debug.LogWarning($"[UnitManager] Cannot place unit at {position} - not a valid placement cell");
+                return null;
+            }
+
+            // Create unit GameObject
+            GameObject unitObj = new GameObject($"Unit_{unitData.unitName}");
+            Unit unit = unitObj.AddComponent<Unit>();
+            unit.Initialize(unitData, position);
+
+            // Add visual representation (SpriteRenderer is added by RequireComponent on Unit)
+            SpriteRenderer renderer = unitObj.GetComponent<SpriteRenderer>();
+            if (renderer != null && unitData.icon != null)
+            {
+                renderer.sprite = unitData.icon;
+            }
+            if (renderer != null)
+            {
+                renderer.sortingOrder = 10;
+            }
+
+            // Place on grid
+            if (!GridManager.Instance.SetUnit(position, unitObj))
+            {
+                Debug.LogError($"[UnitManager] Failed to place unit at {position}");
+                UnityEngine.Object.Destroy(unitObj);
+                return null;
+            }
+
+            Debug.Log($"[UnitManager] Placed {unitData.unitName} at {position}");
+            return unit;
+        }
+
+        /// <summary>
+        /// Clear all units from the grid.
+        /// Destroys all placed unit GameObjects.
+        /// </summary>
+        public void ClearAllUnits()
+        {
+            if (GridManager.Instance == null) return;
+
+            for (int x = 0; x < GridManager.GRID_WIDTH; x++)
+            {
+                for (int y = 0; y < GridManager.GRID_HEIGHT; y++)
+                {
+                    GameObject unitObj = GridManager.Instance.RemoveUnit(x, y);
+                    if (unitObj != null)
+                    {
+                        UnityEngine.Object.Destroy(unitObj);
+                    }
+                }
+            }
+
+            Debug.Log("[UnitManager] Cleared all units from grid");
+        }
+
+        /// <summary>
+        /// Get statistics about placed units.
+        /// </summary>
+        public string GetStats()
+        {
+            int placedCount = PlacedUnitCount;
+            int inventoryCount = Inventory.Count;
+            return $"Placed: {placedCount}, Inventory: {inventoryCount}/{maxInventorySize}";
         }
         #endregion
 
