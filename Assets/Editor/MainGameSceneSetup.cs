@@ -5,133 +5,142 @@ using UnityEditor.SceneManagement;
 using LottoDefense.Controllers;
 using LottoDefense.UI;
 
+/// <summary>
+/// Builds MainGame scene with 협동타워디팬스-style main menu:
+/// Title, Solo / Co-op / Boss Rush buttons, Logout.
+/// </summary>
 public class MainGameSceneSetup : EditorWindow
 {
     [MenuItem("Lotto Defense/Setup MainGame Scene")]
     public static void SetupMainGameScene()
     {
-        // Create new scene
         var newScene = EditorSceneManager.NewScene(NewSceneSetup.DefaultGameObjects, NewSceneMode.Single);
 
-        // Setup Main Camera for 2D
+        // Camera: 2D portrait
         var mainCamera = GameObject.Find("Main Camera");
         if (mainCamera != null)
         {
-            Camera cam = mainCamera.GetComponent<Camera>();
+            var cam = mainCamera.GetComponent<Camera>();
             cam.orthographic = true;
             cam.orthographicSize = 5;
-            cam.backgroundColor = new Color(0.1f, 0.15f, 0.2f, 1f);
+            cam.backgroundColor = MainMenuDesignTokens.BackgroundDark;
         }
 
-        // Create Canvas for UI
+        // Canvas
         GameObject canvasObj = new GameObject("Canvas");
-        Canvas canvas = canvasObj.AddComponent<Canvas>();
+        var canvas = canvasObj.AddComponent<Canvas>();
         canvas.renderMode = RenderMode.ScreenSpaceOverlay;
 
-        CanvasScaler scaler = canvasObj.AddComponent<CanvasScaler>();
+        var scaler = canvasObj.AddComponent<CanvasScaler>();
         scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-        scaler.referenceResolution = new Vector2(1080, 1920);
+        scaler.referenceResolution = new Vector2(MainMenuDesignTokens.RefWidth, MainMenuDesignTokens.RefHeight);
         scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
         scaler.matchWidthOrHeight = 0.5f;
 
         canvasObj.AddComponent<GraphicRaycaster>();
 
-        // Create EventSystem
+        // EventSystem
         if (GameObject.Find("EventSystem") == null)
         {
-            GameObject eventSystem = new GameObject("EventSystem");
+            var eventSystem = new GameObject("EventSystem");
             eventSystem.AddComponent<UnityEngine.EventSystems.EventSystem>();
             eventSystem.AddComponent<UnityEngine.InputSystem.UI.InputSystemUIInputModule>();
         }
 
-        // Create Game Title Text
-        GameObject titleObj = new GameObject("GameTitle");
+        var font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+
+        // ---- Title ----
+        var titleObj = CreateText("GameTitle", "LOTTO DEFENSE", font, MainMenuDesignTokens.TitleFontSize, MainMenuDesignTokens.TextPrimary);
         titleObj.transform.SetParent(canvasObj.transform, false);
-        Text titleText = titleObj.AddComponent<Text>();
-        titleText.text = "LOTTO DEFENSE";
-        titleText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-        titleText.fontSize = 80;
-        titleText.alignment = TextAnchor.MiddleCenter;
-        titleText.color = Color.white;
-        RectTransform titleRect = titleObj.GetComponent<RectTransform>();
-        titleRect.anchorMin = new Vector2(0.5f, 0.75f);
-        titleRect.anchorMax = new Vector2(0.5f, 0.75f);
-        titleRect.sizeDelta = new Vector2(900, 150);
+        var titleRect = titleObj.GetComponent<RectTransform>();
+        titleRect.anchorMin = new Vector2(0.5f, 0.82f);
+        titleRect.anchorMax = new Vector2(0.5f, 0.82f);
+        titleRect.sizeDelta = new Vector2(900, 140);
         titleRect.anchoredPosition = Vector2.zero;
 
-        // Create Start Game Button
-        GameObject startButtonObj = new GameObject("StartGameButton");
-        startButtonObj.transform.SetParent(canvasObj.transform, false);
-        Image startButtonImage = startButtonObj.AddComponent<Image>();
-        startButtonImage.color = new Color(0.2f, 0.7f, 0.3f, 1f);
-        Button startButton = startButtonObj.AddComponent<Button>();
+        // ---- Mode buttons (Solo, Co-op, Boss Rush) ----
+        float buttonY = 0.52f;
+        float step = (MainMenuDesignTokens.ButtonHeight + MainMenuDesignTokens.ButtonSpacing) / MainMenuDesignTokens.RefHeight;
 
-        RectTransform startButtonRect = startButtonObj.GetComponent<RectTransform>();
-        startButtonRect.anchorMin = new Vector2(0.5f, 0.5f);
-        startButtonRect.anchorMax = new Vector2(0.5f, 0.5f);
-        startButtonRect.sizeDelta = new Vector2(500, 120);
-        startButtonRect.anchoredPosition = Vector2.zero;
+        var soloBtn = CreateMenuButton("SoloButton", "솔로 플레이", MainMenuDesignTokens.ButtonPrimary, font);
+        soloBtn.transform.SetParent(canvasObj.transform, false);
+        SetButtonRect(soloBtn.GetComponent<RectTransform>(), 0.5f, buttonY);
+        buttonY -= step;
 
-        // Add start button text
-        GameObject startTextObj = new GameObject("Text");
-        startTextObj.transform.SetParent(startButtonObj.transform, false);
-        Text startText = startTextObj.AddComponent<Text>();
-        startText.text = "게임 시작";
-        startText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-        startText.fontSize = 48;
-        startText.alignment = TextAnchor.MiddleCenter;
-        startText.color = Color.white;
-        RectTransform startTextRect = startTextObj.GetComponent<RectTransform>();
-        startTextRect.anchorMin = Vector2.zero;
-        startTextRect.anchorMax = Vector2.one;
-        startTextRect.sizeDelta = Vector2.zero;
+        var coopBtn = CreateMenuButton("CoopButton", "협동 플레이", MainMenuDesignTokens.ButtonCoop, font);
+        coopBtn.transform.SetParent(canvasObj.transform, false);
+        SetButtonRect(coopBtn.GetComponent<RectTransform>(), 0.5f, buttonY);
+        buttonY -= step;
 
-        // Scene Navigator will be added after buttons
-        // Button events will be connected programmatically
+        var bossBtn = CreateMenuButton("BossRushButton", "보스 러시", MainMenuDesignTokens.ButtonBossRush, font);
+        bossBtn.transform.SetParent(canvasObj.transform, false);
+        SetButtonRect(bossBtn.GetComponent<RectTransform>(), 0.5f, buttonY);
 
-        // Create Logout Button
-        GameObject logoutButtonObj = new GameObject("LogoutButton");
-        logoutButtonObj.transform.SetParent(canvasObj.transform, false);
-        Image logoutButtonImage = logoutButtonObj.AddComponent<Image>();
-        logoutButtonImage.color = new Color(0.7f, 0.3f, 0.3f, 1f);
-        Button logoutButton = logoutButtonObj.AddComponent<Button>();
+        // ---- Logout ----
+        var logoutBtn = CreateMenuButton("LogoutButton", "로그아웃", MainMenuDesignTokens.ButtonLogout, font);
+        logoutBtn.transform.SetParent(canvasObj.transform, false);
+        SetButtonRect(logoutBtn.GetComponent<RectTransform>(), 0.5f, 0.18f);
 
-        RectTransform logoutButtonRect = logoutButtonObj.GetComponent<RectTransform>();
-        logoutButtonRect.anchorMin = new Vector2(0.5f, 0.3f);
-        logoutButtonRect.anchorMax = new Vector2(0.5f, 0.3f);
-        logoutButtonRect.sizeDelta = new Vector2(500, 120);
-        logoutButtonRect.anchoredPosition = Vector2.zero;
+        // ---- SceneNavigator + wiring ----
+        var navigatorObj = new GameObject("SceneNavigator");
+        var navigator = navigatorObj.AddComponent<SceneNavigator>();
 
-        // Add logout button text
-        GameObject logoutTextObj = new GameObject("Text");
-        logoutTextObj.transform.SetParent(logoutButtonObj.transform, false);
-        Text logoutText = logoutTextObj.AddComponent<Text>();
-        logoutText.text = "로그아웃";
-        logoutText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-        logoutText.fontSize = 48;
-        logoutText.alignment = TextAnchor.MiddleCenter;
-        logoutText.color = Color.white;
-        RectTransform logoutTextRect = logoutTextObj.GetComponent<RectTransform>();
-        logoutTextRect.anchorMin = Vector2.zero;
-        logoutTextRect.anchorMax = Vector2.one;
-        logoutTextRect.sizeDelta = Vector2.zero;
+        UnityEditor.Events.UnityEventTools.AddPersistentListener(soloBtn.GetComponent<Button>().onClick, navigator.LoadGameScene);
+        UnityEditor.Events.UnityEventTools.AddPersistentListener(coopBtn.GetComponent<Button>().onClick, navigator.ShowComingSoonCoop);
+        UnityEditor.Events.UnityEventTools.AddPersistentListener(bossBtn.GetComponent<Button>().onClick, navigator.ShowComingSoonBossRush);
+        UnityEditor.Events.UnityEventTools.AddPersistentListener(logoutBtn.GetComponent<Button>().onClick, navigator.LoadLoginScene);
 
-        // Create SceneNavigator
-        GameObject navigatorObj = new GameObject("SceneNavigator");
-        SceneNavigator navigator = navigatorObj.AddComponent<SceneNavigator>();
-
-        // Connect button events using persistent listener (will be saved)
-        UnityEditor.Events.UnityEventTools.AddPersistentListener(startButton.onClick, navigator.LoadGameScene);
-        UnityEditor.Events.UnityEventTools.AddPersistentListener(logoutButton.onClick, navigator.LoadLoginScene);
-
-        // Create GameManager placeholder
-        GameObject gameManagerObj = new GameObject("GameManager");
+        var gameManagerObj = new GameObject("GameManager");
         gameManagerObj.AddComponent<MainGameManager>();
 
-        // Save scene
         EditorSceneManager.SaveScene(newScene, "Assets/Scenes/MainGame.unity");
+        Debug.Log("MainGame scene (협동타워디팬스-style) created at Assets/Scenes/MainGame.unity");
+        EditorUtility.DisplayDialog("Success", "MainGame 메인 메뉴가 생성되었습니다.\n\n• 솔로 플레이 → GameScene\n• 협동 플레이 / 보스 러시 → 준비중\n• 로그아웃 → LoginScene", "OK");
+    }
 
-        Debug.Log("MainGame scene created successfully at Assets/Scenes/MainGame.unity");
-        EditorUtility.DisplayDialog("Success", "MainGame (Menu) scene has been created!\n\nButtons:\n- 게임 시작: Go to GameScene\n- 로그아웃: Back to LoginScene\n\nNext: Create GameScene for actual gameplay", "OK");
+    static GameObject CreateText(string goName, string text, Font font, int fontSize, Color color)
+    {
+        var go = new GameObject(goName);
+        go.AddComponent<RectTransform>();
+        var t = go.AddComponent<Text>();
+        t.text = text;
+        t.font = font;
+        t.fontSize = fontSize;
+        t.alignment = TextAnchor.MiddleCenter;
+        t.color = color;
+        go.AddComponent<CanvasRenderer>();
+        return go;
+    }
+
+    static GameObject CreateMenuButton(string goName, string label, Color color, Font font)
+    {
+        var go = new GameObject(goName);
+        var img = go.AddComponent<Image>();
+        img.color = color;
+        go.AddComponent<Button>();
+
+        var textObj = new GameObject("Text");
+        textObj.transform.SetParent(go.transform, false);
+        var textRect = textObj.AddComponent<RectTransform>();
+        textRect.anchorMin = Vector2.zero;
+        textRect.anchorMax = Vector2.one;
+        textRect.sizeDelta = Vector2.zero;
+        var t = textObj.AddComponent<Text>();
+        t.text = label;
+        t.font = font;
+        t.fontSize = MainMenuDesignTokens.ButtonFontSize;
+        t.alignment = TextAnchor.MiddleCenter;
+        t.color = MainMenuDesignTokens.TextPrimary;
+        textObj.AddComponent<CanvasRenderer>();
+
+        return go;
+    }
+
+    static void SetButtonRect(RectTransform rect, float anchorX, float anchorY)
+    {
+        rect.anchorMin = new Vector2(anchorX, anchorY);
+        rect.anchorMax = new Vector2(anchorX, anchorY);
+        rect.sizeDelta = new Vector2(MainMenuDesignTokens.ButtonWidth, MainMenuDesignTokens.ButtonHeight);
+        rect.anchoredPosition = Vector2.zero;
     }
 }

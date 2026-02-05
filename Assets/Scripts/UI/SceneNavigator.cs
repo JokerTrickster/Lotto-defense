@@ -37,5 +37,19 @@ namespace LottoDefense.UI
             UnityEditor.EditorApplication.isPlaying = false;
 #endif
         }
+
+        /// <summary>
+        /// Show "준비중" feedback for modes not yet implemented.
+        /// </summary>
+        public void ShowComingSoon(string modeName)
+        {
+            Debug.Log($"[MainMenu] 준비중: {modeName}");
+        }
+
+        /// <summary>준비중: 협동 플레이 (for button binding).</summary>
+        public void ShowComingSoonCoop() => ShowComingSoon("협동 플레이");
+
+        /// <summary>준비중: 보스 러시 (for button binding).</summary>
+        public void ShowComingSoonBossRush() => ShowComingSoon("보스 러시");
     }
 }
