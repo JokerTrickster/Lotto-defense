@@ -460,12 +460,18 @@ namespace LottoDefense.Units
 
             // Add visual representation (SpriteRenderer is added by RequireComponent on Unit)
             SpriteRenderer renderer = unitObj.GetComponent<SpriteRenderer>();
-            if (renderer != null && unitData.icon != null)
-            {
-                renderer.sprite = unitData.icon;
-            }
             if (renderer != null)
             {
+                if (unitData.icon != null)
+                {
+                    renderer.sprite = unitData.icon;
+                }
+                else if (renderer.sprite == null)
+                {
+                    // Generate circle placeholder when no icon and no sprite set
+                    renderer.sprite = UnitData.CreateCircleSprite(32);
+                    renderer.color = UnitData.GetRarityColor(unitData.rarity);
+                }
                 renderer.sortingOrder = 10;
             }
 

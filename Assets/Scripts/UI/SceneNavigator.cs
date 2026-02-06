@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using LottoDefense.Gameplay;
 
 namespace LottoDefense.UI
 {
@@ -20,6 +21,7 @@ namespace LottoDefense.UI
         public void LoadMainGame()
         {
             Debug.Log("Loading MainGame...");
+            GameplayManager.CleanupAllGameplaySingletons();
             SceneManager.LoadScene("MainGame");
         }
 

@@ -93,5 +93,48 @@ namespace LottoDefense.Units
         {
             return $"{GetDisplayName()} - Type: {type}, ATK: {attack}, DEF: {defense}, Range: {attackRange}, AS: {attackSpeed}";
         }
+
+        #region Static Visual Helpers
+        /// <summary>
+        /// Create a circle Sprite from a generated Texture2D.
+        /// Used as placeholder visual when no icon/prefab is assigned.
+        /// </summary>
+        public static Sprite CreateCircleSprite(int size)
+        {
+            Texture2D tex = new Texture2D(size, size, TextureFormat.RGBA32, false);
+            float center = size * 0.5f;
+            float radius = center - 1f;
+
+            for (int y = 0; y < size; y++)
+            {
+                for (int x = 0; x < size; x++)
+                {
+                    float dx = x - center + 0.5f;
+                    float dy = y - center + 0.5f;
+                    float dist = Mathf.Sqrt(dx * dx + dy * dy);
+                    tex.SetPixel(x, y, dist <= radius ? Color.white : Color.clear);
+                }
+            }
+            tex.Apply();
+            tex.filterMode = FilterMode.Bilinear;
+
+            return Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), size);
+        }
+
+        /// <summary>
+        /// Get a display color based on unit rarity.
+        /// </summary>
+        public static Color GetRarityColor(Rarity rarity)
+        {
+            switch (rarity)
+            {
+                case Rarity.Normal:    return new Color(0.6f, 0.8f, 1f);       // Light blue
+                case Rarity.Rare:      return new Color(0.4f, 0.6f, 1f);       // Blue
+                case Rarity.Epic:      return new Color(0.7f, 0.3f, 1f);       // Purple
+                case Rarity.Legendary: return new Color(1f, 0.84f, 0f);        // Gold
+                default:               return Color.white;
+            }
+        }
+        #endregion
     }
 }

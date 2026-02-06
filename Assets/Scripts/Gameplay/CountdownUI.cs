@@ -1,6 +1,5 @@
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
 using System;
 using System.Collections;
 
@@ -14,7 +13,7 @@ namespace LottoDefense.Gameplay
     {
         #region Serialized Fields
         [Header("UI References")]
-        [SerializeField] private TextMeshProUGUI countdownText;
+        [SerializeField] private Text countdownText;
         [SerializeField] private CanvasGroup canvasGroup;
 
         [Header("Animation Settings")]
@@ -40,7 +39,7 @@ namespace LottoDefense.Gameplay
             // Auto-setup references if not assigned
             if (countdownText == null)
             {
-                countdownText = GetComponentInChildren<TextMeshProUGUI>();
+                countdownText = GetComponentInChildren<Text>();
             }
 
             if (canvasGroup == null)
@@ -57,9 +56,9 @@ namespace LottoDefense.Gameplay
                 audioSource = GetComponent<AudioSource>();
             }
 
-            // Start hidden
+            // Start hidden but keep GameObject active so FindFirstObjectByType can find it
             canvasGroup.alpha = 0f;
-            gameObject.SetActive(false);
+            // NOTE: Do NOT call gameObject.SetActive(false) here as it prevents FindFirstObjectByType from finding this component
         }
         #endregion
 

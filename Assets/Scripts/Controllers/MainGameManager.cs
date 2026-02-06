@@ -7,18 +7,13 @@ namespace LottoDefense.Controllers
     {
         private void Start()
         {
-            Debug.Log($"[MainGameManager] Checking authentication... (AuthManager Instance: {AuthenticationManager.Instance.GetInstanceID()})");
-
-            // Check if user is authenticated
             if (AuthenticationManager.Instance.IsAuthenticated)
             {
-                Debug.Log($"[MainGameManager] Welcome to Main Game! User ID: {AuthenticationManager.Instance.UserId}");
+                Debug.Log($"[MainGameManager] Welcome! User ID: {AuthenticationManager.Instance.UserId}");
             }
             else
             {
-                Debug.LogWarning($"[MainGameManager] User not authenticated! IsAuthenticated: {AuthenticationManager.Instance.IsAuthenticated}");
-                Debug.LogWarning("Redirecting to login...");
-                UnityEngine.SceneManagement.SceneManager.LoadScene("LoginScene");
+                Debug.LogWarning("[MainGameManager] User not authenticated. Use LoginScene as start scene for auth flow.");
             }
         }
 

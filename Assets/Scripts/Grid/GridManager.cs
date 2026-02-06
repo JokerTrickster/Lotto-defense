@@ -13,9 +13,12 @@ namespace LottoDefense.Grid
         #region Constants
         public const int GRID_WIDTH = 6;
         public const int GRID_HEIGHT = 10;
-        private const float SCREEN_WIDTH_USAGE = 0.95f; // Use 95% of screen width
-        private const float SCREEN_BOTTOM_MARGIN = 0.1f; // 10% from bottom
-        private const float CELL_BORDER_WIDTH = 0.02f; // Border width in world units
+        private const float SCREEN_WIDTH_USAGE = 0.35f; // Use 35% of screen width (small grid, big path)
+        private const float HUD_TOP_RESERVE = 0.15f;    // Reserve 15% top for HUD
+        private const float BUTTON_BOTTOM_RESERVE = 0.20f; // Reserve 20% bottom for buttons
+        private const float CELL_BORDER_WIDTH = 0.02f;
+        private const float PATH_MARGIN = 1.2f; // World units between grid edge and path center
+        private const int PATH_POINTS_PER_SIDE = 6; // Waypoints per side for smooth movement
         #endregion
 
         #region Singleton
@@ -105,6 +108,7 @@ namespace LottoDefense.Grid
         private void Start()
         {
             GenerateGrid();
+            DrawSquareLoopPath();
         }
         #endregion
 
@@ -114,7 +118,6 @@ namespace LottoDefense.Grid
         /// </summary>
         private void InitializeGrid()
         {
-            // Calculate cell size based on screen width
             Camera mainCamera = Camera.main;
             if (mainCamera == null)
             {
@@ -122,24 +125,29 @@ namespace LottoDefense.Grid
                 return;
             }
 
-            // Get screen bounds in world space
             float screenHeight = mainCamera.orthographicSize * 2f;
             float screenWidth = screenHeight * mainCamera.aspect;
 
-            // Calculate cell size to fit width
-            CellSize = (screenWidth * SCREEN_WIDTH_USAGE) / GRID_WIDTH;
+            // Available space after reserving HUD (top) and button (bottom)
+            float availableHeight = screenHeight * (1f - HUD_TOP_RESERVE - BUTTON_BOTTOM_RESERVE);
+            float availableWidth = screenWidth * SCREEN_WIDTH_USAGE;
 
-            // Calculate grid dimensions
+            // Cell size = min of width-fit and height-fit so grid fits both dimensions
+            float cellByWidth = availableWidth / GRID_WIDTH;
+            float cellByHeight = availableHeight / GRID_HEIGHT;
+            CellSize = Mathf.Min(cellByWidth, cellByHeight);
+
             float gridWidth = CellSize * GRID_WIDTH;
             float gridHeight = CellSize * GRID_HEIGHT;
 
-            // Position grid: centered horizontally, positioned from bottom
+            // Center horizontally, position above button area
             float gridX = -gridWidth / 2f;
-            float gridY = -mainCamera.orthographicSize + (screenHeight * SCREEN_BOTTOM_MARGIN);
+            float bottomEdge = -mainCamera.orthographicSize + (screenHeight * BUTTON_BOTTOM_RESERVE);
+            float gridY = bottomEdge + (availableHeight - gridHeight) / 2f;
 
             GridOrigin = new Vector3(gridX, gridY, 0f);
 
-            Debug.Log($"[GridManager] Grid initialized - CellSize: {CellSize:F2}, Origin: {GridOrigin}, ScreenSize: {screenWidth:F2}x{screenHeight:F2}");
+            Debug.Log($"[GridManager] Grid initialized - CellSize: {CellSize:F2}, Origin: {GridOrigin}, Available: {availableWidth:F2}x{availableHeight:F2}");
         }
         #endregion
 
@@ -613,21 +621,15 @@ namespace LottoDefense.Grid
 
         /// <summary>
         /// Check if a cell is a valid placement location.
-        /// Valid cells are within bounds and not on monster paths.
+        /// Valid cells are within bounds. Monsters loop outside the grid boundary,
+        /// so all grid cells are available for unit placement.
         /// </summary>
         /// <param name="x">X coordinate</param>
         /// <param name="y">Y coordinate</param>
         /// <returns>True if unit can be placed at this position</returns>
         public bool IsPlacementCell(int x, int y)
         {
-            if (!IsValidPosition(x, y))
-                return false;
-
-            // Monster paths use middle columns (x=2 and x=3 for 6-width grid)
-            int pathX1 = GRID_WIDTH / 2 - 1; // x=2
-            int pathX2 = GRID_WIDTH / 2;     // x=3
-
-            return x != pathX1 && x != pathX2;
+            return IsValidPosition(x, y);
         }
 
         /// <summary>
@@ -663,6 +665,48 @@ namespace LottoDefense.Grid
         public Vector3 GetCellWorldPosition(Vector2Int pos)
         {
             return GetCellWorldPosition(pos.x, pos.y);
+        }
+        #endregion
+
+        #region Path Visualization
+        /// <summary>
+        /// Draw the square loop path around the grid boundary using a LineRenderer.
+        /// Called after grid generation to show the monster patrol route.
+        /// </summary>
+        private void DrawSquareLoopPath()
+        {
+            GameObject pathObj = new GameObject("SquareLoopPath");
+            pathObj.transform.SetParent(transform);
+
+            LineRenderer lr = pathObj.AddComponent<LineRenderer>();
+            lr.useWorldSpace = true;
+            lr.loop = true;
+            lr.startWidth = 0.15f;
+            lr.endWidth = 0.15f;
+            lr.sortingOrder = 1;
+
+            // Create simple material with color
+            lr.material = new Material(Shader.Find("Sprites/Default"));
+            Color pathColor = new Color(1f, 0.5f, 0.2f, 0.5f);
+            lr.startColor = pathColor;
+            lr.endColor = pathColor;
+
+            // Use the same corner positions as the monster waypoints
+            float w = GRID_WIDTH * CellSize;
+            float h = GRID_HEIGHT * CellSize;
+            float x0 = GridOrigin.x;
+            float y0 = GridOrigin.y;
+
+            Vector3 bl = new Vector3(x0 - PATH_MARGIN, y0 - PATH_MARGIN, 0f);
+            Vector3 br = new Vector3(x0 + w + PATH_MARGIN, y0 - PATH_MARGIN, 0f);
+            Vector3 tr = new Vector3(x0 + w + PATH_MARGIN, y0 + h + PATH_MARGIN, 0f);
+            Vector3 tl = new Vector3(x0 - PATH_MARGIN, y0 + h + PATH_MARGIN, 0f);
+
+            lr.positionCount = 4;
+            lr.SetPosition(0, bl);
+            lr.SetPosition(1, br);
+            lr.SetPosition(2, tr);
+            lr.SetPosition(3, tl);
         }
         #endregion
 
@@ -707,10 +751,11 @@ namespace LottoDefense.Grid
 
         /// <summary>
         /// Get waypoints for a square loop around the grid boundary.
-        /// Monsters run along the rectangle (bottom-left → bottom-right → top-right → top-left → loop).
+        /// Monsters run along the rectangle with intermediate points for smooth movement.
+        /// (bottom-left → bottom-right → top-right → top-left → loop).
         /// Use with Monster.Initialize(..., loopPath: true).
         /// </summary>
-        /// <returns>List of world positions forming a closed rectangle</returns>
+        /// <returns>List of world positions forming a closed rectangle with intermediate waypoints</returns>
         public List<Vector3> GetSquareLoopWaypoints()
         {
             List<Vector3> waypoints = new List<Vector3>();
@@ -719,12 +764,31 @@ namespace LottoDefense.Grid
             float x0 = GridOrigin.x;
             float y0 = GridOrigin.y;
 
-            waypoints.Add(new Vector3(x0, y0, 0f));
-            waypoints.Add(new Vector3(x0 + w, y0, 0f));
-            waypoints.Add(new Vector3(x0 + w, y0 + h, 0f));
-            waypoints.Add(new Vector3(x0, y0 + h, 0f));
+            // 4 corners with PATH_MARGIN offset from grid edge
+            Vector3 bl = new Vector3(x0 - PATH_MARGIN, y0 - PATH_MARGIN, 0f);
+            Vector3 br = new Vector3(x0 + w + PATH_MARGIN, y0 - PATH_MARGIN, 0f);
+            Vector3 tr = new Vector3(x0 + w + PATH_MARGIN, y0 + h + PATH_MARGIN, 0f);
+            Vector3 tl = new Vector3(x0 - PATH_MARGIN, y0 + h + PATH_MARGIN, 0f);
+
+            // Add intermediate points along each side for smooth movement
+            AddSideWaypoints(waypoints, bl, br, PATH_POINTS_PER_SIDE); // bottom
+            AddSideWaypoints(waypoints, br, tr, PATH_POINTS_PER_SIDE); // right
+            AddSideWaypoints(waypoints, tr, tl, PATH_POINTS_PER_SIDE); // top
+            AddSideWaypoints(waypoints, tl, bl, PATH_POINTS_PER_SIDE); // left
 
             return waypoints;
+        }
+
+        /// <summary>
+        /// Add evenly spaced waypoints along a side (excluding the end point to avoid duplicates).
+        /// </summary>
+        private void AddSideWaypoints(List<Vector3> waypoints, Vector3 from, Vector3 to, int count)
+        {
+            for (int i = 0; i < count; i++)
+            {
+                float t = (float)i / count;
+                waypoints.Add(Vector3.Lerp(from, to, t));
+            }
         }
         #endregion
     }

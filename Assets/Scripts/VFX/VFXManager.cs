@@ -1,7 +1,7 @@
 using UnityEngine;
+using UnityEngine.UI;
 using System.Collections;
 using System.Collections.Generic;
-using TMPro;
 using LottoDefense.Units;
 using LottoDefense.Monsters;
 
@@ -386,13 +386,14 @@ namespace LottoDefense.VFX
             RectTransform rectTransform = prefab.GetComponent<RectTransform>();
             rectTransform.sizeDelta = new Vector2(100, 50);
 
-            // Add TextMeshProUGUI
+            // Add Text with font
             GameObject textObj = new GameObject("Text");
             textObj.transform.SetParent(prefab.transform);
-            TextMeshProUGUI text = textObj.AddComponent<TextMeshProUGUI>();
+            Text text = textObj.AddComponent<Text>();
+            text.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
             text.fontSize = 36;
-            text.alignment = TextAlignmentOptions.Center;
-            text.enableWordWrapping = false;
+            text.alignment = TextAnchor.MiddleCenter;
+            text.horizontalOverflow = HorizontalWrapMode.Overflow;
 
             RectTransform textRect = textObj.GetComponent<RectTransform>();
             textRect.anchorMin = Vector2.zero;
@@ -429,13 +430,14 @@ namespace LottoDefense.VFX
             RectTransform rectTransform = prefab.GetComponent<RectTransform>();
             rectTransform.sizeDelta = new Vector2(150, 50);
 
-            // Add TextMeshProUGUI
+            // Add Text
             GameObject textObj = new GameObject("Text");
             textObj.transform.SetParent(prefab.transform);
-            TextMeshProUGUI text = textObj.AddComponent<TextMeshProUGUI>();
+            Text text = textObj.AddComponent<Text>();
+            text.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
             text.fontSize = 32;
-            text.alignment = TextAlignmentOptions.Center;
-            text.enableWordWrapping = false;
+            text.alignment = TextAnchor.MiddleCenter;
+            text.horizontalOverflow = HorizontalWrapMode.Overflow;
 
             RectTransform textRect = textObj.GetComponent<RectTransform>();
             textRect.anchorMin = Vector2.zero;

@@ -115,9 +115,20 @@ namespace LottoDefense.Monsters
             goldReward = data.goldReward;
 
             // Setup visuals
-            if (spriteRenderer != null && data.sprite != null)
+            if (spriteRenderer != null)
             {
-                spriteRenderer.sprite = data.sprite;
+                if (data.sprite != null)
+                {
+                    spriteRenderer.sprite = data.sprite;
+                }
+                else
+                {
+                    // Create default colored sprite if none assigned
+                    spriteRenderer.sprite = CreateDefaultSprite(data.type);
+                }
+
+                // Ensure monster is visible by setting a reasonable size
+                transform.localScale = Vector3.one * 0.5f;
             }
 
             // Position at first waypoint
@@ -246,6 +257,61 @@ namespace LottoDefense.Monsters
 
             IsActive = false;
             OnDeath?.Invoke(this);
+        }
+        #endregion
+
+        #region Visuals
+        /// <summary>
+        /// Create a default colored sprite for monsters without assigned sprites.
+        /// </summary>
+        private Sprite CreateDefaultSprite(MonsterType type)
+        {
+            // Color based on monster type
+            Color color = type switch
+            {
+                MonsterType.Normal => Color.green,
+                MonsterType.Fast => Color.yellow,
+                MonsterType.Tank => new Color(0.6f, 0.3f, 0.1f), // Brown
+                MonsterType.Boss => Color.red,
+                _ => Color.white
+            };
+
+            // Create a simple 32x32 texture
+            Texture2D texture = new Texture2D(32, 32);
+            Color[] pixels = new Color[32 * 32];
+
+            // Create a filled circle
+            Vector2 center = new Vector2(16, 16);
+            float radius = 14f;
+
+            for (int y = 0; y < 32; y++)
+            {
+                for (int x = 0; x < 32; x++)
+                {
+                    float distance = Vector2.Distance(new Vector2(x, y), center);
+                    if (distance < radius)
+                    {
+                        // Inner color
+                        pixels[y * 32 + x] = color;
+                    }
+                    else if (distance < radius + 2)
+                    {
+                        // Border
+                        pixels[y * 32 + x] = Color.black;
+                    }
+                    else
+                    {
+                        // Transparent
+                        pixels[y * 32 + x] = Color.clear;
+                    }
+                }
+            }
+
+            texture.SetPixels(pixels);
+            texture.Apply();
+            texture.filterMode = FilterMode.Point;
+
+            return Sprite.Create(texture, new Rect(0, 0, 32, 32), new Vector2(0.5f, 0.5f), 32f);
         }
         #endregion
 

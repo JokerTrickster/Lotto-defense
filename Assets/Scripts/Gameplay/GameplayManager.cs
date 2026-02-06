@@ -1,5 +1,11 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using System;
+using LottoDefense.Combat;
+using LottoDefense.Grid;
+using LottoDefense.Monsters;
+using LottoDefense.Units;
+using LottoDefense.VFX;
 
 namespace LottoDefense.Gameplay
 {
@@ -11,14 +17,18 @@ namespace LottoDefense.Gameplay
     {
         #region Singleton
         private static GameplayManager _instance;
+        private static bool _isCleaningUp;
 
         /// <summary>
         /// Global access point for the GameplayManager singleton.
+        /// Returns null during cleanup to prevent auto-creation cascade from OnDisable callbacks.
         /// </summary>
         public static GameplayManager Instance
         {
             get
             {
+                if (_isCleaningUp) return null;
+
                 if (_instance == null)
                 {
                     _instance = FindFirstObjectByType<GameplayManager>();
@@ -37,7 +47,7 @@ namespace LottoDefense.Gameplay
         #region Constants
         private const int INITIAL_ROUND = 1;
         private const int INITIAL_LIFE = 10;
-        private const int INITIAL_GOLD = 50;
+        private const int INITIAL_GOLD = 30;
         #endregion
 
         #region Properties
@@ -75,6 +85,27 @@ namespace LottoDefense.Gameplay
         public event Action<string, int> OnGameValueChanged;
         #endregion
 
+        #region Auto-Initialization
+        /// <summary>
+        /// Registers a scene-loaded callback at app startup so GameplayManager
+        /// auto-creates itself whenever GameScene loads (regardless of how you get there).
+        /// </summary>
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        private static void RegisterSceneLoadHandler()
+        {
+            SceneManager.sceneLoaded += OnSceneLoaded;
+        }
+
+        private static void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+        {
+            if (scene.name == "GameScene" && _instance == null && !_isCleaningUp)
+            {
+                Debug.Log("[GameplayManager] Auto-initializing for GameScene");
+                var _ = Instance;
+            }
+        }
+        #endregion
+
         #region Unity Lifecycle
         private void Awake()
         {
@@ -92,8 +123,36 @@ namespace LottoDefense.Gameplay
 
         private void Start()
         {
+            // Ensure all game systems are bootstrapped before starting countdown
+            EnsureGameSystemsBootstrapped();
+
+            // Give a frame for systems to initialize
+            StartCoroutine(StartCountdownDelayed());
+        }
+
+        private System.Collections.IEnumerator StartCountdownDelayed()
+        {
+            // Wait one frame for all managers to initialize
+            yield return null;
+
             // Automatically start countdown when scene loads
             StartCountdown();
+        }
+
+        /// <summary>
+        /// Ensures all required game systems exist and are properly configured.
+        /// Creates GameSceneBootstrapper if it doesn't exist.
+        /// </summary>
+        private void EnsureGameSystemsBootstrapped()
+        {
+            // Check if bootstrapper already exists
+            GameSceneBootstrapper bootstrapper = FindFirstObjectByType<GameSceneBootstrapper>();
+            if (bootstrapper == null)
+            {
+                Debug.Log("[GameplayManager] Creating GameSceneBootstrapper");
+                GameObject bootstrapperObj = new GameObject("GameSceneBootstrapper");
+                bootstrapperObj.AddComponent<GameSceneBootstrapper>();
+            }
         }
         #endregion
 
@@ -271,6 +330,57 @@ namespace LottoDefense.Gameplay
         public void NextRound()
         {
             SetRound(CurrentRound + 1);
+        }
+        #endregion
+
+        #region Cleanup
+        /// <summary>
+        /// Destroys all gameplay-scoped singletons created during a game session.
+        /// Call before returning to main menu to prevent DontDestroyOnLoad objects
+        /// from persisting and covering the menu UI.
+        /// Uses FindFirstObjectByType directly to avoid auto-creation via Instance getters.
+        /// </summary>
+        public static void CleanupAllGameplaySingletons()
+        {
+            Debug.Log("[GameplayManager] Cleaning up all gameplay singletons");
+            _isCleaningUp = true;
+
+            DestroyIfExists<GridManager>();
+            DestroyIfExists<MonsterManager>();
+            DestroyIfExists<RoundManager>();
+            DestroyIfExists<CombatManager>();
+            DestroyIfExists<UnitManager>();
+            DestroyIfExists<UnitPlacementManager>();
+            DestroyIfExists<SynthesisManager>();
+            DestroyIfExists<UpgradeManager>();
+            DestroyIfExists<VFXManager>();
+            DestroyIfExists<MobileOptimizationManager>();
+            DestroyIfExists<GameSceneBootstrapper>();
+
+            // Destroy GameCanvas if it exists (created by bootstrapper with sortingOrder 100)
+            GameObject gameCanvas = GameObject.Find("GameCanvas");
+            if (gameCanvas != null)
+            {
+                Destroy(gameCanvas);
+            }
+
+            // Destroy self last
+            if (_instance != null)
+            {
+                Destroy(_instance.gameObject);
+                _instance = null;
+            }
+
+            _isCleaningUp = false;
+        }
+
+        private static void DestroyIfExists<T>() where T : MonoBehaviour
+        {
+            T obj = UnityEngine.Object.FindFirstObjectByType<T>();
+            if (obj != null)
+            {
+                Destroy(obj.gameObject);
+            }
         }
         #endregion
     }

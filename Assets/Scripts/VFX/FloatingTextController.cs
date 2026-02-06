@@ -1,6 +1,5 @@
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
 using System.Collections;
 
 namespace LottoDefense.VFX
@@ -15,7 +14,7 @@ namespace LottoDefense.VFX
     {
         #region Inspector Fields
         [Header("Components")]
-        [SerializeField] private TextMeshProUGUI messageText;
+        [SerializeField] private Text messageText;
         [SerializeField] private CanvasGroup canvasGroup;
 
         [Header("Animation Settings")]
@@ -61,7 +60,7 @@ namespace LottoDefense.VFX
         {
             if (messageText == null)
             {
-                Debug.LogError("[FloatingTextController] TextMeshProUGUI component missing!");
+                Debug.LogError("[FloatingTextController] Text component missing!");
                 return;
             }
 

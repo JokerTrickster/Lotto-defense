@@ -1,5 +1,5 @@
 using UnityEngine;
-using TMPro;
+using UnityEngine.UI;
 using LottoDefense.Gameplay;
 
 namespace LottoDefense.UI
@@ -13,22 +13,22 @@ namespace LottoDefense.UI
     {
         #region Inspector Fields
         [Header("HUD Text Components")]
-        [SerializeField] private TextMeshProUGUI roundText;
-        [SerializeField] private TextMeshProUGUI phaseText;
-        [SerializeField] private TextMeshProUGUI timeText;
-        [SerializeField] private TextMeshProUGUI monsterText;
-        [SerializeField] private TextMeshProUGUI goldText;
-        [SerializeField] private TextMeshProUGUI unitText;
-        [SerializeField] private TextMeshProUGUI lifeText;
+        [SerializeField] private Text roundText;
+        [SerializeField] private Text phaseText;
+        [SerializeField] private Text timeText;
+        [SerializeField] private Text monsterText;
+        [SerializeField] private Text goldText;
+        [SerializeField] private Text unitText;
+        [SerializeField] private Text lifeText;
 
         [Header("Settings")]
-        [SerializeField] private string roundFormat = "Round: {0}";
-        [SerializeField] private string phaseFormat = "Phase: {0}";
-        [SerializeField] private string timeFormat = "Time: {0:00}:{1:00}";
-        [SerializeField] private string monsterFormat = "Monsters: {0}";
-        [SerializeField] private string goldFormat = "Gold: {0}";
-        [SerializeField] private string unitFormat = "Units: {0}";
-        [SerializeField] private string lifeFormat = "Life: {0}";
+        [SerializeField] private string roundFormat = "R{0}";
+        [SerializeField] private string phaseFormat = "{0}";
+        [SerializeField] private string timeFormat = "{0:00}:{1:00}";
+        [SerializeField] private string monsterFormat = "M:{0}";
+        [SerializeField] private string goldFormat = "G:{0}";
+        [SerializeField] private string unitFormat = "U:{0}";
+        [SerializeField] private string lifeFormat = "♥{0}";
         #endregion
 
         #region Private Fields

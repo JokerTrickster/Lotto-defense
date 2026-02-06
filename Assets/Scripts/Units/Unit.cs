@@ -102,17 +102,23 @@ namespace LottoDefense.Units
             currentCooldown = 0f;
 
             // Setup visual representation
-            if (spriteRenderer != null && unitData.icon != null)
+            if (spriteRenderer != null)
             {
-                spriteRenderer.sprite = unitData.icon;
-                spriteRenderer.color = normalColor;
+                if (unitData.icon != null)
+                {
+                    spriteRenderer.sprite = unitData.icon;
+                    spriteRenderer.color = normalColor;
+                }
+                // When icon is null, keep existing sprite/color from prefab (e.g. generated circle)
                 spriteRenderer.sortingOrder = 10; // Above grid cells
             }
 
-            // Position at grid cell center
+            // Position at grid cell center and scale to fit cell
             if (GridManager.Instance != null)
             {
                 transform.position = GridManager.Instance.GridToWorld(gridPos);
+                float cellSize = GridManager.Instance.CellSize;
+                transform.localScale = Vector3.one * cellSize * 0.8f;
             }
 
             gameObject.name = $"Unit_{unitData.unitName}_{gridPos.x}_{gridPos.y}";

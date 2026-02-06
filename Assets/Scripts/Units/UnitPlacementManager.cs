@@ -232,13 +232,19 @@ namespace LottoDefense.Units
 
             // Create unit prefab instance
             GameObject unitPrefab = SelectedUnitData.prefab;
+            bool isTemplatePrefab = false;
             if (unitPrefab == null)
             {
                 // Create default unit GameObject if no prefab
                 unitPrefab = CreateDefaultUnitPrefab(SelectedUnitData);
+                isTemplatePrefab = true;
             }
 
             GameObject unitObject = Instantiate(unitPrefab);
+
+            // Destroy the temporary template to avoid memory leak
+            if (isTemplatePrefab)
+                Destroy(unitPrefab);
 
             // Add Unit component if not present
             Unit unitComponent = unitObject.GetComponent<Unit>();
@@ -274,6 +280,7 @@ namespace LottoDefense.Units
 
         /// <summary>
         /// Create a default unit prefab when none is provided.
+        /// Generates a colored circle sprite based on rarity when no icon exists.
         /// </summary>
         private GameObject CreateDefaultUnitPrefab(UnitData data)
         {
@@ -285,6 +292,12 @@ namespace LottoDefense.Units
             {
                 sr.sprite = data.icon;
             }
+            else
+            {
+                // Generate circle sprite as placeholder
+                sr.sprite = UnitData.CreateCircleSprite(32);
+                sr.color = UnitData.GetRarityColor(data.rarity);
+            }
             sr.sortingOrder = 10;
 
             // Add collider for mouse interaction
@@ -294,6 +307,7 @@ namespace LottoDefense.Units
             obj.name = $"Unit_{data.unitName}";
             return obj;
         }
+
         #endregion
 
         #region Unit Swapping
