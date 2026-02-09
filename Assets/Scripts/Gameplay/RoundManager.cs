@@ -115,6 +115,7 @@ namespace LottoDefense.Gameplay
         private Coroutine phaseTimerCoroutine;
         private bool isInitialized = false;
         private GameHUD cachedGameHUD;
+        private RoundStartUI cachedRoundStartUI;
         #endregion
 
         #region Unity Lifecycle
@@ -504,10 +505,24 @@ namespace LottoDefense.Gameplay
         /// </summary>
         private void ShowRoundStartNotification()
         {
-            RoundStartUI roundStartUI = FindFirstObjectByType<RoundStartUI>();
-            if (roundStartUI != null)
+            // Cache RoundStartUI reference (it may be inactive, so FindObjectsOfType with includeInactive)
+            if (cachedRoundStartUI == null)
             {
-                roundStartUI.ShowRoundStart(CurrentRound);
+                // Find including inactive objects
+                RoundStartUI[] allRoundStartUIs = FindObjectsByType<RoundStartUI>(
+                    FindObjectsInactive.Include,
+                    FindObjectsSortMode.None
+                );
+                if (allRoundStartUIs.Length > 0)
+                {
+                    cachedRoundStartUI = allRoundStartUIs[0];
+                }
+            }
+
+            if (cachedRoundStartUI != null)
+            {
+                cachedRoundStartUI.ShowRoundStart(CurrentRound);
+                Debug.Log($"[RoundManager] Showing round start notification for Round {CurrentRound}");
             }
             else
             {

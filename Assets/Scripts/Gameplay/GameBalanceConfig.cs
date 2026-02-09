@@ -485,6 +485,72 @@ namespace LottoDefense.Gameplay
         };
         #endregion
 
+        #region Synthesis System
+        [System.Serializable]
+        public class SynthesisRecipe
+        {
+            [Tooltip("합성할 유닛 이름 (3개 필요)")]
+            public string sourceUnitName;
+
+            [Tooltip("합성 결과 유닛 이름")]
+            public string resultUnitName;
+
+            [Tooltip("합성 비용 (골드)")]
+            public int synthesisGoldCost = 0;
+        }
+
+        [Header("=== 합성 시스템 ===")]
+        [Tooltip("유닛 합성 레시피 (같은 유닛 3개 → 상위 유닛)")]
+        public List<SynthesisRecipe> synthesisRecipes = new List<SynthesisRecipe>
+        {
+            // Normal → Rare
+            new SynthesisRecipe
+            {
+                sourceUnitName = "기본 궁수",
+                resultUnitName = "강화 궁수",
+                synthesisGoldCost = 0
+            },
+            new SynthesisRecipe
+            {
+                sourceUnitName = "검사",
+                resultUnitName = "마법사",
+                synthesisGoldCost = 0
+            },
+
+            // Rare → Epic
+            new SynthesisRecipe
+            {
+                sourceUnitName = "강화 궁수",
+                resultUnitName = "저격수",
+                synthesisGoldCost = 0
+            },
+            new SynthesisRecipe
+            {
+                sourceUnitName = "마법사",
+                resultUnitName = "대마법사",
+                synthesisGoldCost = 0
+            },
+
+            // Epic → Legendary
+            new SynthesisRecipe
+            {
+                sourceUnitName = "저격수",
+                resultUnitName = "드래곤 아처",
+                synthesisGoldCost = 0
+            },
+            new SynthesisRecipe
+            {
+                sourceUnitName = "대마법사",
+                resultUnitName = "대현자",
+                synthesisGoldCost = 0
+            }
+        };
+
+        [Header("=== 판매 시스템 ===")]
+        [Tooltip("유닛 판매 시 획득 골드")]
+        public int unitSellGold = 3;
+        #endregion
+
         #region Helper Methods
         /// <summary>
         /// 특정 등급의 유닛 리스트 가져오기
@@ -571,6 +637,22 @@ namespace LottoDefense.Gameplay
                 Debug.LogWarning("[GameBalanceConfig] 방어력 스케일링 커브가 비어있습니다!");
                 difficulty.defenseScaling = AnimationCurve.Linear(0f, 1f, 1f, 3f);
             }
+        }
+
+        /// <summary>
+        /// 합성 레시피 찾기
+        /// </summary>
+        public SynthesisRecipe GetSynthesisRecipe(string sourceUnitName)
+        {
+            return synthesisRecipes.Find(r => r.sourceUnitName == sourceUnitName);
+        }
+
+        /// <summary>
+        /// 합성 가능 여부 확인
+        /// </summary>
+        public bool CanSynthesize(string unitName)
+        {
+            return GetSynthesisRecipe(unitName) != null;
         }
         #endregion
     }

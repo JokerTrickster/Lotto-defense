@@ -77,6 +77,7 @@ namespace LottoDefense.Units
         #region Private Combat Fields
         private float attackCooldown;
         private float currentCooldown;
+        private int combatTickCount; // Track combat ticks for logging throttle
         #endregion
 
         #region Unity Lifecycle
@@ -246,15 +247,19 @@ namespace LottoDefense.Units
         /// <summary>
         /// Called each combat tick by CombatManager.
         /// Handles target acquisition and attack execution.
+        /// Once locked onto a target, pursues it until death (not just until out of range).
         /// </summary>
         public void CombatTick()
         {
             if (Data == null) return;
 
+            combatTickCount++;
+
             // Update cooldown
             currentCooldown -= 0.1f; // Combat tick interval
 
-            // Find or validate target
+            // Find or validate target - ONLY if target is dead/inactive
+            // Do NOT switch targets just because out of range - pursue until death!
             if (CurrentTarget == null || !CurrentTarget.IsActive)
             {
                 CurrentTarget = FindNearestMonster();
@@ -265,15 +270,30 @@ namespace LottoDefense.Units
             }
 
             // Attack if ready and has target
+            // NOTE: Attack even if out of range - unit will chase target until it dies
             if (CurrentTarget != null && currentCooldown <= 0f)
             {
-                ExecuteAttack();
-                currentCooldown = attackCooldown;
+                float distance = Vector3.Distance(transform.position, CurrentTarget.transform.position);
 
-                // Only log if target still exists after attack (it might have died)
-                if (CurrentTarget != null && CurrentTarget.Data != null)
+                // Only attack if within range, but keep target locked
+                if (distance <= Data.attackRange)
                 {
-                    Debug.Log($"[Unit] {Data.GetDisplayName()} attacked {CurrentTarget.Data.monsterName} for {CurrentAttack} damage. Next attack in {attackCooldown:F2}s");
+                    ExecuteAttack();
+                    currentCooldown = attackCooldown;
+
+                    // Only log if target still exists after attack (it might have died)
+                    if (CurrentTarget != null && CurrentTarget.Data != null)
+                    {
+                        Debug.Log($"[Unit] {Data.GetDisplayName()} attacked {CurrentTarget.Data.monsterName} for {CurrentAttack} damage. Next attack in {attackCooldown:F2}s");
+                    }
+                }
+                else
+                {
+                    // Target out of range but still locked - log occasionally
+                    if (combatTickCount % 20 == 0) // Log every 2 seconds
+                    {
+                        Debug.Log($"[Unit] {Data.GetDisplayName()} target out of range ({distance:F2} > {Data.attackRange}), waiting for target to return or die");
+                    }
                 }
             }
         }
@@ -414,6 +434,7 @@ namespace LottoDefense.Units
         {
             CurrentTarget = null;
             currentCooldown = 0f;
+            combatTickCount = 0;
         }
         #endregion
 
