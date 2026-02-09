@@ -369,6 +369,25 @@ namespace LottoDefense.VFX
 
         #region Default Prefab Creation
         /// <summary>
+        /// Get built-in font with fallback for different Unity versions.
+        /// </summary>
+        private Font GetBuiltinFont()
+        {
+            // Unity 2022+ uses LegacyRuntime.ttf
+            Font font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            if (font == null)
+            {
+                // Fallback to Arial.ttf for older Unity versions
+                font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            }
+            if (font == null)
+            {
+                Debug.LogError("[VFXManager] Failed to load built-in font!");
+            }
+            return font;
+        }
+
+        /// <summary>
         /// Create default damage number prefab if none is assigned.
         /// </summary>
         private GameObject CreateDefaultDamageNumberPrefab()
@@ -390,7 +409,7 @@ namespace LottoDefense.VFX
             GameObject textObj = new GameObject("Text");
             textObj.transform.SetParent(prefab.transform);
             Text text = textObj.AddComponent<Text>();
-            text.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            text.font = GetBuiltinFont();
             text.fontSize = 36;
             text.alignment = TextAnchor.MiddleCenter;
             text.horizontalOverflow = HorizontalWrapMode.Overflow;
@@ -434,7 +453,7 @@ namespace LottoDefense.VFX
             GameObject textObj = new GameObject("Text");
             textObj.transform.SetParent(prefab.transform);
             Text text = textObj.AddComponent<Text>();
-            text.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            text.font = GetBuiltinFont();
             text.fontSize = 32;
             text.alignment = TextAnchor.MiddleCenter;
             text.horizontalOverflow = HorizontalWrapMode.Overflow;
