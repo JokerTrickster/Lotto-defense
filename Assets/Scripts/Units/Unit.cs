@@ -361,10 +361,10 @@ namespace LottoDefense.Units
 
             switch (Data.rarity)
             {
-                case UnitRarity.Common: return new Color(0.8f, 0.8f, 0.8f); // Gray
-                case UnitRarity.Rare: return new Color(0.3f, 0.7f, 1f); // Blue
-                case UnitRarity.Epic: return new Color(0.7f, 0.3f, 1f); // Purple
-                case UnitRarity.Legendary: return new Color(1f, 0.8f, 0.2f); // Gold
+                case Rarity.Normal: return new Color(0.6f, 0.8f, 1f); // Light blue
+                case Rarity.Rare: return new Color(0.4f, 0.6f, 1f); // Blue
+                case Rarity.Epic: return new Color(0.7f, 0.3f, 1f); // Purple
+                case Rarity.Legendary: return new Color(1f, 0.8f, 0.2f); // Gold
                 default: return Color.white;
             }
         }

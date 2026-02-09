@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using System.Collections;
 using LottoDefense.Gameplay;
 
 namespace LottoDefense.UI
