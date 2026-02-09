@@ -19,11 +19,18 @@ namespace LottoDefense.Gameplay
             Debug.Log($"[GameSceneBootstrapper] Awake called on GameObject: {gameObject.name}");
             Debug.Log("[GameSceneBootstrapper] Starting game scene initialization...");
 
-            defaultFont = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            // Unity 2022+ uses LegacyRuntime.ttf instead of Arial.ttf
+            defaultFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             if (defaultFont == null)
-                Debug.LogError("[GameSceneBootstrapper] Failed to load Arial font!");
+            {
+                // Fallback to Arial.ttf for older Unity versions
+                defaultFont = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            }
+
+            if (defaultFont == null)
+                Debug.LogError("[GameSceneBootstrapper] Failed to load default font!");
             else
-                Debug.Log("[GameSceneBootstrapper] Arial font loaded successfully");
+                Debug.Log($"[GameSceneBootstrapper] Font loaded successfully: {defaultFont.name}");
 
             Debug.Log("[GameSceneBootstrapper] Creating main canvas...");
             EnsureMainCanvas();
