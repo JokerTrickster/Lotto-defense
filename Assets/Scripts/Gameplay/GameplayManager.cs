@@ -119,24 +119,29 @@ namespace LottoDefense.Gameplay
             DontDestroyOnLoad(gameObject);
 
             Initialize();
+
+            // Create bootstrapper immediately in Awake (not Start) to avoid
+            // timing issues with DontDestroyOnLoad objects during sceneLoaded callbacks
+            EnsureGameSystemsBootstrapped();
         }
 
         private void Start()
         {
-            // Ensure all game systems are bootstrapped before starting countdown
-            EnsureGameSystemsBootstrapped();
-
-            // Give a frame for systems to initialize
+            // Start countdown (bootstrapper already created in Awake)
             StartCoroutine(StartCountdownDelayed());
         }
 
         private System.Collections.IEnumerator StartCountdownDelayed()
         {
-            // Wait one frame for all managers to initialize
+            // Wait two frames for all managers to fully initialize
+            yield return null;
             yield return null;
 
-            // Automatically start countdown when scene loads
-            StartCountdown();
+            // Start countdown if still in Countdown state
+            if (CurrentState == GameState.Countdown)
+            {
+                StartCountdown();
+            }
         }
 
         /// <summary>

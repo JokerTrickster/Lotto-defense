@@ -38,6 +38,28 @@ namespace LottoDefense.Gameplay
             Debug.Log("[GameSceneBootstrapper] Game scene initialization complete");
         }
 
+        private void Start()
+        {
+            // Safety net: ensure countdown starts even if GameplayManager.Start() has timing issues
+            // with DontDestroyOnLoad objects created during sceneLoaded callbacks
+            StartCoroutine(EnsureCountdownStarted());
+        }
+
+        private System.Collections.IEnumerator EnsureCountdownStarted()
+        {
+            // Wait 3 frames to give GameplayManager.Start() a chance to handle it first
+            yield return null;
+            yield return null;
+            yield return null;
+
+            if (GameplayManager.Instance != null &&
+                GameplayManager.Instance.CurrentState == GameState.Countdown)
+            {
+                Debug.Log("[GameSceneBootstrapper] Safety net: triggering countdown");
+                GameplayManager.Instance.StartCountdown();
+            }
+        }
+
         #region Canvas
         private void EnsureMainCanvas()
         {
