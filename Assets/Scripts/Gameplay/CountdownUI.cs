@@ -88,16 +88,21 @@ namespace LottoDefense.Gameplay
         #region Coroutines
         /// <summary>
         /// Main countdown sequence coroutine.
+        /// Uses WaitForSecondsRealtime to work regardless of Time.timeScale.
         /// </summary>
         private IEnumerator CountdownSequence()
         {
-            Debug.Log("[CountdownUI] CountdownSequence started");
+            Debug.Log($"[CountdownUI] CountdownSequence started - Time.timeScale: {Time.timeScale}");
+
+            // Ensure time is running during countdown
+            Time.timeScale = 1f;
+
             // Countdown from 3 to 1
             for (int i = 3; i >= 1; i--)
             {
                 Debug.Log($"[CountdownUI] Showing number: {i}");
                 yield return StartCoroutine(ShowNumber(i));
-                yield return new WaitForSeconds(countdownInterval);
+                yield return new WaitForSecondsRealtime(countdownInterval);
             }
 
             Debug.Log("[CountdownUI] Countdown complete, fading out");
@@ -131,6 +136,7 @@ namespace LottoDefense.Gameplay
 
         /// <summary>
         /// Scale animation: 0.5 -> 1.5 -> 1.0
+        /// Uses unscaledDeltaTime to work regardless of Time.timeScale.
         /// </summary>
         private IEnumerator AnimateScale()
         {
@@ -144,7 +150,7 @@ namespace LottoDefense.Gameplay
             // Phase 1: Scale up from startScale to peakScale
             while (elapsed < halfDuration)
             {
-                elapsed += Time.deltaTime;
+                elapsed += Time.unscaledDeltaTime;
                 float t = elapsed / halfDuration;
                 float scale = Mathf.Lerp(startScale, peakScale, t);
                 textTransform.localScale = Vector3.one * scale;
@@ -155,7 +161,7 @@ namespace LottoDefense.Gameplay
             elapsed = 0f;
             while (elapsed < halfDuration)
             {
-                elapsed += Time.deltaTime;
+                elapsed += Time.unscaledDeltaTime;
                 float t = elapsed / halfDuration;
                 float scale = Mathf.Lerp(peakScale, endScale, t);
                 textTransform.localScale = Vector3.one * scale;
@@ -168,6 +174,7 @@ namespace LottoDefense.Gameplay
 
         /// <summary>
         /// Fade out the countdown UI.
+        /// Uses unscaledDeltaTime to work regardless of Time.timeScale.
         /// </summary>
         private IEnumerator FadeOut()
         {
@@ -176,7 +183,7 @@ namespace LottoDefense.Gameplay
 
             while (elapsed < fadeDuration)
             {
-                elapsed += Time.deltaTime;
+                elapsed += Time.unscaledDeltaTime;
                 canvasGroup.alpha = 1f - (elapsed / fadeDuration);
                 yield return null;
             }
