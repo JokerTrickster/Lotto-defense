@@ -1,5 +1,6 @@
 using UnityEngine;
 using System;
+using System.Collections;
 using LottoDefense.Grid;
 using LottoDefense.Gameplay;
 
@@ -218,7 +219,7 @@ namespace LottoDefense.Units
             // Case 1: Unit selected for movement - move to empty cell
             if (SelectedPlacedUnit != null)
             {
-                if (UnitManager.Instance != null && UnitManager.Instance.GetUnitAtPosition(gridPos) == null)
+                if (GridManager.Instance != null && GridManager.Instance.GetUnitAt(gridPos) == null)
                 {
                     // Move selected unit to empty cell
                     MoveUnitToPosition(SelectedPlacedUnit, gridPos);
@@ -253,12 +254,14 @@ namespace LottoDefense.Units
 
             Vector2Int oldPos = unit.GridPosition;
 
-            // Update unit grid position
-            unit.GridPosition = newPos;
+            // Remove unit from old position in grid
+            GridManager.Instance.RemoveUnit(oldPos);
 
-            // Move unit to world position
-            Vector3 worldPos = GridManager.Instance.GetCellWorldPosition(newPos);
-            unit.transform.position = worldPos;
+            // Update unit's grid position
+            unit.MoveTo(newPos);
+
+            // Place unit at new position in grid
+            GridManager.Instance.SetUnit(newPos, unit.gameObject);
 
             Debug.Log($"[UnitPlacementManager] Moved {unit.Data.unitName} from {oldPos} to {newPos}");
         }
@@ -330,6 +333,9 @@ namespace LottoDefense.Units
                 // Remove from inventory
                 UnitManager.Instance.RemoveUnit(SelectedUnitData);
 
+                // Spawn effect
+                StartCoroutine(PlaySpawnEffect(unitObject.transform.position, SelectedUnitData.rarity));
+
                 Debug.Log($"[UnitPlacementManager] Placed {SelectedUnitData.GetDisplayName()} at {gridPos}");
                 OnUnitPlaced?.Invoke(unitComponent, gridPos);
 
@@ -384,18 +390,10 @@ namespace LottoDefense.Units
         /// </summary>
         private void SelectPlacedUnit(Unit unit)
         {
-            // Validate phase
-            if (!CanPlaceUnits())
-            {
-                string reason = "Can only swap units during Preparation phase";
-                Debug.LogWarning($"[UnitPlacementManager] {reason}");
-                OnPlacementFailed?.Invoke(reason);
-                return;
-            }
-
+            // Allow unit selection and movement in all states (removed phase restriction)
             SelectedPlacedUnit = unit;
             unit.Select();
-            Debug.Log($"[UnitPlacementManager] Selected {unit.Data.GetDisplayName()} for swapping");
+            Debug.Log($"[UnitPlacementManager] Selected {unit.Data.GetDisplayName()} for movement/swapping");
         }
 
         /// <summary>
@@ -570,6 +568,78 @@ namespace LottoDefense.Units
             {
                 return "Placement Mode: Inactive";
             }
+        }
+        #endregion
+
+        #region Spawn Effect
+        /// <summary>
+        /// Play visual effect when a unit is spawned.
+        /// Creates expanding circle particles with rarity color.
+        /// </summary>
+        private System.Collections.IEnumerator PlaySpawnEffect(Vector3 position, Rarity rarity)
+        {
+            // Create effect object
+            GameObject effectObj = new GameObject("SpawnEffect");
+            effectObj.transform.position = position;
+
+            // Get rarity color
+            Color effectColor = UnitData.GetRarityColor(rarity);
+            effectColor.a = 0.8f;
+
+            // Create expanding circle using LineRenderer
+            LineRenderer lineRenderer = effectObj.AddComponent<LineRenderer>();
+            lineRenderer.useWorldSpace = false;
+            lineRenderer.startWidth = 0.1f;
+            lineRenderer.endWidth = 0.1f;
+            lineRenderer.positionCount = 32;
+            lineRenderer.material = new Material(Shader.Find("Sprites/Default"));
+            lineRenderer.startColor = effectColor;
+            lineRenderer.endColor = effectColor;
+
+            // Create circle points
+            float angleStep = 360f / 32f;
+            for (int i = 0; i < 32; i++)
+            {
+                float angle = i * angleStep * Mathf.Deg2Rad;
+                Vector3 pos = new Vector3(Mathf.Cos(angle), Mathf.Sin(angle), 0f);
+                lineRenderer.SetPosition(i, pos);
+            }
+
+            // Animate expansion and fade
+            float duration = 0.6f;
+            float elapsed = 0f;
+            float startRadius = 0.1f;
+            float endRadius = 1.5f;
+
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                float t = elapsed / duration;
+
+                // Expand radius
+                float currentRadius = Mathf.Lerp(startRadius, endRadius, t);
+                for (int i = 0; i < 32; i++)
+                {
+                    float angle = i * angleStep * Mathf.Deg2Rad;
+                    Vector3 pos = new Vector3(
+                        Mathf.Cos(angle) * currentRadius,
+                        Mathf.Sin(angle) * currentRadius,
+                        0f
+                    );
+                    lineRenderer.SetPosition(i, pos);
+                }
+
+                // Fade out
+                Color color = effectColor;
+                color.a = effectColor.a * (1f - t);
+                lineRenderer.startColor = color;
+                lineRenderer.endColor = color;
+
+                yield return null;
+            }
+
+            // Cleanup
+            Destroy(effectObj);
         }
         #endregion
     }

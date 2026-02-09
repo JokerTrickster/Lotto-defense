@@ -23,6 +23,7 @@ namespace LottoDefense.Units
 
         #region Components
         private SpriteRenderer spriteRenderer;
+        private GameObject rangeIndicator; // Attack range circle indicator
         #endregion
 
         #region Properties
@@ -129,7 +130,7 @@ namespace LottoDefense.Units
 
         #region Selection Management
         /// <summary>
-        /// Mark this unit as selected with visual feedback.
+        /// Mark this unit as selected with visual feedback and show attack range.
         /// </summary>
         public void Select()
         {
@@ -139,6 +140,9 @@ namespace LottoDefense.Units
             {
                 spriteRenderer.color = selectedColor * selectionGlowIntensity;
             }
+
+            // Show attack range indicator
+            ShowAttackRange();
 
             Debug.Log($"[Unit] Selected {Data.GetDisplayName()} at {GridPosition}");
         }
@@ -154,6 +158,9 @@ namespace LottoDefense.Units
             {
                 spriteRenderer.color = normalColor;
             }
+
+            // Hide attack range indicator
+            HideAttackRange();
 
             Debug.Log($"[Unit] Deselected {Data.GetDisplayName()} at {GridPosition}");
         }
@@ -376,6 +383,81 @@ namespace LottoDefense.Units
         {
             CurrentTarget = null;
             currentCooldown = 0f;
+        }
+        #endregion
+
+        #region Attack Range Indicator
+        /// <summary>
+        /// Show attack range indicator when unit is selected.
+        /// </summary>
+        private void ShowAttackRange()
+        {
+            if (Data == null) return;
+
+            // Create range indicator if it doesn't exist
+            if (rangeIndicator == null)
+            {
+                rangeIndicator = new GameObject("RangeIndicator");
+                rangeIndicator.transform.SetParent(transform);
+                rangeIndicator.transform.localPosition = Vector3.zero;
+                rangeIndicator.transform.localRotation = Quaternion.identity;
+
+                // Create circle using LineRenderer
+                LineRenderer lineRenderer = rangeIndicator.AddComponent<LineRenderer>();
+                lineRenderer.useWorldSpace = false;
+                lineRenderer.startWidth = 0.05f;
+                lineRenderer.endWidth = 0.05f;
+                lineRenderer.positionCount = 64; // Smooth circle
+                lineRenderer.material = new Material(Shader.Find("Sprites/Default"));
+
+                // Get color based on rarity
+                Color rangeColor = GetRarityColor(Data.rarity);
+                rangeColor.a = 0.5f; // Semi-transparent
+                lineRenderer.startColor = rangeColor;
+                lineRenderer.endColor = rangeColor;
+
+                // Create circle points
+                float angleStep = 360f / 64f;
+                float radius = Data.attackRange;
+                for (int i = 0; i < 64; i++)
+                {
+                    float angle = i * angleStep * Mathf.Deg2Rad;
+                    Vector3 pos = new Vector3(
+                        Mathf.Cos(angle) * radius,
+                        Mathf.Sin(angle) * radius,
+                        0f
+                    );
+                    lineRenderer.SetPosition(i, pos);
+                }
+            }
+
+            rangeIndicator.SetActive(true);
+        }
+
+        /// <summary>
+        /// Hide attack range indicator when unit is deselected.
+        /// </summary>
+        private void HideAttackRange()
+        {
+            if (rangeIndicator != null)
+            {
+                rangeIndicator.SetActive(false);
+            }
+        }
+
+        /// <summary>
+        /// Get color based on unit rarity.
+        /// </summary>
+        private Color GetRarityColor(Rarity rarity)
+        {
+            switch (rarity)
+            {
+                case Rarity.Normal: return new Color(0.7f, 0.7f, 0.7f); // Gray
+                case Rarity.Rare: return new Color(0.3f, 0.6f, 1f); // Blue
+                case Rarity.Epic: return new Color(0.7f, 0.3f, 1f); // Purple
+                case Rarity.Legendary: return new Color(1f, 0.8f, 0.2f); // Gold
+                default: return Color.white;
+            }
         }
         #endregion
 

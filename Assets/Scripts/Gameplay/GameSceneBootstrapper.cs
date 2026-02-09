@@ -213,11 +213,14 @@ namespace LottoDefense.Gameplay
                 manager = obj.AddComponent<RoundManager>();
             }
 
+            // Try to load DifficultyConfig, create default if not found
             DifficultyConfig config = Resources.Load<DifficultyConfig>("DifficultyConfig");
-            if (config != null)
+            if (config == null)
             {
-                SetField(manager, "difficultyConfig", config);
+                Debug.LogWarning("[GameSceneBootstrapper] DifficultyConfig not found, creating default runtime config");
+                config = CreateDefaultDifficultyConfig();
             }
+            SetField(manager, "difficultyConfig", config);
         }
 
         private void EnsureUnitManager()
@@ -799,6 +802,33 @@ namespace LottoDefense.Gameplay
             var field = target.GetType().GetField(fieldName,
                 System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             field?.SetValue(target, value);
+        }
+
+        /// <summary>
+        /// Create a default DifficultyConfig at runtime when asset is missing.
+        /// </summary>
+        private DifficultyConfig CreateDefaultDifficultyConfig()
+        {
+            DifficultyConfig config = ScriptableObject.CreateInstance<DifficultyConfig>();
+
+            // Create default HP curve (linear growth from 1x to 5x over 5 rounds)
+            AnimationCurve hpCurve = new AnimationCurve();
+            hpCurve.AddKey(0f, 1f);
+            hpCurve.AddKey(1f, 5f);
+            SetField(config, "hpCurve", hpCurve);
+
+            // Create default Defense curve (linear growth from 1x to 3x over 5 rounds)
+            AnimationCurve defCurve = new AnimationCurve();
+            defCurve.AddKey(0f, 1f);
+            defCurve.AddKey(1f, 3f);
+            SetField(config, "defenseCurve", defCurve);
+
+            SetField(config, "baseHpMultiplier", 1f);
+            SetField(config, "baseDefenseMultiplier", 1f);
+            SetField(config, "maxRounds", 5);
+
+            Debug.Log("[GameSceneBootstrapper] Created runtime DifficultyConfig");
+            return config;
         }
         #endregion
     }

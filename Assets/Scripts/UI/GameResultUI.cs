@@ -200,10 +200,7 @@ namespace LottoDefense.UI
         {
             Debug.Log("[GameResultUI] Confirm button clicked - returning to main menu");
 
-            // Cleanup game singletons before returning to main menu
-            GameplayManager.CleanupAllGameplaySingletons();
-
-            // Load main menu scene
+            // Load main menu scene (SceneNavigator.LoadMainGame will handle cleanup)
             SceneNavigator navigator = FindFirstObjectByType<SceneNavigator>();
             if (navigator != null)
             {
@@ -211,7 +208,8 @@ namespace LottoDefense.UI
             }
             else
             {
-                // Fallback: direct scene load
+                // Fallback: cleanup and direct scene load
+                GameplayManager.CleanupAllGameplaySingletons();
                 UnityEngine.SceneManagement.SceneManager.LoadScene("MainGame");
             }
         }

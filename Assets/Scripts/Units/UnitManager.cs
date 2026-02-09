@@ -42,10 +42,11 @@ namespace LottoDefense.Units
         private const int GACHA_COST = 5;
 
         // Weighted probabilities for each rarity (must sum to 100)
-        private const float NORMAL_DROP_RATE = 50f;
-        private const float RARE_DROP_RATE = 30f;
-        private const float EPIC_DROP_RATE = 15f;
-        private const float LEGENDARY_DROP_RATE = 5f;
+        // TEST MODE: 25% each for testing (Normal, Rare, Epic, Legendary)
+        private const float NORMAL_DROP_RATE = 25f;
+        private const float RARE_DROP_RATE = 25f;
+        private const float EPIC_DROP_RATE = 25f;
+        private const float LEGENDARY_DROP_RATE = 25f;
         #endregion
 
         #region Inspector Fields

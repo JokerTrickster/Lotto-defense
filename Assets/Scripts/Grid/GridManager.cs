@@ -11,9 +11,9 @@ namespace LottoDefense.Grid
     public class GridManager : MonoBehaviour
     {
         #region Constants
-        public const int GRID_WIDTH = 4;  // Changed from 6 to 4
-        public const int GRID_HEIGHT = 8; // Changed from 10 to 8
-        private const float SCREEN_WIDTH_USAGE = 0.35f; // Use 35% of screen width (small grid, big path)
+        public const int GRID_WIDTH = 8;  // Changed from 4 to 8
+        public const int GRID_HEIGHT = 4; // Changed from 8 to 4
+        private const float SCREEN_WIDTH_USAGE = 0.70f; // Use 70% of screen width (2x from 0.35)
         private const float HUD_TOP_RESERVE = 0.15f;    // Reserve 15% top for HUD
         private const float BUTTON_BOTTOM_RESERVE = 0.20f; // Reserve 20% bottom for buttons
         private const float CELL_BORDER_WIDTH = 0.02f;

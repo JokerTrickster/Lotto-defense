@@ -40,7 +40,7 @@ namespace LottoDefense.Combat
                 CombatManager.Instance.OnCombatStarted += HandleCombatStarted;
                 CombatManager.Instance.OnCombatStopped += HandleCombatStopped;
                 CombatManager.Instance.OnCombatTick += HandleCombatTick;
-                CombatManager.Instance.OnUnitAttack += HandleUnitAttack;
+                // CombatManager.Instance.OnUnitAttack += HandleUnitAttack; // Commented out - event removed from CombatManager
                 CombatManager.Instance.OnMonsterDamaged += HandleMonsterDamaged;
             }
         }
@@ -63,7 +63,7 @@ namespace LottoDefense.Combat
                 CombatManager.Instance.OnCombatStarted -= HandleCombatStarted;
                 CombatManager.Instance.OnCombatStopped -= HandleCombatStopped;
                 CombatManager.Instance.OnCombatTick -= HandleCombatTick;
-                CombatManager.Instance.OnUnitAttack -= HandleUnitAttack;
+                // CombatManager.Instance.OnUnitAttack -= HandleUnitAttack; // Commented out - event removed from CombatManager
                 CombatManager.Instance.OnMonsterDamaged -= HandleMonsterDamaged;
             }
         }

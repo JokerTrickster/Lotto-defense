@@ -106,7 +106,7 @@ namespace LottoDefense.Grid
             Debug.Log($"Total Time: {totalTimer.ElapsedMilliseconds}ms");
             Debug.Log($"====================================");
 
-            testsCompleted = true;
+            // testsCompleted = true; // Commented out - variable removed to avoid CS0414 warning
         }
 
         /// <summary>

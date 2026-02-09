@@ -63,6 +63,11 @@ namespace LottoDefense.Monsters
         private float moveSpeed;
         private int goldReward;
         private bool loopPath;
+
+        // HP Bar components
+        private GameObject hpBarContainer;
+        private SpriteRenderer hpBarBackground;
+        private SpriteRenderer hpBarFill;
         #endregion
 
         #region Unity Lifecycle
@@ -127,8 +132,8 @@ namespace LottoDefense.Monsters
                     spriteRenderer.sprite = CreateDefaultSprite(data.type);
                 }
 
-                // Ensure monster is visible by setting a reasonable size
-                transform.localScale = Vector3.one * 0.5f;
+                // Ensure monster is visible by setting a reasonable size (half of previous 0.5)
+                transform.localScale = Vector3.one * 0.25f;
             }
 
             // Position at first waypoint
@@ -139,6 +144,9 @@ namespace LottoDefense.Monsters
 
             IsActive = true;
             gameObject.SetActive(true);
+
+            // Create HP bar
+            CreateHPBar();
 
             Debug.Log($"[Monster] {data.monsterName} initialized - HP: {CurrentHealth}/{MaxHealth}, Def: {Defense}, Speed: {moveSpeed}");
         }
@@ -223,6 +231,9 @@ namespace LottoDefense.Monsters
             {
                 VFXManager.Instance.ShowDamageNumber(transform.position, actualDamage, false);
             }
+
+            // Update HP bar
+            UpdateHPBar();
 
             Debug.Log($"[Monster] {Data.monsterName} took {actualDamage} damage (raw: {rawDamage}, def: {Defense}, HP: {CurrentHealth}/{MaxHealth})");
 
@@ -312,6 +323,97 @@ namespace LottoDefense.Monsters
             texture.filterMode = FilterMode.Point;
 
             return Sprite.Create(texture, new Rect(0, 0, 32, 32), new Vector2(0.5f, 0.5f), 32f);
+        }
+        #endregion
+
+        #region HP Bar
+        /// <summary>
+        /// Create HP bar visual above monster.
+        /// </summary>
+        private void CreateHPBar()
+        {
+            // Container for HP bar (positioned above monster)
+            hpBarContainer = new GameObject("HPBar");
+            hpBarContainer.transform.SetParent(transform);
+            hpBarContainer.transform.localPosition = new Vector3(0f, 0.4f, 0f); // Above monster
+            hpBarContainer.transform.localRotation = Quaternion.identity;
+            hpBarContainer.transform.localScale = Vector3.one;
+
+            float barWidth = 0.8f;
+            float barHeight = 0.08f;
+
+            // Background (red/dark)
+            GameObject bgObj = new GameObject("Background");
+            bgObj.transform.SetParent(hpBarContainer.transform);
+            bgObj.transform.localPosition = Vector3.zero;
+            bgObj.transform.localRotation = Quaternion.identity;
+            bgObj.transform.localScale = Vector3.one;
+
+            hpBarBackground = bgObj.AddComponent<SpriteRenderer>();
+            hpBarBackground.sprite = CreateBarSprite();
+            hpBarBackground.color = new Color(0.3f, 0.1f, 0.1f); // Dark red
+            hpBarBackground.sortingOrder = 100;
+
+            // Scale to bar size
+            bgObj.transform.localScale = new Vector3(barWidth, barHeight, 1f);
+
+            // Fill (green)
+            GameObject fillObj = new GameObject("Fill");
+            fillObj.transform.SetParent(hpBarContainer.transform);
+            fillObj.transform.localPosition = Vector3.zero;
+            fillObj.transform.localRotation = Quaternion.identity;
+            fillObj.transform.localScale = Vector3.one;
+
+            hpBarFill = fillObj.AddComponent<SpriteRenderer>();
+            hpBarFill.sprite = CreateBarSprite();
+            hpBarFill.color = new Color(0.2f, 0.8f, 0.2f); // Bright green
+            hpBarFill.sortingOrder = 101;
+
+            // Scale to bar size (full width initially)
+            fillObj.transform.localScale = new Vector3(barWidth, barHeight, 1f);
+
+            // Position fill to align left
+            fillObj.transform.localPosition = Vector3.zero;
+        }
+
+        /// <summary>
+        /// Update HP bar fill based on current health.
+        /// </summary>
+        private void UpdateHPBar()
+        {
+            if (hpBarFill == null || MaxHealth <= 0) return;
+
+            float hpPercent = (float)CurrentHealth / MaxHealth;
+            hpPercent = Mathf.Clamp01(hpPercent);
+
+            // Scale fill width
+            Vector3 scale = hpBarFill.transform.localScale;
+            float baseWidth = 0.8f;
+            scale.x = baseWidth * hpPercent;
+            hpBarFill.transform.localScale = scale;
+
+            // Adjust position to keep left-aligned
+            float offset = baseWidth * (1f - hpPercent) * 0.5f;
+            hpBarFill.transform.localPosition = new Vector3(-offset, 0f, 0f);
+
+            // Change color based on health percentage
+            if (hpPercent > 0.6f)
+                hpBarFill.color = new Color(0.2f, 0.8f, 0.2f); // Green
+            else if (hpPercent > 0.3f)
+                hpBarFill.color = new Color(1f, 0.8f, 0.2f); // Yellow/Orange
+            else
+                hpBarFill.color = new Color(1f, 0.2f, 0.2f); // Red
+        }
+
+        /// <summary>
+        /// Create a simple square sprite for HP bar.
+        /// </summary>
+        private Sprite CreateBarSprite()
+        {
+            Texture2D texture = new Texture2D(1, 1);
+            texture.SetPixel(0, 0, Color.white);
+            texture.Apply();
+            return Sprite.Create(texture, new Rect(0, 0, 1, 1), new Vector2(0.5f, 0.5f), 1f);
         }
         #endregion
 
