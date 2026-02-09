@@ -141,7 +141,7 @@ namespace LottoDefense.Units
 
         #region Inventory Selection
         /// <summary>
-        /// Select a unit from inventory to enter placement mode.
+        /// Select a unit from inventory and auto-place in first empty cell.
         /// </summary>
         /// <param name="unitData">Unit data to place</param>
         public void SelectUnitForPlacement(UnitData unitData)
@@ -164,21 +164,70 @@ namespace LottoDefense.Units
             // Clear any previous selection
             CancelPlacement();
 
-            // Enter placement mode
-            SelectedUnitData = unitData;
-            IsPlacementMode = true;
+            // Auto-place in first empty cell
+            Vector2Int? emptyCell = FindFirstEmptyCell();
+            if (emptyCell.HasValue)
+            {
+                SelectedUnitData = unitData;
+                IsPlacementMode = true;
+                OnPlacementModeEntered?.Invoke(unitData);
 
-            Debug.Log($"[UnitPlacementManager] Entered placement mode with {unitData.GetDisplayName()}");
-            OnPlacementModeEntered?.Invoke(unitData);
+                // Immediately place the unit
+                PlaceUnit(emptyCell.Value);
+
+                Debug.Log($"[UnitPlacementManager] Auto-placed {unitData.GetDisplayName()} at {emptyCell.Value}");
+            }
+            else
+            {
+                string reason = "No empty cells available!";
+                Debug.LogWarning($"[UnitPlacementManager] {reason}");
+                OnPlacementFailed?.Invoke(reason);
+            }
+        }
+
+        /// <summary>
+        /// Find the first empty cell in the grid (scanning left to right, top to bottom).
+        /// </summary>
+        private Vector2Int? FindFirstEmptyCell()
+        {
+            if (GridManager.Instance == null) return null;
+
+            // Scan top to bottom, left to right
+            for (int y = GridManager.GRID_HEIGHT - 1; y >= 0; y--)
+            {
+                for (int x = 0; x < GridManager.GRID_WIDTH; x++)
+                {
+                    Vector2Int pos = new Vector2Int(x, y);
+                    if (IsValidPlacement(pos))
+                    {
+                        return pos;
+                    }
+                }
+            }
+
+            return null; // No empty cells found
         }
         #endregion
 
         #region Grid Cell Interaction
         /// <summary>
-        /// Handle grid cell click events.
+        /// Handle grid cell click events - supports placement and unit movement.
         /// </summary>
         private void OnGridCellClicked(Vector2Int gridPos)
         {
+            // Case 1: Unit selected for movement - move to empty cell
+            if (SelectedPlacedUnit != null)
+            {
+                if (UnitManager.Instance != null && UnitManager.Instance.GetUnitAtPosition(gridPos) == null)
+                {
+                    // Move selected unit to empty cell
+                    MoveUnitToPosition(SelectedPlacedUnit, gridPos);
+                    DeselectPlacedUnit();
+                    return;
+                }
+            }
+
+            // Case 2: New unit placement mode
             if (!IsPlacementMode || SelectedUnitData == null)
                 return;
 
@@ -193,6 +242,30 @@ namespace LottoDefense.Units
 
             // Place the unit
             PlaceUnit(gridPos);
+        }
+
+        /// <summary>
+        /// Move a placed unit to a new empty position.
+        /// </summary>
+        private void MoveUnitToPosition(Unit unit, Vector2Int newPos)
+        {
+            if (unit == null || UnitManager.Instance == null) return;
+
+            Vector2Int oldPos = unit.GridPosition;
+
+            // Update grid cell occupancy
+            if (GridManager.Instance != null)
+            {
+                GridManager.Instance.SetCellOccupied(oldPos, false);
+                GridManager.Instance.SetCellOccupied(newPos, true);
+            }
+
+            // Update unit position
+            Vector3 worldPos = GridManager.Instance.GetCellWorldCenter(newPos);
+            unit.transform.position = worldPos;
+            unit.SetGridPosition(newPos);
+
+            Debug.Log($"[UnitPlacementManager] Moved {unit.Data.unitName} from {oldPos} to {newPos}");
         }
 
         /// <summary>

@@ -11,13 +11,13 @@ namespace LottoDefense.Grid
     public class GridManager : MonoBehaviour
     {
         #region Constants
-        public const int GRID_WIDTH = 6;
-        public const int GRID_HEIGHT = 10;
+        public const int GRID_WIDTH = 4;  // Changed from 6 to 4
+        public const int GRID_HEIGHT = 8; // Changed from 10 to 8
         private const float SCREEN_WIDTH_USAGE = 0.35f; // Use 35% of screen width (small grid, big path)
         private const float HUD_TOP_RESERVE = 0.15f;    // Reserve 15% top for HUD
         private const float BUTTON_BOTTOM_RESERVE = 0.20f; // Reserve 20% bottom for buttons
         private const float CELL_BORDER_WIDTH = 0.02f;
-        private const float PATH_MARGIN = 1.2f; // World units between grid edge and path center
+        private const float PATH_MARGIN = 0.3f; // Reduced from 1.2 to 0.3 - monsters closer to grid
         private const int PATH_POINTS_PER_SIDE = 6; // Waypoints per side for smooth movement
         #endregion
 
