@@ -82,6 +82,20 @@ namespace LottoDefense.Monsters
             {
                 Move();
             }
+
+            // Update HP bar position to follow monster (compensate for parent scale)
+            if (hpBarContainer != null && IsActive)
+            {
+                // Keep HP bar at consistent world scale regardless of monster scale
+                hpBarContainer.transform.localPosition = new Vector3(0f, 0.6f, 0f);
+
+                // Compensate for parent's scale to maintain consistent HP bar size
+                float parentScale = transform.localScale.x;
+                if (parentScale > 0.001f) // Avoid division by zero
+                {
+                    hpBarContainer.transform.localScale = Vector3.one / parentScale;
+                }
+            }
         }
         #endregion
 
@@ -268,6 +282,13 @@ namespace LottoDefense.Monsters
 
             IsActive = false;
             OnDeath?.Invoke(this);
+
+            // Destroy HP bar and hide monster
+            if (hpBarContainer != null)
+            {
+                Destroy(hpBarContainer);
+            }
+            gameObject.SetActive(false);
         }
         #endregion
 
@@ -337,7 +358,17 @@ namespace LottoDefense.Monsters
             hpBarContainer.transform.SetParent(transform);
             hpBarContainer.transform.localPosition = new Vector3(0f, 0.6f, 0f); // Higher above monster
             hpBarContainer.transform.localRotation = Quaternion.identity;
-            hpBarContainer.transform.localScale = Vector3.one;
+
+            // Compensate for parent's scale to maintain consistent HP bar size
+            float parentScale = transform.localScale.x;
+            if (parentScale > 0.001f) // Avoid division by zero
+            {
+                hpBarContainer.transform.localScale = Vector3.one / parentScale;
+            }
+            else
+            {
+                hpBarContainer.transform.localScale = Vector3.one;
+            }
 
             // Larger HP bar for better visibility
             float barWidth = 1.2f;
@@ -434,6 +465,16 @@ namespace LottoDefense.Monsters
             Data = null;
             OnDeath = null;
             OnReachEnd = null;
+
+            // Clean up HP bar
+            if (hpBarContainer != null)
+            {
+                Destroy(hpBarContainer);
+                hpBarContainer = null;
+            }
+            hpBarBackground = null;
+            hpBarFill = null;
+
             gameObject.SetActive(false);
         }
 
