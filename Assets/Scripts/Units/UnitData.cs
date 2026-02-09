@@ -44,6 +44,10 @@ namespace LottoDefense.Units
         [Tooltip("Prefab instantiated when unit is placed on grid")]
         public GameObject prefab;
 
+        [Header("Skills")]
+        [Tooltip("Unit's special skills/abilities")]
+        public UnitSkill[] skills = new UnitSkill[0];
+
         [Header("Optional Metadata")]
         [TextArea(3, 5)]
         [Tooltip("Description text for UI display")]

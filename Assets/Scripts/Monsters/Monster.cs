@@ -370,9 +370,9 @@ namespace LottoDefense.Monsters
                 hpBarContainer.transform.localScale = Vector3.one;
             }
 
-            // Larger HP bar for better visibility
-            float barWidth = 1.2f;
-            float barHeight = 0.15f;
+            // HP bar size (1/5 of previous size for better proportions)
+            float barWidth = 0.24f;  // 1.2f / 5
+            float barHeight = 0.03f;  // 0.15f / 5
 
             // Background (red/dark)
             GameObject bgObj = new GameObject("Background");
@@ -420,7 +420,7 @@ namespace LottoDefense.Monsters
 
             // Scale fill width
             Vector3 scale = hpBarFill.transform.localScale;
-            float baseWidth = 1.2f; // Match CreateHPBar width
+            float baseWidth = 0.24f; // Match CreateHPBar width (1/5 size)
             scale.x = baseWidth * hpPercent;
             hpBarFill.transform.localScale = scale;
 

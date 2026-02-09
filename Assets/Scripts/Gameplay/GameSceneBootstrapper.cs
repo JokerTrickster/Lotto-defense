@@ -53,6 +53,7 @@ namespace LottoDefense.Gameplay
             EnsureVFXManager();
 
             EnsureCountdownUI();
+            EnsureRoundStartUI();
             EnsureGameHUD();
             EnsureSummonButton();
             EnsureBackToMenuButton();
@@ -247,6 +248,64 @@ namespace LottoDefense.Gameplay
             countdown = countdownObj.AddComponent<CountdownUI>();
             SetField(countdown, "countdownText", countdownText);
             SetField(countdown, "canvasGroup", canvasGroup);
+        }
+        #endregion
+
+        #region Round Start UI
+        private void EnsureRoundStartUI()
+        {
+            RoundStartUI roundStartUI = FindFirstObjectByType<RoundStartUI>();
+            if (roundStartUI != null) return;
+
+            // Full-screen overlay for round start notification
+            GameObject roundStartObj = new GameObject("RoundStartUI");
+            roundStartObj.transform.SetParent(mainCanvas.transform, false);
+
+            RectTransform rect = roundStartObj.AddComponent<RectTransform>();
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
+            rect.offsetMin = Vector2.zero;
+            rect.offsetMax = Vector2.zero;
+
+            CanvasGroup canvasGroup = roundStartObj.AddComponent<CanvasGroup>();
+            canvasGroup.alpha = 0f;
+            canvasGroup.blocksRaycasts = false;
+
+            // Round text container
+            GameObject textObj = new GameObject("RoundText");
+            textObj.transform.SetParent(roundStartObj.transform, false);
+
+            RectTransform textRect = textObj.AddComponent<RectTransform>();
+            textRect.anchorMin = new Vector2(0.5f, 0.5f);
+            textRect.anchorMax = new Vector2(0.5f, 0.5f);
+            textRect.anchoredPosition = Vector2.zero;
+            textRect.sizeDelta = new Vector2(600, 200);
+
+            // Drop shadow for text
+            GameObject shadowObj = new GameObject("Shadow");
+            shadowObj.transform.SetParent(textObj.transform, false);
+            RectTransform shadowRect = shadowObj.AddComponent<RectTransform>();
+            shadowRect.anchorMin = Vector2.zero;
+            shadowRect.anchorMax = Vector2.one;
+            shadowRect.offsetMin = new Vector2(4, -4);
+            shadowRect.offsetMax = new Vector2(4, -4);
+            Text shadowText = CreateText(shadowObj, "라운드 1", 80, new Color(0, 0, 0, 0.6f));
+            shadowText.fontStyle = FontStyle.Bold;
+            shadowText.raycastTarget = false;
+
+            Text roundText = CreateText(textObj, "라운드 1", 80, new Color(1f, 0.9f, 0.3f));
+            roundText.fontStyle = FontStyle.Bold;
+
+            // Add Outline component for extra visibility
+            Outline outline = textObj.AddComponent<Outline>();
+            outline.effectColor = new Color(0, 0, 0, 0.5f);
+            outline.effectDistance = new Vector2(4, -4);
+
+            RoundStartUI component = roundStartObj.AddComponent<RoundStartUI>();
+            SetField(component, "roundText", roundText);
+            SetField(component, "canvasGroup", canvasGroup);
+
+            Debug.Log("[GameSceneBootstrapper] Created RoundStartUI");
         }
         #endregion
 

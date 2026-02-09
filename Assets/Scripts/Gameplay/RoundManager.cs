@@ -225,6 +225,9 @@ namespace LottoDefense.Gameplay
 
             Debug.Log($"[RoundManager] Starting Preparation Phase - Round {CurrentRound}, Duration: {preparationDuration}s");
 
+            // Show round start notification
+            ShowRoundStartNotification();
+
             // Fire events
             OnPhaseChanged?.Invoke(oldPhase, CurrentPhase);
             OnRoundStarted?.Invoke(CurrentRound);
@@ -493,6 +496,22 @@ namespace LottoDefense.Gameplay
             if (hud != null)
             {
                 hud.UpdateTime(RemainingTime);
+            }
+        }
+
+        /// <summary>
+        /// Show round start notification UI.
+        /// </summary>
+        private void ShowRoundStartNotification()
+        {
+            RoundStartUI roundStartUI = FindFirstObjectByType<RoundStartUI>();
+            if (roundStartUI != null)
+            {
+                roundStartUI.ShowRoundStart(CurrentRound);
+            }
+            else
+            {
+                Debug.LogWarning("[RoundManager] RoundStartUI not found!");
             }
         }
         #endregion
