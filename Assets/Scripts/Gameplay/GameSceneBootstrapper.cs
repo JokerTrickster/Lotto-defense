@@ -49,11 +49,13 @@ namespace LottoDefense.Gameplay
             EnsureRoundManager();
             EnsureUnitManager();
             EnsureUnitPlacementManager();
+            EnsureSynthesisManager();
             EnsureCombatManager();
             EnsureVFXManager();
 
             EnsureCountdownUI();
             EnsureRoundStartUI();
+            EnsureUnitSelectionUI();
             EnsureGameHUD();
             EnsureSummonButton();
             EnsureBackToMenuButton();
@@ -168,6 +170,12 @@ namespace LottoDefense.Gameplay
         {
             if (FindFirstObjectByType<UnitPlacementManager>() == null)
                 new GameObject("UnitPlacementManager").AddComponent<UnitPlacementManager>();
+        }
+
+        private void EnsureSynthesisManager()
+        {
+            if (FindFirstObjectByType<LottoDefense.Units.SynthesisManager>() == null)
+                new GameObject("SynthesisManager").AddComponent<LottoDefense.Units.SynthesisManager>();
         }
 
         private void EnsureCombatManager()
@@ -306,6 +314,117 @@ namespace LottoDefense.Gameplay
             SetField(component, "canvasGroup", canvasGroup);
 
             Debug.Log("[GameSceneBootstrapper] Created RoundStartUI");
+        }
+        #endregion
+
+        #region Unit Selection UI
+        private void EnsureUnitSelectionUI()
+        {
+            UnitSelectionUI selectionUI = FindFirstObjectByType<UnitSelectionUI>();
+            if (selectionUI != null) return;
+
+            // Selection panel (shown when unit is clicked)
+            GameObject selectionPanelObj = new GameObject("UnitSelectionPanel");
+            selectionPanelObj.transform.SetParent(mainCanvas.transform, false);
+
+            RectTransform panelRect = selectionPanelObj.AddComponent<RectTransform>();
+            panelRect.sizeDelta = new Vector2(200, 120);
+
+            // Panel background
+            Image panelBg = selectionPanelObj.AddComponent<Image>();
+            panelBg.color = new Color(0.1f, 0.1f, 0.1f, 0.95f);
+
+            // Panel outline
+            Outline panelOutline = selectionPanelObj.AddComponent<Outline>();
+            panelOutline.effectColor = new Color(1f, 0.8f, 0.2f);
+            panelOutline.effectDistance = new Vector2(2, -2);
+
+            // Vertical layout for content
+            VerticalLayoutGroup vlayout = selectionPanelObj.AddComponent<VerticalLayoutGroup>();
+            vlayout.padding = new RectOffset(10, 10, 10, 10);
+            vlayout.spacing = 8;
+            vlayout.childControlWidth = true;
+            vlayout.childControlHeight = true;
+            vlayout.childForceExpandWidth = true;
+            vlayout.childForceExpandHeight = false;
+
+            // Unit name text
+            GameObject unitNameObj = new GameObject("UnitNameText");
+            unitNameObj.transform.SetParent(selectionPanelObj.transform, false);
+            Text unitNameText = CreateText(unitNameObj, "Unit Name", 18, Color.white);
+            unitNameText.alignment = TextAnchor.MiddleCenter;
+            unitNameText.fontStyle = FontStyle.Bold;
+
+            LayoutElement nameLayout = unitNameObj.AddComponent<LayoutElement>();
+            nameLayout.preferredHeight = 25;
+
+            // Sell button
+            GameObject sellButtonObj = new GameObject("SellButton");
+            sellButtonObj.transform.SetParent(selectionPanelObj.transform, false);
+
+            Image sellBg = sellButtonObj.AddComponent<Image>();
+            sellBg.color = new Color(0.3f, 0.6f, 0.3f);
+
+            Button sellButton = sellButtonObj.AddComponent<Button>();
+            ColorBlock sellColors = sellButton.colors;
+            sellColors.normalColor = new Color(0.3f, 0.6f, 0.3f);
+            sellColors.highlightedColor = new Color(0.4f, 0.7f, 0.4f);
+            sellColors.pressedColor = new Color(0.2f, 0.5f, 0.2f);
+            sellButton.colors = sellColors;
+
+            GameObject sellTextObj = new GameObject("Text");
+            sellTextObj.transform.SetParent(sellButtonObj.transform, false);
+            Text sellButtonText = CreateText(sellTextObj, "판매 (+3 골드)", 16, Color.white);
+            sellButtonText.alignment = TextAnchor.MiddleCenter;
+            RectTransform sellTextRect = sellTextObj.GetComponent<RectTransform>();
+            sellTextRect.anchorMin = Vector2.zero;
+            sellTextRect.anchorMax = Vector2.one;
+            sellTextRect.offsetMin = Vector2.zero;
+            sellTextRect.offsetMax = Vector2.zero;
+
+            LayoutElement sellLayout = sellButtonObj.AddComponent<LayoutElement>();
+            sellLayout.preferredHeight = 35;
+
+            // Synthesize button
+            GameObject synthesizeButtonObj = new GameObject("SynthesizeButton");
+            synthesizeButtonObj.transform.SetParent(selectionPanelObj.transform, false);
+
+            Image synthesizeBg = synthesizeButtonObj.AddComponent<Image>();
+            synthesizeBg.color = new Color(0.6f, 0.3f, 0.6f);
+
+            Button synthesizeButton = synthesizeButtonObj.AddComponent<Button>();
+            ColorBlock synthesizeColors = synthesizeButton.colors;
+            synthesizeColors.normalColor = new Color(0.6f, 0.3f, 0.6f);
+            synthesizeColors.highlightedColor = new Color(0.7f, 0.4f, 0.7f);
+            synthesizeColors.pressedColor = new Color(0.5f, 0.2f, 0.5f);
+            synthesizeButton.colors = synthesizeColors;
+
+            GameObject synthesizeTextObj = new GameObject("Text");
+            synthesizeTextObj.transform.SetParent(synthesizeButtonObj.transform, false);
+            Text synthesizeButtonText = CreateText(synthesizeTextObj, "조합 (3개 필요)", 16, Color.white);
+            synthesizeButtonText.alignment = TextAnchor.MiddleCenter;
+            RectTransform synthesizeTextRect = synthesizeTextObj.GetComponent<RectTransform>();
+            synthesizeTextRect.anchorMin = Vector2.zero;
+            synthesizeTextRect.anchorMax = Vector2.one;
+            synthesizeTextRect.offsetMin = Vector2.zero;
+            synthesizeTextRect.offsetMax = Vector2.zero;
+
+            LayoutElement synthesizeLayout = synthesizeButtonObj.AddComponent<LayoutElement>();
+            synthesizeLayout.preferredHeight = 35;
+
+            // Add UnitSelectionUI component
+            UnitSelectionUI component = selectionPanelObj.AddComponent<UnitSelectionUI>();
+            SetField(component, "selectionPanel", selectionPanelObj);
+            SetField(component, "sellButton", sellButton);
+            SetField(component, "synthesizeButton", synthesizeButton);
+            SetField(component, "unitNameText", unitNameText);
+            SetField(component, "sellButtonText", sellButtonText);
+            SetField(component, "synthesizeButtonText", synthesizeButtonText);
+
+            // Start hidden
+            selectionPanelObj.SetActive(false);
+
+            Debug.Log("[GameSceneBootstrapper] Created UnitSelectionUI");
         }
         #endregion
 
