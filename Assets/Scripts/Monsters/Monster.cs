@@ -335,12 +335,13 @@ namespace LottoDefense.Monsters
             // Container for HP bar (positioned above monster)
             hpBarContainer = new GameObject("HPBar");
             hpBarContainer.transform.SetParent(transform);
-            hpBarContainer.transform.localPosition = new Vector3(0f, 0.4f, 0f); // Above monster
+            hpBarContainer.transform.localPosition = new Vector3(0f, 0.6f, 0f); // Higher above monster
             hpBarContainer.transform.localRotation = Quaternion.identity;
             hpBarContainer.transform.localScale = Vector3.one;
 
-            float barWidth = 0.8f;
-            float barHeight = 0.08f;
+            // Larger HP bar for better visibility
+            float barWidth = 1.2f;
+            float barHeight = 0.15f;
 
             // Background (red/dark)
             GameObject bgObj = new GameObject("Background");
@@ -388,7 +389,7 @@ namespace LottoDefense.Monsters
 
             // Scale fill width
             Vector3 scale = hpBarFill.transform.localScale;
-            float baseWidth = 0.8f;
+            float baseWidth = 1.2f; // Match CreateHPBar width
             scale.x = baseWidth * hpPercent;
             hpBarFill.transform.localScale = scale;
 

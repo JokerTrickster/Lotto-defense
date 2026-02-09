@@ -5,6 +5,8 @@ using LottoDefense.Grid;
 using LottoDefense.Monsters;
 using LottoDefense.Units;
 using LottoDefense.UI;
+using LottoDefense.Combat;
+using LottoDefense.VFX;
 
 namespace LottoDefense.Gameplay
 {
@@ -47,6 +49,8 @@ namespace LottoDefense.Gameplay
             EnsureRoundManager();
             EnsureUnitManager();
             EnsureUnitPlacementManager();
+            EnsureCombatManager();
+            EnsureVFXManager();
 
             EnsureCountdownUI();
             EnsureGameHUD();
@@ -163,6 +167,26 @@ namespace LottoDefense.Gameplay
         {
             if (FindFirstObjectByType<UnitPlacementManager>() == null)
                 new GameObject("UnitPlacementManager").AddComponent<UnitPlacementManager>();
+        }
+
+        private void EnsureCombatManager()
+        {
+            if (FindFirstObjectByType<LottoDefense.Combat.CombatManager>() == null)
+            {
+                GameObject obj = new GameObject("CombatManager");
+                obj.AddComponent<LottoDefense.Combat.CombatManager>();
+                Debug.Log("[GameSceneBootstrapper] Created CombatManager");
+            }
+        }
+
+        private void EnsureVFXManager()
+        {
+            if (FindFirstObjectByType<LottoDefense.VFX.VFXManager>() == null)
+            {
+                GameObject obj = new GameObject("VFXManager");
+                obj.AddComponent<LottoDefense.VFX.VFXManager>();
+                Debug.Log("[GameSceneBootstrapper] Created VFXManager");
+            }
         }
         #endregion
 
