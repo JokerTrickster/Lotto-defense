@@ -366,7 +366,16 @@ namespace LottoDefense.Gameplay
             Debug.Log("[GameplayManager] Cleaning up all gameplay singletons");
             _isCleaningUp = true;
 
-            DestroyIfExists<GridManager>();
+            // Set GridManager cleanup flag using reflection
+            var gridMgrType = typeof(LottoDefense.Grid.GridManager);
+            var cleanupField = gridMgrType.GetField("_isCleaningUp",
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+            if (cleanupField != null)
+            {
+                cleanupField.SetValue(null, true);
+            }
+
+            DestroyIfExists<LottoDefense.Grid.GridManager>();
             DestroyIfExists<MonsterManager>();
             DestroyIfExists<RoundManager>();
             DestroyIfExists<CombatManager>();
@@ -383,6 +392,7 @@ namespace LottoDefense.Gameplay
             if (gameCanvas != null)
             {
                 Destroy(gameCanvas);
+                Debug.Log("[GameplayManager] Destroyed GameCanvas");
             }
 
             // Destroy self last
@@ -390,9 +400,18 @@ namespace LottoDefense.Gameplay
             {
                 Destroy(_instance.gameObject);
                 _instance = null;
+                Debug.Log("[GameplayManager] Destroyed self");
             }
 
             _isCleaningUp = false;
+
+            // Reset GridManager cleanup flag
+            if (cleanupField != null)
+            {
+                cleanupField.SetValue(null, false);
+            }
+
+            Debug.Log("[GameplayManager] Cleanup complete");
         }
 
         private static void DestroyIfExists<T>() where T : MonoBehaviour

@@ -23,14 +23,18 @@ namespace LottoDefense.Grid
 
         #region Singleton
         private static GridManager _instance;
+        private static bool _isCleaningUp;
 
         /// <summary>
         /// Global access point for the GridManager singleton.
+        /// Returns null during cleanup to prevent auto-creation.
         /// </summary>
         public static GridManager Instance
         {
             get
             {
+                if (_isCleaningUp) return null;
+
                 if (_instance == null)
                 {
                     _instance = FindFirstObjectByType<GridManager>();
