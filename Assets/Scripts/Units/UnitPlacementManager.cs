@@ -446,7 +446,8 @@ namespace LottoDefense.Units
         /// </summary>
         public bool CanPlaceUnits()
         {
-            return GameplayManager.Instance.CurrentState == GameState.Preparation;
+            return GameplayManager.Instance != null &&
+                   GameplayManager.Instance.CurrentState == GameState.Preparation;
         }
 
         /// <summary>

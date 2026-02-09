@@ -59,6 +59,9 @@ namespace LottoDefense.UI
         /// <param name="roundNumber">Round number to display</param>
         public void ShowRoundStart(int roundNumber)
         {
+            // CRITICAL: Must activate GameObject BEFORE starting coroutine
+            gameObject.SetActive(true);
+
             if (_displayCoroutine != null)
             {
                 StopCoroutine(_displayCoroutine);
