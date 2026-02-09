@@ -56,7 +56,7 @@ namespace LottoDefense.Grid
 
         [Header("Grid Visual Settings")]
         [SerializeField] private Sprite cellSprite;
-        [SerializeField] private float borderWidth = 0.02f;
+        // [SerializeField] private float borderWidth = 0.02f; // Unused - removed to avoid CS0414 warning
         #endregion
 
         #region Private Fields

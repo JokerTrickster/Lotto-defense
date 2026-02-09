@@ -16,7 +16,7 @@ namespace LottoDefense.Grid
         [SerializeField] private KeyCode runTestsKey = KeyCode.T;
         [SerializeField] private KeyCode visualizeGridKey = KeyCode.G;
 
-        private bool testsCompleted = false;
+        // private bool testsCompleted = false; // Unused - removed to avoid CS0414 warning
 
         #region Unity Lifecycle
         private void Start()

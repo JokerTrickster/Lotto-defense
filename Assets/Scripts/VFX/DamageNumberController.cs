@@ -19,7 +19,7 @@ namespace LottoDefense.VFX
 
         [Header("Animation Settings")]
         [SerializeField] private float floatSpeed = 2f;
-        [SerializeField] private float fadeDuration = 1f;
+        // [SerializeField] private float fadeDuration = 1f; // Unused - removed to avoid CS0414 warning
         [SerializeField] private float lifetime = 1.5f;
 
         [Header("Colors")]

@@ -87,7 +87,7 @@ namespace LottoDefense.Combat
         /// Fired when a unit attacks a monster.
         /// Parameters: Unit, Monster, damage dealt
         /// </summary>
-        public event Action<Unit, Monster, int> OnUnitAttack;
+        // public event Action<Unit, Monster, int> OnUnitAttack; // Unused - commented out to avoid CS0067 warning
 
         /// <summary>
         /// Fired when a monster takes damage.
