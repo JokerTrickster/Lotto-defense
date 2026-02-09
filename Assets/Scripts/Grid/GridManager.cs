@@ -93,22 +93,32 @@ namespace LottoDefense.Grid
         #region Unity Lifecycle
         private void Awake()
         {
+            Debug.Log($"[GridManager] Awake - _instance={_instance}, this={this}");
+
             if (_instance != null && _instance != this)
             {
+                Debug.Log("[GridManager] Duplicate instance, destroying self");
                 Destroy(gameObject);
                 return;
             }
 
             _instance = this;
             DontDestroyOnLoad(gameObject);
+            Debug.Log("[GridManager] Set as singleton and marked DontDestroyOnLoad");
 
             InitializeGrid();
+            Debug.Log("[GridManager] InitializeGrid complete");
         }
 
         private void Start()
         {
+            Debug.Log("[GridManager] Start - calling GenerateGrid");
             GenerateGrid();
+            Debug.Log("[GridManager] GenerateGrid complete");
+
+            Debug.Log("[GridManager] Start - calling DrawSquareLoopPath");
             DrawSquareLoopPath();
+            Debug.Log("[GridManager] DrawSquareLoopPath complete");
         }
         #endregion
 
