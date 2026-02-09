@@ -249,30 +249,16 @@ namespace LottoDefense.Units
         /// </summary>
         private void MoveUnitToPosition(Unit unit, Vector2Int newPos)
         {
-            if (unit == null || UnitManager.Instance == null || GridManager.Instance == null) return;
+            if (unit == null || GridManager.Instance == null) return;
 
             Vector2Int oldPos = unit.GridPosition;
 
-            // Update old cell - mark as empty
-            GridCell oldCell = GridManager.Instance.GetCell(oldPos);
-            if (oldCell != null)
-            {
-                oldCell.IsOccupied = false;
-                oldCell.OccupyingUnit = null;
-            }
+            // Update unit grid position
+            unit.GridPosition = newPos;
 
-            // Update new cell - mark as occupied
-            GridCell newCell = GridManager.Instance.GetCell(newPos);
-            if (newCell != null)
-            {
-                newCell.IsOccupied = true;
-                newCell.OccupyingUnit = unit.gameObject;
-            }
-
-            // Update unit position
-            Vector3 worldPos = GridManager.Instance.GetCellWorldCenter(newPos);
+            // Move unit to world position
+            Vector3 worldPos = GridManager.Instance.GetCellWorldPosition(newPos);
             unit.transform.position = worldPos;
-            unit.SetGridPosition(newPos);
 
             Debug.Log($"[UnitPlacementManager] Moved {unit.Data.unitName} from {oldPos} to {newPos}");
         }

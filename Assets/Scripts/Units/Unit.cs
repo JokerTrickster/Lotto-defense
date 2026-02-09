@@ -279,7 +279,93 @@ namespace LottoDefense.Units
             int damage = CurrentAttack;
             CurrentTarget.TakeDamage(damage);
 
+            // Visual effect: missile/laser from unit to target
+            DrawMissileEffect(transform.position, CurrentTarget.transform.position);
+
             OnAttack?.Invoke(CurrentTarget, damage);
+        }
+
+        /// <summary>
+        /// Draw a missile/laser effect from start to end position.
+        /// </summary>
+        private void DrawMissileEffect(Vector3 start, Vector3 end)
+        {
+            StartCoroutine(MissileEffectCoroutine(start, end));
+        }
+
+        /// <summary>
+        /// Coroutine to animate a missile/laser line effect.
+        /// </summary>
+        private System.Collections.IEnumerator MissileEffectCoroutine(Vector3 start, Vector3 end)
+        {
+            // Create a temporary GameObject for the line
+            GameObject lineObj = new GameObject("MissileEffect");
+            LineRenderer lineRenderer = lineObj.AddComponent<LineRenderer>();
+
+            // Configure line renderer
+            lineRenderer.startWidth = 0.05f;
+            lineRenderer.endWidth = 0.05f;
+            lineRenderer.positionCount = 2;
+            lineRenderer.material = new Material(Shader.Find("Sprites/Default"));
+
+            // Set color based on unit rarity
+            Color missileColor = GetMissileColor();
+            lineRenderer.startColor = missileColor;
+            lineRenderer.endColor = missileColor;
+
+            // Animate the missile
+            float duration = 0.15f; // Fast missile
+            float elapsed = 0f;
+
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                float t = elapsed / duration;
+
+                // Interpolate position
+                Vector3 currentPos = Vector3.Lerp(start, end, t);
+                lineRenderer.SetPosition(0, start);
+                lineRenderer.SetPosition(1, currentPos);
+
+                yield return null;
+            }
+
+            // Fade out
+            float fadeDuration = 0.1f;
+            elapsed = 0f;
+
+            while (elapsed < fadeDuration)
+            {
+                elapsed += Time.deltaTime;
+                float alpha = 1f - (elapsed / fadeDuration);
+
+                Color fadeColor = missileColor;
+                fadeColor.a = alpha;
+                lineRenderer.startColor = fadeColor;
+                lineRenderer.endColor = fadeColor;
+
+                yield return null;
+            }
+
+            // Clean up
+            Destroy(lineObj);
+        }
+
+        /// <summary>
+        /// Get missile color based on unit rarity.
+        /// </summary>
+        private Color GetMissileColor()
+        {
+            if (Data == null) return Color.white;
+
+            switch (Data.rarity)
+            {
+                case UnitRarity.Common: return new Color(0.8f, 0.8f, 0.8f); // Gray
+                case UnitRarity.Rare: return new Color(0.3f, 0.7f, 1f); // Blue
+                case UnitRarity.Epic: return new Color(0.7f, 0.3f, 1f); // Purple
+                case UnitRarity.Legendary: return new Color(1f, 0.8f, 0.2f); // Gold
+                default: return Color.white;
+            }
         }
 
         /// <summary>
