@@ -16,7 +16,6 @@ namespace LottoDefense.Units
     {
         #region Inspector Fields
         [Header("Visual Settings")]
-        [SerializeField] private Color normalColor = Color.white;
         [SerializeField] private Color selectedColor = Color.yellow;
         [SerializeField] private float selectionGlowIntensity = 1.5f;
         #endregion
@@ -24,6 +23,14 @@ namespace LottoDefense.Units
         #region Components
         private SpriteRenderer spriteRenderer;
         private GameObject rangeIndicator; // Attack range circle indicator
+        #endregion
+
+        #region Visual State
+        /// <summary>
+        /// Original color of this unit based on rarity.
+        /// Set during initialization and restored on deselect.
+        /// </summary>
+        private Color originalColor;
         #endregion
 
         #region Properties
@@ -109,9 +116,16 @@ namespace LottoDefense.Units
                 if (unitData.icon != null)
                 {
                     spriteRenderer.sprite = unitData.icon;
-                    spriteRenderer.color = normalColor;
+                    // Use rarity color for unit
+                    originalColor = GetRarityColorForUnit(unitData.rarity);
+                    spriteRenderer.color = originalColor;
                 }
-                // When icon is null, keep existing sprite/color from prefab (e.g. generated circle)
+                else
+                {
+                    // When icon is null, sprite/color from prefab (generated circle with rarity color)
+                    // Store the existing color as original
+                    originalColor = spriteRenderer.color;
+                }
                 spriteRenderer.sortingOrder = 10; // Above grid cells
             }
 
@@ -148,7 +162,7 @@ namespace LottoDefense.Units
         }
 
         /// <summary>
-        /// Deselect this unit and restore normal visuals.
+        /// Deselect this unit and restore original rarity-based color.
         /// </summary>
         public void Deselect()
         {
@@ -156,7 +170,8 @@ namespace LottoDefense.Units
 
             if (spriteRenderer != null)
             {
-                spriteRenderer.color = normalColor;
+                // Restore original rarity color instead of white
+                spriteRenderer.color = originalColor;
             }
 
             // Hide attack range indicator
@@ -243,6 +258,10 @@ namespace LottoDefense.Units
             if (CurrentTarget == null || !CurrentTarget.IsActive)
             {
                 CurrentTarget = FindNearestMonster();
+                if (CurrentTarget != null)
+                {
+                    Debug.Log($"[Unit] {Data.GetDisplayName()} found target: {CurrentTarget.Data.monsterName} at distance {Vector3.Distance(transform.position, CurrentTarget.transform.position):F2}");
+                }
             }
 
             // Attack if ready and has target
@@ -250,6 +269,7 @@ namespace LottoDefense.Units
             {
                 ExecuteAttack();
                 currentCooldown = attackCooldown;
+                Debug.Log($"[Unit] {Data.GetDisplayName()} attacked {CurrentTarget.Data.monsterName} for {CurrentAttack} damage. Next attack in {attackCooldown:F2}s");
             }
         }
 
@@ -446,7 +466,7 @@ namespace LottoDefense.Units
         }
 
         /// <summary>
-        /// Get color based on unit rarity.
+        /// Get color based on unit rarity for attack range indicator.
         /// </summary>
         private Color GetRarityColor(Rarity rarity)
         {
@@ -456,6 +476,21 @@ namespace LottoDefense.Units
                 case Rarity.Rare: return new Color(0.3f, 0.6f, 1f); // Blue
                 case Rarity.Epic: return new Color(0.7f, 0.3f, 1f); // Purple
                 case Rarity.Legendary: return new Color(1f, 0.8f, 0.2f); // Gold
+                default: return Color.white;
+            }
+        }
+
+        /// <summary>
+        /// Get color for unit sprite based on rarity (slightly brighter for visibility).
+        /// </summary>
+        private Color GetRarityColorForUnit(Rarity rarity)
+        {
+            switch (rarity)
+            {
+                case Rarity.Normal: return new Color(0.6f, 0.8f, 1f); // Light blue
+                case Rarity.Rare: return new Color(0.4f, 0.6f, 1f); // Blue
+                case Rarity.Epic: return new Color(0.7f, 0.3f, 1f); // Purple
+                case Rarity.Legendary: return new Color(1f, 0.84f, 0f); // Gold
                 default: return Color.white;
             }
         }
