@@ -289,11 +289,20 @@ namespace LottoDefense.Gameplay
         /// </summary>
         private IEnumerator PhaseTimerRoutine(float duration, Action onComplete)
         {
+            Debug.Log($"[RoundManager] PhaseTimerRoutine started - duration: {duration}s, phase: {CurrentPhase}");
             RemainingTime = duration;
 
+            int frameCount = 0;
             while (RemainingTime > 0f)
             {
                 yield return null;
+                frameCount++;
+
+                if (frameCount == 1)
+                {
+                    Debug.Log($"[RoundManager] PhaseTimerRoutine first frame - Time.deltaTime: {Time.deltaTime}, Time.timeScale: {Time.timeScale}");
+                }
+
                 RemainingTime -= Time.deltaTime;
                 RemainingTime = Mathf.Max(0f, RemainingTime);
 
@@ -304,7 +313,7 @@ namespace LottoDefense.Gameplay
                 OnTimerUpdated?.Invoke(RemainingTime);
             }
 
-            Debug.Log($"[RoundManager] Phase timer expired for {CurrentPhase}");
+            Debug.Log($"[RoundManager] Phase timer expired for {CurrentPhase} after {frameCount} frames");
             onComplete?.Invoke();
         }
         #endregion

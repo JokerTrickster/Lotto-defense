@@ -47,7 +47,7 @@ namespace LottoDefense.Gameplay
         #region Constants
         private const int INITIAL_ROUND = 1;
         private const int INITIAL_LIFE = 10;
-        private const int INITIAL_GOLD = 30;
+        private const int INITIAL_GOLD = 100;  // 유닛 소환 테스트를 위해 100으로 시작
         #endregion
 
         #region Properties
