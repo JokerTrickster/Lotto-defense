@@ -25,10 +25,10 @@ namespace LottoDefense.UI
         [SerializeField] private string roundFormat = "R{0}";
         [SerializeField] private string phaseFormat = "{0}";
         [SerializeField] private string timeFormat = "{0:00}:{1:00}";
-        [SerializeField] private string monsterFormat = "M:{0}";
-        [SerializeField] private string goldFormat = "G:{0}";
-        [SerializeField] private string unitFormat = "U:{0}";
-        [SerializeField] private string lifeFormat = "♥{0}";
+        [SerializeField] private string monsterFormat = "{0}";
+        [SerializeField] private string goldFormat = "{0}";
+        [SerializeField] private string unitFormat = "{0}";
+        [SerializeField] private string lifeFormat = "{0}";
         #endregion
 
         #region Private Fields

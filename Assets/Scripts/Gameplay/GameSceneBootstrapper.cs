@@ -18,7 +18,6 @@ namespace LottoDefense.Gameplay
         {
             Debug.Log("[GameSceneBootstrapper] Starting game scene initialization...");
 
-            // Load built-in Arial font — required for legacy Text to render
             defaultFont = Resources.GetBuiltinResource<Font>("Arial.ttf");
             if (defaultFont == null)
                 Debug.LogError("[GameSceneBootstrapper] Failed to load Arial font!");
@@ -129,6 +128,7 @@ namespace LottoDefense.Gameplay
             CountdownUI countdown = FindFirstObjectByType<CountdownUI>();
             if (countdown != null) return;
 
+            // Full-screen overlay
             GameObject countdownObj = new GameObject("CountdownUI");
             countdownObj.transform.SetParent(mainCanvas.transform, false);
 
@@ -138,9 +138,15 @@ namespace LottoDefense.Gameplay
             rect.offsetMin = Vector2.zero;
             rect.offsetMax = Vector2.zero;
 
+            // Semi-transparent dark overlay background
+            Image overlayBg = countdownObj.AddComponent<Image>();
+            overlayBg.color = GameSceneDesignTokens.CountdownOverlay;
+            overlayBg.raycastTarget = false;
+
             CanvasGroup canvasGroup = countdownObj.AddComponent<CanvasGroup>();
             canvasGroup.alpha = 0f;
 
+            // Countdown number text
             GameObject textObj = new GameObject("CountdownText");
             textObj.transform.SetParent(countdownObj.transform, false);
 
@@ -150,7 +156,25 @@ namespace LottoDefense.Gameplay
             textRect.anchoredPosition = Vector2.zero;
             textRect.sizeDelta = new Vector2(400, 300);
 
-            Text countdownText = CreateText(textObj, "3", 144, Color.white);
+            // Drop shadow for countdown number
+            GameObject shadowObj = new GameObject("Shadow");
+            shadowObj.transform.SetParent(textObj.transform, false);
+            RectTransform shadowRect = shadowObj.AddComponent<RectTransform>();
+            shadowRect.anchorMin = Vector2.zero;
+            shadowRect.anchorMax = Vector2.one;
+            shadowRect.offsetMin = new Vector2(4, -4);
+            shadowRect.offsetMax = new Vector2(4, -4);
+            Text shadowText = CreateText(shadowObj, "3", GameSceneDesignTokens.CountdownSize, new Color(0, 0, 0, 0.6f));
+            shadowText.fontStyle = FontStyle.Bold;
+            shadowText.raycastTarget = false;
+
+            Text countdownText = CreateText(textObj, "3", GameSceneDesignTokens.CountdownSize, GameSceneDesignTokens.CountdownText);
+            countdownText.fontStyle = FontStyle.Bold;
+
+            // Add Outline component for extra visibility
+            Outline outline = textObj.AddComponent<Outline>();
+            outline.effectColor = new Color(0, 0, 0, 0.5f);
+            outline.effectDistance = new Vector2(3, -3);
 
             countdown = countdownObj.AddComponent<CountdownUI>();
             SetField(countdown, "countdownText", countdownText);
@@ -163,7 +187,7 @@ namespace LottoDefense.Gameplay
         {
             if (FindFirstObjectByType<GameHUD>() != null) return;
 
-            // Root container anchored to top
+            // ---- Root HUD panel (top of screen) ----
             GameObject hudObj = new GameObject("GameHUD");
             hudObj.transform.SetParent(mainCanvas.transform, false);
 
@@ -172,31 +196,49 @@ namespace LottoDefense.Gameplay
             hudRect.anchorMax = new Vector2(1, 1);
             hudRect.pivot = new Vector2(0.5f, 1);
             hudRect.anchoredPosition = Vector2.zero;
-            hudRect.sizeDelta = new Vector2(0, 130);
+            hudRect.sizeDelta = new Vector2(0, GameSceneDesignTokens.HudHeight);
 
-            var vlayout = hudObj.AddComponent<VerticalLayoutGroup>();
-            vlayout.padding = new RectOffset(20, 20, 10, 6);
-            vlayout.spacing = 4;
+            Image hudBg = hudObj.AddComponent<Image>();
+            hudBg.color = GameSceneDesignTokens.HudBackground;
+            hudBg.raycastTarget = false;
+
+            VerticalLayoutGroup vlayout = hudObj.AddComponent<VerticalLayoutGroup>();
+            int padH = Mathf.RoundToInt(GameSceneDesignTokens.HudPaddingH);
+            int padV = Mathf.RoundToInt(GameSceneDesignTokens.HudPaddingV);
+            vlayout.padding = new RectOffset(padH, padH, padV, padV);
+            vlayout.spacing = 6;
             vlayout.childForceExpandWidth = true;
             vlayout.childForceExpandHeight = false;
             vlayout.childControlWidth = true;
             vlayout.childControlHeight = true;
 
-            var bg = hudObj.AddComponent<Image>();
-            bg.color = new Color(0, 0, 0, 0.75f);
+            // ---- Row 1: ROUND | PHASE | TIMER ----
+            GameObject row1 = CreateHUDRow(hudObj.transform, "Row_Top", 48);
+            Text roundText = CreateStatWithLabel(row1.transform, "Round", "ROUND", "R1",
+                GameSceneDesignTokens.StatLabel, GameSceneDesignTokens.RoundColor,
+                GameSceneDesignTokens.StatLabelSize, GameSceneDesignTokens.StatValueSize);
 
-            // Row 1: Round | Phase | Time
-            GameObject row1 = CreateHUDRow(hudObj.transform, "Row1");
-            Text roundText = CreateHUDLabel(row1.transform, "RoundText", "R1", 28);
-            Text phaseText = CreateHUDLabel(row1.transform, "PhaseText", "COUNTDOWN", 24);
-            Text timeText = CreateHUDLabel(row1.transform, "TimeText", "00:00", 28);
+            Text phaseText = CreateStatWithLabel(row1.transform, "Phase", "PHASE", "COUNTDOWN",
+                GameSceneDesignTokens.StatLabel, GameSceneDesignTokens.PhaseColor,
+                GameSceneDesignTokens.StatLabelSize, GameSceneDesignTokens.PhaseTextSize);
 
-            // Row 2: Life | Gold | Monsters | Units
-            GameObject row2 = CreateHUDRow(hudObj.transform, "Row2");
-            Text lifeText = CreateHUDLabel(row2.transform, "LifeText", "♥10", 24, new Color(1f, 0.3f, 0.3f));
-            Text goldText = CreateHUDLabel(row2.transform, "GoldText", "G:30", 24, new Color(1f, 0.84f, 0f));
-            Text monsterText = CreateHUDLabel(row2.transform, "MonsterText", "M:0", 24);
-            Text unitText = CreateHUDLabel(row2.transform, "UnitText", "U:0", 24);
+            Text timeText = CreateStatWithLabel(row1.transform, "Time", "TIME", "00:00",
+                GameSceneDesignTokens.StatLabel, GameSceneDesignTokens.TimeColor,
+                GameSceneDesignTokens.StatLabelSize, GameSceneDesignTokens.StatValueSize);
+
+            // ---- Divider line ----
+            CreateDivider(hudObj.transform);
+
+            // ---- Row 2: LIFE | GOLD | MONSTERS | UNITS ----
+            GameObject row2 = CreateHUDRow(hudObj.transform, "Row_Stats", 52);
+            Text lifeText = CreateStatCard(row2.transform, "Life", "\u2665", "10",
+                GameSceneDesignTokens.LifeColor);
+            Text goldText = CreateStatCard(row2.transform, "Gold", "\u2666", "30",
+                GameSceneDesignTokens.GoldColor);
+            Text monsterText = CreateStatCard(row2.transform, "Monster", "\u25C6", "0",
+                GameSceneDesignTokens.MonsterColor);
+            Text unitText = CreateStatCard(row2.transform, "Unit", "\u25A0", "0",
+                GameSceneDesignTokens.UnitColor);
 
             GameHUD hud = hudObj.AddComponent<GameHUD>();
             SetField(hud, "roundText", roundText);
@@ -208,16 +250,19 @@ namespace LottoDefense.Gameplay
             SetField(hud, "lifeText", lifeText);
         }
 
-        private GameObject CreateHUDRow(Transform parent, string name)
+        /// <summary>
+        /// Create a horizontal row container for HUD.
+        /// </summary>
+        private GameObject CreateHUDRow(Transform parent, string name, float height)
         {
             GameObject row = new GameObject(name);
             row.transform.SetParent(parent, false);
 
             RectTransform rect = row.AddComponent<RectTransform>();
-            rect.sizeDelta = new Vector2(0, 40);
+            rect.sizeDelta = new Vector2(0, height);
 
-            var layout = row.AddComponent<HorizontalLayoutGroup>();
-            layout.spacing = 12;
+            HorizontalLayoutGroup layout = row.AddComponent<HorizontalLayoutGroup>();
+            layout.spacing = 10;
             layout.childForceExpandWidth = true;
             layout.childForceExpandHeight = true;
             layout.childControlWidth = true;
@@ -227,17 +272,111 @@ namespace LottoDefense.Gameplay
             return row;
         }
 
-        private Text CreateHUDLabel(Transform parent, string name, string text, int fontSize, Color? color = null)
+        /// <summary>
+        /// Create a stat display with small label above and large value below.
+        /// Returns the value Text (used for HUD binding).
+        /// </summary>
+        private Text CreateStatWithLabel(Transform parent, string name, string label, string value,
+            Color labelColor, Color valueColor, int labelSize, int valueSize)
         {
-            GameObject obj = new GameObject(name);
-            obj.transform.SetParent(parent, false);
+            GameObject container = new GameObject(name);
+            container.transform.SetParent(parent, false);
+            container.AddComponent<RectTransform>();
 
-            obj.AddComponent<RectTransform>();
+            VerticalLayoutGroup vl = container.AddComponent<VerticalLayoutGroup>();
+            vl.spacing = 0;
+            vl.childForceExpandWidth = true;
+            vl.childForceExpandHeight = true;
+            vl.childControlWidth = true;
+            vl.childControlHeight = true;
+            vl.childAlignment = TextAnchor.MiddleCenter;
 
-            Text t = CreateText(obj, text, fontSize, color ?? Color.white);
-            t.fontStyle = FontStyle.Bold;
+            // Label text (small, dimmed)
+            GameObject labelObj = new GameObject("Label");
+            labelObj.transform.SetParent(container.transform, false);
+            labelObj.AddComponent<RectTransform>();
+            Text labelText = CreateText(labelObj, label, labelSize, labelColor);
+            labelText.fontStyle = FontStyle.Normal;
+            labelText.raycastTarget = false;
 
-            return t;
+            // Value text (large, vivid)
+            GameObject valueObj = new GameObject("Value");
+            valueObj.transform.SetParent(container.transform, false);
+            valueObj.AddComponent<RectTransform>();
+            Text valueText = CreateText(valueObj, value, valueSize, valueColor);
+            valueText.fontStyle = FontStyle.Bold;
+            valueText.raycastTarget = false;
+
+            return valueText;
+        }
+
+        /// <summary>
+        /// Create a stat card with icon symbol + value.
+        /// Used for Life/Gold/Monster/Unit row.
+        /// </summary>
+        private Text CreateStatCard(Transform parent, string name, string icon, string value, Color accentColor)
+        {
+            GameObject card = new GameObject(name);
+            card.transform.SetParent(parent, false);
+
+            RectTransform cardRect = card.AddComponent<RectTransform>();
+
+            // Card background
+            Image cardBg = card.AddComponent<Image>();
+            cardBg.color = GameSceneDesignTokens.HudStatCardBg;
+            cardBg.raycastTarget = false;
+
+            HorizontalLayoutGroup hl = card.AddComponent<HorizontalLayoutGroup>();
+            int pad = Mathf.RoundToInt(GameSceneDesignTokens.StatCardPadding);
+            hl.padding = new RectOffset(pad + 4, pad + 4, pad, pad);
+            hl.spacing = 4;
+            hl.childForceExpandWidth = false;
+            hl.childForceExpandHeight = true;
+            hl.childControlWidth = true;
+            hl.childControlHeight = true;
+            hl.childAlignment = TextAnchor.MiddleCenter;
+
+            // Icon
+            GameObject iconObj = new GameObject("Icon");
+            iconObj.transform.SetParent(card.transform, false);
+            RectTransform iconRect = iconObj.AddComponent<RectTransform>();
+            LayoutElement iconLE = iconObj.AddComponent<LayoutElement>();
+            iconLE.preferredWidth = 32;
+            Text iconText = CreateText(iconObj, icon, 26, accentColor);
+            iconText.fontStyle = FontStyle.Bold;
+            iconText.raycastTarget = false;
+
+            // Value
+            GameObject valueObj = new GameObject("Value");
+            valueObj.transform.SetParent(card.transform, false);
+            valueObj.AddComponent<RectTransform>();
+            LayoutElement valueLE = valueObj.AddComponent<LayoutElement>();
+            valueLE.flexibleWidth = 1;
+            Text valueText = CreateText(valueObj, value, GameSceneDesignTokens.StatValueSize, Color.white);
+            valueText.fontStyle = FontStyle.Bold;
+            valueText.raycastTarget = false;
+
+            return valueText;
+        }
+
+        /// <summary>
+        /// Create a thin horizontal divider line.
+        /// </summary>
+        private void CreateDivider(Transform parent)
+        {
+            GameObject divider = new GameObject("Divider");
+            divider.transform.SetParent(parent, false);
+
+            RectTransform divRect = divider.AddComponent<RectTransform>();
+            divRect.sizeDelta = new Vector2(0, 1);
+
+            LayoutElement le = divider.AddComponent<LayoutElement>();
+            le.preferredHeight = 1;
+            le.flexibleWidth = 1;
+
+            Image divImg = divider.AddComponent<Image>();
+            divImg.color = GameSceneDesignTokens.HudBorder;
+            divImg.raycastTarget = false;
         }
         #endregion
 
@@ -247,24 +386,56 @@ namespace LottoDefense.Gameplay
             GameObject btnObj = new GameObject("SummonButton");
             btnObj.transform.SetParent(mainCanvas.transform, false);
 
+            float marginH = GameSceneDesignTokens.ButtonMarginH;
             RectTransform btnRect = btnObj.AddComponent<RectTransform>();
-            btnRect.anchorMin = new Vector2(0.05f, 0);
-            btnRect.anchorMax = new Vector2(0.95f, 0);
+            btnRect.anchorMin = new Vector2(marginH, 0);
+            btnRect.anchorMax = new Vector2(1f - marginH, 0);
             btnRect.pivot = new Vector2(0.5f, 0);
-            btnRect.anchoredPosition = new Vector2(0, 130);
-            btnRect.sizeDelta = new Vector2(0, 90);
+            btnRect.anchoredPosition = new Vector2(0, GameSceneDesignTokens.MenuButtonHeight + GameSceneDesignTokens.ButtonGap * 2 + 16);
+            btnRect.sizeDelta = new Vector2(0, GameSceneDesignTokens.SummonButtonHeight);
 
-            var btnImage = btnObj.AddComponent<Image>();
-            btnImage.color = new Color(0.1f, 0.6f, 0.1f, 0.95f);
+            // Button background
+            Image btnImage = btnObj.AddComponent<Image>();
+            btnImage.color = GameSceneDesignTokens.SummonButtonBg;
 
-            var button = btnObj.AddComponent<Button>();
-            var colors = button.colors;
-            colors.highlightedColor = new Color(0.15f, 0.7f, 0.15f);
-            colors.pressedColor = new Color(0.08f, 0.4f, 0.08f);
+            // Button component with color states
+            Button button = btnObj.AddComponent<Button>();
+            ColorBlock colors = button.colors;
+            colors.normalColor = Color.white;
+            colors.highlightedColor = new Color(1.1f, 1.1f, 1.1f, 1f);
+            colors.pressedColor = new Color(0.75f, 0.75f, 0.75f, 1f);
+            colors.disabledColor = new Color(0.5f, 0.5f, 0.5f, 0.7f);
+            colors.fadeDuration = 0.1f;
             button.colors = colors;
 
-            Text btnText = CreateButtonText(btnObj, "소환 (5G)", 36);
-            button.onClick.AddListener(() => OnSummonButtonClicked(btnText));
+            // Inner layout: vertical stack for main text + cost subtext
+            VerticalLayoutGroup vl = btnObj.AddComponent<VerticalLayoutGroup>();
+            vl.padding = new RectOffset(0, 0, 8, 8);
+            vl.spacing = 0;
+            vl.childForceExpandWidth = true;
+            vl.childForceExpandHeight = true;
+            vl.childControlWidth = true;
+            vl.childControlHeight = true;
+            vl.childAlignment = TextAnchor.MiddleCenter;
+
+            // Main text: "소환"
+            GameObject mainTextObj = new GameObject("MainText");
+            mainTextObj.transform.SetParent(btnObj.transform, false);
+            mainTextObj.AddComponent<RectTransform>();
+            Text mainText = CreateText(mainTextObj, "\uC18C\uD658", GameSceneDesignTokens.SummonTextSize, GameSceneDesignTokens.ButtonText);
+            mainText.fontStyle = FontStyle.Bold;
+            Outline mainOutline = mainTextObj.AddComponent<Outline>();
+            mainOutline.effectColor = new Color(0, 0, 0, 0.4f);
+            mainOutline.effectDistance = new Vector2(2, -2);
+
+            // Cost subtext: "5 Gold"
+            GameObject costTextObj = new GameObject("CostText");
+            costTextObj.transform.SetParent(btnObj.transform, false);
+            costTextObj.AddComponent<RectTransform>();
+            Text costText = CreateText(costTextObj, "- 5 Gold -", GameSceneDesignTokens.SummonCostSize, GameSceneDesignTokens.ButtonCostText);
+            costText.fontStyle = FontStyle.Bold;
+
+            button.onClick.AddListener(() => OnSummonButtonClicked(mainText, costText));
         }
 
         private void EnsureBackToMenuButton()
@@ -272,48 +443,54 @@ namespace LottoDefense.Gameplay
             GameObject btnObj = new GameObject("BackToMenuButton");
             btnObj.transform.SetParent(mainCanvas.transform, false);
 
+            float marginH = GameSceneDesignTokens.ButtonMarginH;
             RectTransform btnRect = btnObj.AddComponent<RectTransform>();
-            btnRect.anchorMin = new Vector2(0.15f, 0);
-            btnRect.anchorMax = new Vector2(0.85f, 0);
+            btnRect.anchorMin = new Vector2(marginH + 0.1f, 0);
+            btnRect.anchorMax = new Vector2(1f - marginH - 0.1f, 0);
             btnRect.pivot = new Vector2(0.5f, 0);
-            btnRect.anchoredPosition = new Vector2(0, 30);
-            btnRect.sizeDelta = new Vector2(0, 70);
+            btnRect.anchoredPosition = new Vector2(0, 16);
+            btnRect.sizeDelta = new Vector2(0, GameSceneDesignTokens.MenuButtonHeight);
 
-            var btnImage = btnObj.AddComponent<Image>();
-            btnImage.color = new Color(0.3f, 0.3f, 0.55f, 0.9f);
+            Image btnImage = btnObj.AddComponent<Image>();
+            btnImage.color = GameSceneDesignTokens.MenuButtonBg;
 
-            var button = btnObj.AddComponent<Button>();
-            var navigator = btnObj.AddComponent<SceneNavigator>();
+            Button button = btnObj.AddComponent<Button>();
+            ColorBlock colors = button.colors;
+            colors.normalColor = Color.white;
+            colors.highlightedColor = new Color(1.1f, 1.1f, 1.1f, 1f);
+            colors.pressedColor = new Color(0.7f, 0.7f, 0.7f, 1f);
+            colors.fadeDuration = 0.1f;
+            button.colors = colors;
+
+            SceneNavigator navigator = btnObj.AddComponent<SceneNavigator>();
             button.onClick.AddListener(navigator.LoadMainGame);
 
-            CreateButtonText(btnObj, "메인 메뉴로", 28);
-        }
-
-        private Text CreateButtonText(GameObject parent, string text, int fontSize)
-        {
+            // Button text
             GameObject textObj = new GameObject("Text");
-            textObj.transform.SetParent(parent.transform, false);
-
+            textObj.transform.SetParent(btnObj.transform, false);
             RectTransform textRect = textObj.AddComponent<RectTransform>();
             textRect.anchorMin = Vector2.zero;
             textRect.anchorMax = Vector2.one;
             textRect.offsetMin = Vector2.zero;
             textRect.offsetMax = Vector2.zero;
 
-            Text t = CreateText(textObj, text, fontSize, Color.white);
-            t.fontStyle = FontStyle.Bold;
-            return t;
+            Text btnText = CreateText(textObj, "\u25C0 \uBA54\uC778 \uBA54\uB274", GameSceneDesignTokens.MenuTextSize, GameSceneDesignTokens.ButtonText);
+            btnText.fontStyle = FontStyle.Bold;
+
+            Outline outline = textObj.AddComponent<Outline>();
+            outline.effectColor = new Color(0, 0, 0, 0.3f);
+            outline.effectDistance = new Vector2(1, -1);
         }
         #endregion
 
         #region Button Logic
-        private void OnSummonButtonClicked(Text btnText)
+        private void OnSummonButtonClicked(Text mainText, Text costText)
         {
             if (GameplayManager.Instance == null) return;
 
             if (GameplayManager.Instance.CurrentState != GameState.Preparation)
             {
-                StartCoroutine(FlashButtonText(btnText, "준비 단계에서만!"));
+                StartCoroutine(FlashButtonText(mainText, costText, "\uC804\uD22C \uC911!", ""));
                 return;
             }
 
@@ -326,7 +503,7 @@ namespace LottoDefense.Gameplay
 
             if (!unitMgr.CanDraw())
             {
-                StartCoroutine(FlashButtonText(btnText, "골드 부족!"));
+                StartCoroutine(FlashButtonText(mainText, costText, "\uBD80\uC871!", "\uACE8\uB4DC\uAC00 \uBD80\uC871\uD569\uB2C8\uB2E4"));
                 return;
             }
 
@@ -337,17 +514,30 @@ namespace LottoDefense.Gameplay
                 if (placementMgr != null)
                 {
                     placementMgr.SelectUnitForPlacement(drawnUnit);
-                    StartCoroutine(FlashButtonText(btnText, $"{drawnUnit.unitName} 배치하세요!"));
+                    StartCoroutine(FlashButtonText(mainText, costText,
+                        drawnUnit.unitName, "\uBC30\uCE58\uD560 \uC704\uCE58\uB97C \uD130\uCE58\uD558\uC138\uC694!"));
                 }
             }
         }
 
-        private System.Collections.IEnumerator FlashButtonText(Text btnText, string message)
+        private System.Collections.IEnumerator FlashButtonText(Text mainText, Text costText, string mainMsg, string costMsg)
         {
-            string original = "소환 (5G)";
-            btnText.text = message;
+            string origMain = "\uC18C\uD658";
+            string origCost = "- 5 Gold -";
+            Color origMainColor = GameSceneDesignTokens.ButtonText;
+            Color origCostColor = GameSceneDesignTokens.ButtonCostText;
+
+            mainText.text = mainMsg;
+            mainText.color = Color.white;
+            costText.text = costMsg;
+            costText.color = new Color(1f, 1f, 1f, 0.8f);
+
             yield return new WaitForSeconds(1.5f);
-            btnText.text = original;
+
+            mainText.text = origMain;
+            mainText.color = origMainColor;
+            costText.text = origCost;
+            costText.color = origCostColor;
         }
         #endregion
 
