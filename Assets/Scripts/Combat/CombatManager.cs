@@ -260,9 +260,19 @@ namespace LottoDefense.Combat
             List<Unit> activeUnits = GetActiveUnits();
             List<Monster> activeMonsters = GetActiveMonsters();
 
+            // Debug: Log tick info every 10 ticks
+            if (combatTickCount % 10 == 1)
+            {
+                Debug.Log($"[CombatManager] Tick #{combatTickCount}: Units={activeUnits.Count}, Monsters={activeMonsters.Count}");
+            }
+
             // Early exit if no units or monsters
             if (activeUnits.Count == 0 || activeMonsters.Count == 0)
             {
+                if (combatTickCount == 1)
+                {
+                    Debug.LogWarning($"[CombatManager] No combat participants! Units={activeUnits.Count}, Monsters={activeMonsters.Count}");
+                }
                 return;
             }
 

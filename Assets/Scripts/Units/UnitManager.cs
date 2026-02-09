@@ -428,7 +428,11 @@ namespace LottoDefense.Units
         {
             List<Unit> placedUnits = new List<Unit>();
 
-            if (GridManager.Instance == null) return placedUnits;
+            if (GridManager.Instance == null)
+            {
+                Debug.LogWarning("[UnitManager] GetPlacedUnits: GridManager is null!");
+                return placedUnits;
+            }
 
             // Iterate through all grid cells to find placed units
             for (int x = 0; x < GridManager.GRID_WIDTH; x++)
@@ -439,10 +443,12 @@ namespace LottoDefense.Units
                     if (unit != null)
                     {
                         placedUnits.Add(unit);
+                        Debug.Log($"[UnitManager] Found unit at ({x},{y}): {unit.Data.GetDisplayName()}");
                     }
                 }
             }
 
+            Debug.Log($"[UnitManager] GetPlacedUnits: Found {placedUnits.Count} total units");
             return placedUnits;
         }
 
