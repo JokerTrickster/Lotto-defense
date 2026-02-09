@@ -269,7 +269,12 @@ namespace LottoDefense.Units
             {
                 ExecuteAttack();
                 currentCooldown = attackCooldown;
-                Debug.Log($"[Unit] {Data.GetDisplayName()} attacked {CurrentTarget.Data.monsterName} for {CurrentAttack} damage. Next attack in {attackCooldown:F2}s");
+
+                // Only log if target still exists after attack (it might have died)
+                if (CurrentTarget != null && CurrentTarget.Data != null)
+                {
+                    Debug.Log($"[Unit] {Data.GetDisplayName()} attacked {CurrentTarget.Data.monsterName} for {CurrentAttack} damage. Next attack in {attackCooldown:F2}s");
+                }
             }
         }
 
@@ -305,12 +310,18 @@ namespace LottoDefense.Units
             if (CurrentTarget == null || !CurrentTarget.IsActive) return;
 
             int damage = CurrentAttack;
+            Vector3 targetPos = CurrentTarget.transform.position; // Save position before TakeDamage
+
             CurrentTarget.TakeDamage(damage);
 
-            // Visual effect: missile/laser from unit to target
-            DrawMissileEffect(transform.position, CurrentTarget.transform.position);
+            // Visual effect: missile/laser from unit to target (use saved position in case target died)
+            DrawMissileEffect(transform.position, targetPos);
 
-            OnAttack?.Invoke(CurrentTarget, damage);
+            // Only invoke if target still exists (it might have died from TakeDamage)
+            if (CurrentTarget != null && CurrentTarget.IsActive)
+            {
+                OnAttack?.Invoke(CurrentTarget, damage);
+            }
         }
 
         /// <summary>
