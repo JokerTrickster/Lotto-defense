@@ -116,15 +116,90 @@ namespace LottoDefense.Gameplay
             }
 
             MonsterData[] monsterData = Resources.LoadAll<MonsterData>("Monsters");
+
+            // Check if loaded data is valid (not corrupted)
+            bool hasValidData = false;
             if (monsterData != null && monsterData.Length > 0)
             {
+                foreach (var data in monsterData)
+                {
+                    if (data != null && !string.IsNullOrEmpty(data.monsterName))
+                    {
+                        hasValidData = true;
+                        break;
+                    }
+                }
+            }
+
+            if (hasValidData)
+            {
                 SetField(manager, "monsterDataPool", monsterData);
-                Debug.Log($"[GameSceneBootstrapper] Loaded {monsterData.Length} monster types");
+                Debug.Log($"[GameSceneBootstrapper] Loaded {monsterData.Length} monster types from Resources");
             }
             else
             {
-                Debug.LogWarning("[GameSceneBootstrapper] No MonsterData found in Resources/Monsters!");
+                Debug.LogWarning("[GameSceneBootstrapper] No valid MonsterData found in Resources! Creating default runtime data...");
+                MonsterData[] defaultMonsters = CreateDefaultMonsterData();
+                SetField(manager, "monsterDataPool", defaultMonsters);
+                Debug.Log($"[GameSceneBootstrapper] Created and assigned {defaultMonsters.Length} default MonsterData");
             }
+
+            // Set spawn interval to 1.0 second (1 monster per second) per user request
+            SetField(manager, "spawnInterval", 1.0f);
+            Debug.Log("[GameSceneBootstrapper] Set spawn interval to 1.0 second (1 monster per second)");
+        }
+
+        /// <summary>
+        /// Create default MonsterData programmatically when assets are corrupted/missing.
+        /// Creates 3 basic monster types with colored circle sprites.
+        /// </summary>
+        private MonsterData[] CreateDefaultMonsterData()
+        {
+            MonsterData[] defaultMonsters = new MonsterData[3];
+
+            // Basic Monster - Green
+            defaultMonsters[0] = ScriptableObject.CreateInstance<MonsterData>();
+            defaultMonsters[0].name = "BasicMonster";
+            defaultMonsters[0].monsterName = "Basic";
+            defaultMonsters[0].type = MonsterType.Normal;
+            defaultMonsters[0].maxHealth = 100;
+            defaultMonsters[0].attack = 10;
+            defaultMonsters[0].defense = 5;
+            defaultMonsters[0].moveSpeed = 2.0f;
+            defaultMonsters[0].goldReward = 10;
+            defaultMonsters[0].healthScaling = 1.1f;
+            defaultMonsters[0].defenseScaling = 1.05f;
+            // Sprite will be created by Monster.CreateDefaultSprite() with green color
+
+            // Fast Monster - Yellow
+            defaultMonsters[1] = ScriptableObject.CreateInstance<MonsterData>();
+            defaultMonsters[1].name = "FastMonster";
+            defaultMonsters[1].monsterName = "Speedy";
+            defaultMonsters[1].type = MonsterType.Fast;
+            defaultMonsters[1].maxHealth = 70;
+            defaultMonsters[1].attack = 8;
+            defaultMonsters[1].defense = 3;
+            defaultMonsters[1].moveSpeed = 4.0f;
+            defaultMonsters[1].goldReward = 15;
+            defaultMonsters[1].healthScaling = 1.08f;
+            defaultMonsters[1].defenseScaling = 1.03f;
+            // Sprite will be created by Monster.CreateDefaultSprite() with yellow color
+
+            // Tank Monster - Red
+            defaultMonsters[2] = ScriptableObject.CreateInstance<MonsterData>();
+            defaultMonsters[2].name = "TankMonster";
+            defaultMonsters[2].monsterName = "Tank";
+            defaultMonsters[2].type = MonsterType.Tank;
+            defaultMonsters[2].maxHealth = 200;
+            defaultMonsters[2].attack = 15;
+            defaultMonsters[2].defense = 15;
+            defaultMonsters[2].moveSpeed = 1.0f;
+            defaultMonsters[2].goldReward = 25;
+            defaultMonsters[2].healthScaling = 1.15f;
+            defaultMonsters[2].defenseScaling = 1.08f;
+            // Sprite will be created by Monster.CreateDefaultSprite() with red color
+
+            return defaultMonsters;
         }
 
         private void EnsureRoundManager()
