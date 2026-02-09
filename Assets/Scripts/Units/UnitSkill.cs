@@ -189,5 +189,34 @@ namespace LottoDefense.Units
             return skillType == SkillType.Passive;
         }
         #endregion
+
+        #region Factory Methods
+        /// <summary>
+        /// Create a UnitSkill from GameBalanceConfig.SkillBalance.
+        /// </summary>
+        public static UnitSkill FromBalance(LottoDefense.Gameplay.GameBalanceConfig.SkillBalance balance)
+        {
+            if (balance == null)
+            {
+                Debug.LogError("[UnitSkill] Cannot create skill from null balance!");
+                return null;
+            }
+
+            return new UnitSkill
+            {
+                skillName = balance.skillName,
+                description = balance.description,
+                skillType = balance.skillType,
+                cooldownDuration = balance.cooldownDuration,
+                initialCooldown = balance.initialCooldown,
+                damageMultiplier = balance.damageMultiplier,
+                rangeMultiplier = balance.rangeMultiplier,
+                attackSpeedMultiplier = balance.attackSpeedMultiplier,
+                effectDuration = balance.effectDuration,
+                targetCount = balance.targetCount,
+                aoeRadius = balance.aoeRadius
+            };
+        }
+        #endregion
     }
 }

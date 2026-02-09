@@ -33,27 +33,288 @@ namespace LottoDefense.Gameplay
             [Header("업그레이드")]
             [Tooltip("업그레이드 비용")]
             public int upgradeCost = 5;
+
+            [Header("스킬")]
+            [Tooltip("이 유닛의 스킬 ID 목록 (스킬 프리셋 섹션 참조)")]
+            public List<string> skillIds = new List<string>();
+        }
+
+        [System.Serializable]
+        public class SkillBalance
+        {
+            [Header("스킬 기본 정보")]
+            public string skillName;
+            public string description;
+            public SkillType skillType;
+
+            [Header("쿨다운 설정")]
+            [Tooltip("쿨다운 시간 (초, 0 = 쿨다운 없음)")]
+            public float cooldownDuration = 10f;
+
+            [Tooltip("스킬 최초 사용 가능 시간 (초)")]
+            public float initialCooldown = 0f;
+
+            [Header("효과 배율")]
+            [Tooltip("데미지 배율 (1.5 = 150%)")]
+            public float damageMultiplier = 1.0f;
+
+            [Tooltip("범위 배율 (2.0 = 200%)")]
+            public float rangeMultiplier = 1.0f;
+
+            [Tooltip("공격속도 배율 (1.5 = 150% 빠름)")]
+            public float attackSpeedMultiplier = 1.0f;
+
+            [Header("효과 범위")]
+            [Tooltip("효과 지속시간 (초, 버프용)")]
+            public float effectDuration = 0f;
+
+            [Tooltip("영향받는 대상 수 (0 = 단일)")]
+            public int targetCount = 0;
+
+            [Tooltip("AOE 범위 (0 = AOE 없음)")]
+            public float aoeRadius = 0f;
         }
 
         [Header("=== 유닛 밸런스 ===")]
         public List<UnitBalance> units = new List<UnitBalance>
         {
             // Normal 유닛 (25%)
-            new UnitBalance { unitName = "기본 궁수", rarity = Rarity.Normal, attack = 10, attackSpeed = 1.0f, attackRange = 3.0f, upgradeCost = 5 },
-            new UnitBalance { unitName = "검사", rarity = Rarity.Normal, attack = 15, attackSpeed = 0.8f, attackRange = 1.5f, upgradeCost = 5 },
+            new UnitBalance
+            {
+                unitName = "기본 궁수",
+                rarity = Rarity.Normal,
+                attack = 10,
+                attackSpeed = 1.0f,
+                attackRange = 3.0f,
+                upgradeCost = 5,
+                skillIds = new List<string> { "critical_strike" }
+            },
+            new UnitBalance
+            {
+                unitName = "검사",
+                rarity = Rarity.Normal,
+                attack = 15,
+                attackSpeed = 0.8f,
+                attackRange = 1.5f,
+                upgradeCost = 5,
+                skillIds = new List<string> { "battle_frenzy" }
+            },
 
             // Rare 유닛 (25%)
-            new UnitBalance { unitName = "강화 궁수", rarity = Rarity.Rare, attack = 20, attackSpeed = 1.2f, attackRange = 4.0f, upgradeCost = 10 },
-            new UnitBalance { unitName = "마법사", rarity = Rarity.Rare, attack = 30, attackSpeed = 0.6f, attackRange = 5.0f, upgradeCost = 10 },
+            new UnitBalance
+            {
+                unitName = "강화 궁수",
+                rarity = Rarity.Rare,
+                attack = 20,
+                attackSpeed = 1.2f,
+                attackRange = 4.0f,
+                upgradeCost = 10,
+                skillIds = new List<string> { "double_shot", "sniper" }
+            },
+            new UnitBalance
+            {
+                unitName = "마법사",
+                rarity = Rarity.Rare,
+                attack = 30,
+                attackSpeed = 0.6f,
+                attackRange = 5.0f,
+                upgradeCost = 10,
+                skillIds = new List<string> { "chain_lightning" }
+            },
 
             // Epic 유닛 (25%)
-            new UnitBalance { unitName = "저격수", rarity = Rarity.Epic, attack = 50, attackSpeed = 0.5f, attackRange = 6.0f, upgradeCost = 20 },
-            new UnitBalance { unitName = "대마법사", rarity = Rarity.Epic, attack = 60, attackSpeed = 0.7f, attackRange = 5.0f, upgradeCost = 20 },
+            new UnitBalance
+            {
+                unitName = "저격수",
+                rarity = Rarity.Epic,
+                attack = 50,
+                attackSpeed = 0.5f,
+                attackRange = 6.0f,
+                upgradeCost = 20,
+                skillIds = new List<string> { "sniper", "critical_strike" }
+            },
+            new UnitBalance
+            {
+                unitName = "대마법사",
+                rarity = Rarity.Epic,
+                attack = 60,
+                attackSpeed = 0.7f,
+                attackRange = 5.0f,
+                upgradeCost = 20,
+                skillIds = new List<string> { "area_attack", "chain_lightning" }
+            },
 
             // Legendary 유닛 (25%)
-            new UnitBalance { unitName = "드래곤 아처", rarity = Rarity.Legendary, attack = 100, attackSpeed = 1.5f, attackRange = 7.0f, upgradeCost = 50 },
-            new UnitBalance { unitName = "대현자", rarity = Rarity.Legendary, attack = 150, attackSpeed = 1.0f, attackRange = 6.0f, upgradeCost = 50 }
+            new UnitBalance
+            {
+                unitName = "드래곤 아처",
+                rarity = Rarity.Legendary,
+                attack = 100,
+                attackSpeed = 1.5f,
+                attackRange = 7.0f,
+                upgradeCost = 50,
+                skillIds = new List<string> { "rapid_fire", "piercing_arrow", "gold_rush" }
+            },
+            new UnitBalance
+            {
+                unitName = "대현자",
+                rarity = Rarity.Legendary,
+                attack = 150,
+                attackSpeed = 1.0f,
+                attackRange = 6.0f,
+                upgradeCost = 50,
+                skillIds = new List<string> { "berserker", "area_attack", "chain_lightning" }
+            }
         };
+        #endregion
+
+        #region Skill Presets
+        [Header("=== 스킬 프리셋 (재사용 가능한 스킬 템플릿) ===")]
+        [Tooltip("스킬 ID를 키로 사용하여 여러 유닛이 같은 스킬을 공유할 수 있습니다")]
+        public List<SkillPreset> skillPresets = new List<SkillPreset>
+        {
+            // ===== OnHit 스킬 =====
+            new SkillPreset
+            {
+                skillId = "critical_strike",
+                skill = new SkillBalance
+                {
+                    skillName = "크리티컬 스트라이크",
+                    description = "공격 시 2배 데미지",
+                    skillType = SkillType.OnHit,
+                    cooldownDuration = 3f,
+                    damageMultiplier = 2.0f
+                }
+            },
+            new SkillPreset
+            {
+                skillId = "double_shot",
+                skill = new SkillBalance
+                {
+                    skillName = "더블 샷",
+                    description = "공격 시 추가로 1번 더 공격",
+                    skillType = SkillType.OnHit,
+                    cooldownDuration = 5f,
+                    damageMultiplier = 0.5f,
+                    targetCount = 1
+                }
+            },
+            new SkillPreset
+            {
+                skillId = "piercing_arrow",
+                skill = new SkillBalance
+                {
+                    skillName = "관통 화살",
+                    description = "공격이 2명의 적을 관통",
+                    skillType = SkillType.OnHit,
+                    cooldownDuration = 4f,
+                    damageMultiplier = 1.0f,
+                    targetCount = 2
+                }
+            },
+
+            // ===== OnKill 스킬 =====
+            new SkillPreset
+            {
+                skillId = "chain_lightning",
+                skill = new SkillBalance
+                {
+                    skillName = "연쇄 번개",
+                    description = "처치 시 주변 적 3명에게 50% 데미지",
+                    skillType = SkillType.OnKill,
+                    cooldownDuration = 2f,
+                    damageMultiplier = 0.5f,
+                    targetCount = 3,
+                    aoeRadius = 2.0f
+                }
+            },
+            new SkillPreset
+            {
+                skillId = "battle_frenzy",
+                skill = new SkillBalance
+                {
+                    skillName = "전투 광기",
+                    description = "처치 시 3초간 공속 50% 증가",
+                    skillType = SkillType.OnKill,
+                    cooldownDuration = 1f,
+                    attackSpeedMultiplier = 1.5f,
+                    effectDuration = 3f
+                }
+            },
+            new SkillPreset
+            {
+                skillId = "gold_rush",
+                skill = new SkillBalance
+                {
+                    skillName = "골드 러시",
+                    description = "처치 시 추가 골드 +3",
+                    skillType = SkillType.OnKill,
+                    cooldownDuration = 0f,
+                    damageMultiplier = 1.0f
+                }
+            },
+
+            // ===== Passive 스킬 =====
+            new SkillPreset
+            {
+                skillId = "sniper",
+                skill = new SkillBalance
+                {
+                    skillName = "저격수",
+                    description = "사거리 +50%",
+                    skillType = SkillType.Passive,
+                    cooldownDuration = 0f,
+                    rangeMultiplier = 1.5f
+                }
+            },
+            new SkillPreset
+            {
+                skillId = "berserker",
+                skill = new SkillBalance
+                {
+                    skillName = "버서커",
+                    description = "공격력 +30%",
+                    skillType = SkillType.Passive,
+                    cooldownDuration = 0f,
+                    damageMultiplier = 1.3f
+                }
+            },
+            new SkillPreset
+            {
+                skillId = "rapid_fire",
+                skill = new SkillBalance
+                {
+                    skillName = "속사",
+                    description = "공격속도 +50%",
+                    skillType = SkillType.Passive,
+                    cooldownDuration = 0f,
+                    attackSpeedMultiplier = 1.5f
+                }
+            },
+            new SkillPreset
+            {
+                skillId = "area_attack",
+                skill = new SkillBalance
+                {
+                    skillName = "광역 공격",
+                    description = "공격이 범위 1.5 내 모든 적 명중",
+                    skillType = SkillType.Passive,
+                    cooldownDuration = 0f,
+                    aoeRadius = 1.5f,
+                    targetCount = 5
+                }
+            }
+        };
+
+        [System.Serializable]
+        public class SkillPreset
+        {
+            [Tooltip("스킬 고유 ID (유닛이 참조할 때 사용)")]
+            public string skillId;
+
+            [Tooltip("스킬 밸런스 데이터")]
+            public SkillBalance skill;
+        }
         #endregion
 
         #region Monster Balance
@@ -249,6 +510,39 @@ namespace LottoDefense.Gameplay
             float total = spawnRates.normalRate + spawnRates.rareRate +
                          spawnRates.epicRate + spawnRates.legendaryRate;
             return Mathf.Approximately(total, 100f);
+        }
+
+        /// <summary>
+        /// 스킬 ID로 스킬 밸런스 데이터 가져오기
+        /// </summary>
+        public SkillBalance GetSkillById(string skillId)
+        {
+            var preset = skillPresets.Find(p => p.skillId == skillId);
+            return preset?.skill;
+        }
+
+        /// <summary>
+        /// 유닛의 모든 스킬 가져오기
+        /// </summary>
+        public List<SkillBalance> GetUnitSkills(UnitBalance unitBalance)
+        {
+            var skills = new List<SkillBalance>();
+            if (unitBalance.skillIds != null)
+            {
+                foreach (var skillId in unitBalance.skillIds)
+                {
+                    var skill = GetSkillById(skillId);
+                    if (skill != null)
+                    {
+                        skills.Add(skill);
+                    }
+                    else
+                    {
+                        Debug.LogWarning($"[GameBalanceConfig] 스킬 ID '{skillId}'를 찾을 수 없습니다!");
+                    }
+                }
+            }
+            return skills;
         }
 
         /// <summary>
