@@ -14,6 +14,7 @@ namespace LottoDefense.Gameplay
         [SerializeField] private Canvas mainCanvas;
 
         private Font defaultFont;
+        private GameBalanceConfig balanceConfig;
 
         private void Awake()
         {
@@ -32,6 +33,10 @@ namespace LottoDefense.Gameplay
                 Debug.LogError("[GameSceneBootstrapper] Failed to load default font!");
             else
                 Debug.Log($"[GameSceneBootstrapper] Font loaded successfully: {defaultFont.name}");
+
+            // Load or create game balance config (CENTRAL CONFIG)
+            balanceConfig = LoadOrCreateGameBalanceConfig();
+            Debug.Log("[GameSceneBootstrapper] Game balance config loaded");
 
             Debug.Log("[GameSceneBootstrapper] Creating main canvas...");
             EnsureMainCanvas();
@@ -117,91 +122,20 @@ namespace LottoDefense.Gameplay
                 manager = obj.AddComponent<MonsterManager>();
             }
 
-            MonsterData[] monsterData = Resources.LoadAll<MonsterData>("Monsters");
-
-            // Check if loaded data is valid (not corrupted)
-            bool hasValidData = false;
-            if (monsterData != null && monsterData.Length > 0)
+            // Create MonsterData from central balance config
+            MonsterData[] monsterData = new MonsterData[balanceConfig.monsters.Count];
+            for (int i = 0; i < balanceConfig.monsters.Count; i++)
             {
-                foreach (var data in monsterData)
-                {
-                    if (data != null && !string.IsNullOrEmpty(data.monsterName))
-                    {
-                        hasValidData = true;
-                        break;
-                    }
-                }
+                monsterData[i] = CreateMonsterDataFromConfig(balanceConfig.monsters[i]);
             }
 
-            if (hasValidData)
-            {
-                SetField(manager, "monsterDataPool", monsterData);
-                Debug.Log($"[GameSceneBootstrapper] Loaded {monsterData.Length} monster types from Resources");
-            }
-            else
-            {
-                Debug.LogWarning("[GameSceneBootstrapper] No valid MonsterData found in Resources! Creating default runtime data...");
-                MonsterData[] defaultMonsters = CreateDefaultMonsterData();
-                SetField(manager, "monsterDataPool", defaultMonsters);
-                Debug.Log($"[GameSceneBootstrapper] Created and assigned {defaultMonsters.Length} default MonsterData");
-            }
+            SetField(manager, "monsterDataPool", monsterData);
+            Debug.Log($"[GameSceneBootstrapper] Created {monsterData.Length} monster types from GameBalanceConfig");
 
-            // Set spawn interval to 1.0 second (1 monster per second) per user request
-            SetField(manager, "spawnInterval", 1.0f);
-            Debug.Log("[GameSceneBootstrapper] Set spawn interval to 1.0 second (1 monster per second)");
-        }
-
-        /// <summary>
-        /// Create default MonsterData programmatically when assets are corrupted/missing.
-        /// Creates 3 basic monster types with colored circle sprites.
-        /// </summary>
-        private MonsterData[] CreateDefaultMonsterData()
-        {
-            MonsterData[] defaultMonsters = new MonsterData[3];
-
-            // Basic Monster - Green
-            defaultMonsters[0] = ScriptableObject.CreateInstance<MonsterData>();
-            defaultMonsters[0].name = "BasicMonster";
-            defaultMonsters[0].monsterName = "Basic";
-            defaultMonsters[0].type = MonsterType.Normal;
-            defaultMonsters[0].maxHealth = 100;
-            defaultMonsters[0].attack = 10;
-            defaultMonsters[0].defense = 5;
-            defaultMonsters[0].moveSpeed = 2.0f;
-            defaultMonsters[0].goldReward = 10;
-            defaultMonsters[0].healthScaling = 1.1f;
-            defaultMonsters[0].defenseScaling = 1.05f;
-            // Sprite will be created by Monster.CreateDefaultSprite() with green color
-
-            // Fast Monster - Yellow
-            defaultMonsters[1] = ScriptableObject.CreateInstance<MonsterData>();
-            defaultMonsters[1].name = "FastMonster";
-            defaultMonsters[1].monsterName = "Speedy";
-            defaultMonsters[1].type = MonsterType.Fast;
-            defaultMonsters[1].maxHealth = 70;
-            defaultMonsters[1].attack = 8;
-            defaultMonsters[1].defense = 3;
-            defaultMonsters[1].moveSpeed = 4.0f;
-            defaultMonsters[1].goldReward = 15;
-            defaultMonsters[1].healthScaling = 1.08f;
-            defaultMonsters[1].defenseScaling = 1.03f;
-            // Sprite will be created by Monster.CreateDefaultSprite() with yellow color
-
-            // Tank Monster - Red
-            defaultMonsters[2] = ScriptableObject.CreateInstance<MonsterData>();
-            defaultMonsters[2].name = "TankMonster";
-            defaultMonsters[2].monsterName = "Tank";
-            defaultMonsters[2].type = MonsterType.Tank;
-            defaultMonsters[2].maxHealth = 200;
-            defaultMonsters[2].attack = 15;
-            defaultMonsters[2].defense = 15;
-            defaultMonsters[2].moveSpeed = 1.0f;
-            defaultMonsters[2].goldReward = 25;
-            defaultMonsters[2].healthScaling = 1.15f;
-            defaultMonsters[2].defenseScaling = 1.08f;
-            // Sprite will be created by Monster.CreateDefaultSprite() with red color
-
-            return defaultMonsters;
+            // Set spawn rate from balance config
+            float spawnInterval = 1f / balanceConfig.gameRules.spawnRate;
+            SetField(manager, "spawnInterval", spawnInterval);
+            Debug.Log($"[GameSceneBootstrapper] Set spawn interval to {spawnInterval:F2}s ({balanceConfig.gameRules.spawnRate} monsters/sec)");
         }
 
         private void EnsureRoundManager()
@@ -213,14 +147,10 @@ namespace LottoDefense.Gameplay
                 manager = obj.AddComponent<RoundManager>();
             }
 
-            // Try to load DifficultyConfig, create default if not found
-            DifficultyConfig config = Resources.Load<DifficultyConfig>("DifficultyConfig");
-            if (config == null)
-            {
-                Debug.LogWarning("[GameSceneBootstrapper] DifficultyConfig not found, creating default runtime config");
-                config = CreateDefaultDifficultyConfig();
-            }
+            // Create DifficultyConfig from central balance config
+            DifficultyConfig config = CreateDifficultyConfigFromConfig(balanceConfig.difficulty);
             SetField(manager, "difficultyConfig", config);
+            Debug.Log("[GameSceneBootstrapper] Created DifficultyConfig from GameBalanceConfig");
         }
 
         private void EnsureUnitManager()
@@ -779,6 +709,75 @@ namespace LottoDefense.Gameplay
         }
         #endregion
 
+        #region Game Balance Config
+        /// <summary>
+        /// Load GameBalanceConfig from Resources or create default runtime config.
+        /// This is the CENTRAL configuration for all game balance.
+        /// </summary>
+        private GameBalanceConfig LoadOrCreateGameBalanceConfig()
+        {
+            GameBalanceConfig config = Resources.Load<GameBalanceConfig>("GameBalanceConfig");
+
+            if (config == null)
+            {
+                Debug.LogWarning("[GameSceneBootstrapper] GameBalanceConfig not found in Resources! Creating default runtime config...");
+                config = CreateDefaultGameBalanceConfig();
+            }
+            else
+            {
+                Debug.Log("[GameSceneBootstrapper] GameBalanceConfig loaded from Resources");
+            }
+
+            return config;
+        }
+
+        /// <summary>
+        /// Create default GameBalanceConfig at runtime with default values.
+        /// </summary>
+        private GameBalanceConfig CreateDefaultGameBalanceConfig()
+        {
+            GameBalanceConfig config = ScriptableObject.CreateInstance<GameBalanceConfig>();
+
+            // Default values are set in GameBalanceConfig class
+            Debug.Log("[GameSceneBootstrapper] Created default GameBalanceConfig");
+
+            return config;
+        }
+
+        /// <summary>
+        /// Convert GameBalanceConfig.MonsterBalance to MonsterData ScriptableObject.
+        /// </summary>
+        private MonsterData CreateMonsterDataFromConfig(GameBalanceConfig.MonsterBalance balance)
+        {
+            MonsterData data = ScriptableObject.CreateInstance<MonsterData>();
+            data.name = balance.monsterName;
+            data.monsterName = balance.monsterName;
+            data.type = balance.type;
+            data.maxHealth = balance.maxHealth;
+            data.attack = balance.attack;
+            data.defense = balance.defense;
+            data.moveSpeed = balance.moveSpeed;
+            data.goldReward = balance.goldReward;
+            data.healthScaling = balance.healthScaling;
+            data.defenseScaling = balance.defenseScaling;
+            return data;
+        }
+
+        /// <summary>
+        /// Convert GameBalanceConfig.DifficultyBalance to DifficultyConfig ScriptableObject.
+        /// </summary>
+        private DifficultyConfig CreateDifficultyConfigFromConfig(GameBalanceConfig.DifficultyBalance balance)
+        {
+            DifficultyConfig config = ScriptableObject.CreateInstance<DifficultyConfig>();
+            SetField(config, "hpCurve", balance.healthScaling);
+            SetField(config, "defenseCurve", balance.defenseScaling);
+            SetField(config, "baseHpMultiplier", 1f);
+            SetField(config, "baseDefenseMultiplier", 1f);
+            SetField(config, "maxRounds", balance.maxRounds);
+            return config;
+        }
+        #endregion
+
         #region Utilities
         /// <summary>
         /// Create a Text component with font properly assigned.
@@ -802,33 +801,6 @@ namespace LottoDefense.Gameplay
             var field = target.GetType().GetField(fieldName,
                 System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             field?.SetValue(target, value);
-        }
-
-        /// <summary>
-        /// Create a default DifficultyConfig at runtime when asset is missing.
-        /// </summary>
-        private DifficultyConfig CreateDefaultDifficultyConfig()
-        {
-            DifficultyConfig config = ScriptableObject.CreateInstance<DifficultyConfig>();
-
-            // Create default HP curve (linear growth from 1x to 5x over 5 rounds)
-            AnimationCurve hpCurve = new AnimationCurve();
-            hpCurve.AddKey(0f, 1f);
-            hpCurve.AddKey(1f, 5f);
-            SetField(config, "hpCurve", hpCurve);
-
-            // Create default Defense curve (linear growth from 1x to 3x over 5 rounds)
-            AnimationCurve defCurve = new AnimationCurve();
-            defCurve.AddKey(0f, 1f);
-            defCurve.AddKey(1f, 3f);
-            SetField(config, "defenseCurve", defCurve);
-
-            SetField(config, "baseHpMultiplier", 1f);
-            SetField(config, "baseDefenseMultiplier", 1f);
-            SetField(config, "maxRounds", 5);
-
-            Debug.Log("[GameSceneBootstrapper] Created runtime DifficultyConfig");
-            return config;
         }
         #endregion
     }

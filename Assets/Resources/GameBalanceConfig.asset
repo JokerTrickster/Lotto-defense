@@ -1,0 +1,153 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9a8f7e6d5c4b3a2e1f0d9c8b7a6e5d4c, type: 3}
+  m_Name: GameBalanceConfig
+  m_EditorClassIdentifier:
+  units:
+  - unitName: "\uAE30\uBCF8 \uAD81\uC218"
+    rarity: 0
+    attack: 10
+    attackSpeed: 1
+    attackRange: 3
+    upgradeCost: 5
+  - unitName: "\uAC80\uC0AC"
+    rarity: 0
+    attack: 15
+    attackSpeed: 0.8
+    attackRange: 1.5
+    upgradeCost: 5
+  - unitName: "\uAC15\uD654 \uAD81\uC218"
+    rarity: 1
+    attack: 20
+    attackSpeed: 1.2
+    attackRange: 4
+    upgradeCost: 10
+  - unitName: "\uB9C8\uBC95\uC0AC"
+    rarity: 1
+    attack: 30
+    attackSpeed: 0.6
+    attackRange: 5
+    upgradeCost: 10
+  - unitName: "\uC800\uACA9\uC218"
+    rarity: 2
+    attack: 50
+    attackSpeed: 0.5
+    attackRange: 6
+    upgradeCost: 20
+  - unitName: "\uB300\uB9C8\uBC95\uC0AC"
+    rarity: 2
+    attack: 60
+    attackSpeed: 0.7
+    attackRange: 5
+    upgradeCost: 20
+  - unitName: "\uB4DC\uB798\uACE4 \uC544\uCC98"
+    rarity: 3
+    attack: 100
+    attackSpeed: 1.5
+    attackRange: 7
+    upgradeCost: 50
+  - unitName: "\uB300\uD604\uC790"
+    rarity: 3
+    attack: 150
+    attackSpeed: 1
+    attackRange: 6
+    upgradeCost: 50
+  monsters:
+  - monsterName: "\uAE30\uBCF8 \uBAEC\uC2A4\uD130"
+    type: 0
+    maxHealth: 100
+    attack: 10
+    defense: 5
+    moveSpeed: 2
+    goldReward: 10
+    healthScaling: 1.1
+    defenseScaling: 1.05
+  - monsterName: "\uBE E\uB978 \uBABC\uC2A4\uD130"
+    type: 1
+    maxHealth: 70
+    attack: 8
+    defense: 3
+    moveSpeed: 4
+    goldReward: 8
+    healthScaling: 1.08
+    defenseScaling: 1.03
+  - monsterName: "\uD0F1\uD06C \uBABC\uC2A4\uD130"
+    type: 2
+    maxHealth: 200
+    attack: 15
+    defense: 10
+    moveSpeed: 1.5
+    goldReward: 15
+    healthScaling: 1.12
+    defenseScaling: 1.06
+  difficulty:
+    maxRounds: 5
+    healthScaling:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 1
+        inSlope: 4
+        outSlope: 4
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 5
+        inSlope: 4
+        outSlope: 4
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    defenseScaling:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 1
+        inSlope: 2
+        outSlope: 2
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 3
+        inSlope: 2
+        outSlope: 2
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+  spawnRates:
+    normalRate: 25
+    rareRate: 25
+    epicRate: 25
+    legendaryRate: 25
+  gameRules:
+    preparationTime: 15
+    combatTime: 30
+    startingGold: 30
+    summonCost: 5
+    maxMonsterCount: 100
+    spawnRate: 2

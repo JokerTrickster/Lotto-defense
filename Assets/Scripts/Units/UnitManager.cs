@@ -38,15 +38,17 @@ namespace LottoDefense.Units
         }
         #endregion
 
-        #region Constants
-        private const int GACHA_COST = 5;
+        #region Configuration
+        /// <summary>
+        /// Central game balance configuration loaded at initialization.
+        /// Contains all spawn rates, costs, and game rules.
+        /// </summary>
+        private GameBalanceConfig balanceConfig;
 
-        // Weighted probabilities for each rarity (must sum to 100)
-        // TEST MODE: 25% each for testing (Normal, Rare, Epic, Legendary)
-        private const float NORMAL_DROP_RATE = 25f;
-        private const float RARE_DROP_RATE = 25f;
-        private const float EPIC_DROP_RATE = 25f;
-        private const float LEGENDARY_DROP_RATE = 25f;
+        /// <summary>
+        /// Gacha cost - loaded from balance config, defaults to 5 if not set.
+        /// </summary>
+        private int gachaCost = 5;
         #endregion
 
         #region Inspector Fields
@@ -121,6 +123,21 @@ namespace LottoDefense.Units
         /// </summary>
         private void Initialize()
         {
+            // Load central game balance config
+            balanceConfig = Resources.Load<GameBalanceConfig>("GameBalanceConfig");
+            if (balanceConfig == null)
+            {
+                Debug.LogWarning("[UnitManager] GameBalanceConfig not found! Using default values.");
+                balanceConfig = ScriptableObject.CreateInstance<GameBalanceConfig>();
+            }
+            else
+            {
+                Debug.Log("[UnitManager] GameBalanceConfig loaded successfully");
+            }
+
+            // Set gacha cost from config
+            gachaCost = balanceConfig.gameRules.summonCost;
+
             // Auto-load units from Resources if pools are empty
             if (normalUnits.Count == 0 && rareUnits.Count == 0 &&
                 epicUnits.Count == 0 && legendaryUnits.Count == 0)
@@ -130,6 +147,7 @@ namespace LottoDefense.Units
 
             ValidateUnitPools();
             Debug.Log($"[UnitManager] Initialized - Pool sizes: N={normalUnits.Count}, R={rareUnits.Count}, E={epicUnits.Count}, L={legendaryUnits.Count}");
+            Debug.Log($"[UnitManager] Spawn rates: N={balanceConfig.spawnRates.normalRate}%, R={balanceConfig.spawnRates.rareRate}%, E={balanceConfig.spawnRates.epicRate}%, L={balanceConfig.spawnRates.legendaryRate}%");
         }
 
         /// <summary>
@@ -158,9 +176,9 @@ namespace LottoDefense.Units
         public UnitData DrawUnit()
         {
             // Validate gold availability
-            if (GameplayManager.Instance.CurrentGold < GACHA_COST)
+            if (GameplayManager.Instance.CurrentGold < gachaCost)
             {
-                string reason = $"Insufficient gold. Need {GACHA_COST}, have {GameplayManager.Instance.CurrentGold}";
+                string reason = $"Insufficient gold. Need {gachaCost}, have {GameplayManager.Instance.CurrentGold}";
                 Debug.LogWarning($"[UnitManager] Draw failed: {reason}");
                 OnDrawFailed?.Invoke(reason);
                 return null;
@@ -176,7 +194,7 @@ namespace LottoDefense.Units
             }
 
             // Deduct gold cost
-            GameplayManager.Instance.ModifyGold(-GACHA_COST);
+            GameplayManager.Instance.ModifyGold(-gachaCost);
 
             // Perform weighted random selection
             UnitData drawnUnit = PerformWeightedDraw();
@@ -202,7 +220,7 @@ namespace LottoDefense.Units
         }
 
         /// <summary>
-        /// Performs weighted random selection based on rarity drop rates.
+        /// Performs weighted random selection based on rarity drop rates from GameBalanceConfig.
         /// Returns a random unit from the selected rarity pool.
         /// </summary>
         private UnitData PerformWeightedDraw()
@@ -213,23 +231,29 @@ namespace LottoDefense.Units
             Rarity selectedRarity;
             List<UnitData> selectedPool;
 
+            // Get spawn rates from balance config
+            float legendaryRate = balanceConfig.spawnRates.legendaryRate;
+            float epicRate = balanceConfig.spawnRates.epicRate;
+            float rareRate = balanceConfig.spawnRates.rareRate;
+            float normalRate = balanceConfig.spawnRates.normalRate;
+
             // Determine rarity based on cumulative probabilities
-            if (roll < LEGENDARY_DROP_RATE) // 0-5: Legendary
+            if (roll < legendaryRate) // Legendary
             {
                 selectedRarity = Rarity.Legendary;
                 selectedPool = legendaryUnits;
             }
-            else if (roll < LEGENDARY_DROP_RATE + EPIC_DROP_RATE) // 5-20: Epic
+            else if (roll < legendaryRate + epicRate) // Epic
             {
                 selectedRarity = Rarity.Epic;
                 selectedPool = epicUnits;
             }
-            else if (roll < LEGENDARY_DROP_RATE + EPIC_DROP_RATE + RARE_DROP_RATE) // 20-50: Rare
+            else if (roll < legendaryRate + epicRate + rareRate) // Rare
             {
                 selectedRarity = Rarity.Rare;
                 selectedPool = rareUnits;
             }
-            else // 50-100: Normal
+            else // Normal
             {
                 selectedRarity = Rarity.Normal;
                 selectedPool = normalUnits;
@@ -252,7 +276,7 @@ namespace LottoDefense.Units
         /// </summary>
         public bool CanDraw()
         {
-            return GameplayManager.Instance.CurrentGold >= GACHA_COST && !IsInventoryFull;
+            return GameplayManager.Instance.CurrentGold >= gachaCost && !IsInventoryFull;
         }
 
         /// <summary>
@@ -260,7 +284,7 @@ namespace LottoDefense.Units
         /// </summary>
         public int GetGachaCost()
         {
-            return GACHA_COST;
+            return gachaCost;
         }
         #endregion
 
@@ -528,7 +552,8 @@ namespace LottoDefense.Units
         /// </summary>
         public string GetDropRateInfo()
         {
-            return $"Drop Rates: Normal={NORMAL_DROP_RATE}%, Rare={RARE_DROP_RATE}%, Epic={EPIC_DROP_RATE}%, Legendary={LEGENDARY_DROP_RATE}%";
+            if (balanceConfig == null) return "Drop Rates: Config not loaded";
+            return $"Drop Rates: Normal={balanceConfig.spawnRates.normalRate}%, Rare={balanceConfig.spawnRates.rareRate}%, Epic={balanceConfig.spawnRates.epicRate}%, Legendary={balanceConfig.spawnRates.legendaryRate}%";
         }
 
         /// <summary>
