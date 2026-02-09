@@ -208,10 +208,16 @@ namespace LottoDefense.UI
             }
             else
             {
-                // Fallback: cleanup and direct scene load
-                GameplayManager.CleanupAllGameplaySingletons();
-                UnityEngine.SceneManagement.SceneManager.LoadScene("MainGame");
+                // Fallback: cleanup with coroutine
+                StartCoroutine(CleanupAndLoadMainGame());
             }
+        }
+
+        private System.Collections.IEnumerator CleanupAndLoadMainGame()
+        {
+            GameplayManager.CleanupAllGameplaySingletons();
+            yield return null; // Wait for Destroy() to take effect
+            UnityEngine.SceneManagement.SceneManager.LoadScene("MainGame");
         }
         #endregion
     }
