@@ -46,6 +46,7 @@ namespace LottoDefense.Gameplay
             EnsureGameHUD();
             EnsureSummonButton();
             EnsureBackToMenuButton();
+            EnsureGameResultUI();
 
             Debug.Log("[GameSceneBootstrapper] Game scene initialization complete");
         }
@@ -589,6 +590,130 @@ namespace LottoDefense.Gameplay
             Outline outline = textObj.AddComponent<Outline>();
             outline.effectColor = new Color(0, 0, 0, 0.3f);
             outline.effectDistance = new Vector2(1, -1);
+        }
+
+        private void EnsureGameResultUI()
+        {
+            GameResultUI resultUI = FindFirstObjectByType<GameResultUI>();
+            if (resultUI != null) return;
+
+            // Full-screen overlay for game result
+            GameObject resultObj = new GameObject("GameResultUI");
+            resultObj.transform.SetParent(mainCanvas.transform, false);
+
+            RectTransform rect = resultObj.AddComponent<RectTransform>();
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
+            rect.offsetMin = Vector2.zero;
+            rect.offsetMax = Vector2.zero;
+
+            CanvasGroup canvasGroup = resultObj.AddComponent<CanvasGroup>();
+            canvasGroup.alpha = 0f;
+            canvasGroup.interactable = false;
+            canvasGroup.blocksRaycasts = false;
+
+            // Semi-transparent background
+            Image bgImage = resultObj.AddComponent<Image>();
+            bgImage.color = new Color(0f, 0f, 0f, 0.85f);
+
+            // Result panel
+            GameObject panelObj = new GameObject("ResultPanel");
+            panelObj.transform.SetParent(resultObj.transform, false);
+            panelObj.SetActive(false);
+
+            RectTransform panelRect = panelObj.AddComponent<RectTransform>();
+            panelRect.anchorMin = new Vector2(0.5f, 0.5f);
+            panelRect.anchorMax = new Vector2(0.5f, 0.5f);
+            panelRect.anchoredPosition = Vector2.zero;
+            panelRect.sizeDelta = new Vector2(600, 500);
+
+            Image panelImage = panelObj.AddComponent<Image>();
+            panelImage.color = new Color(0.15f, 0.15f, 0.2f, 0.95f);
+
+            // Title text
+            GameObject titleObj = new GameObject("TitleText");
+            titleObj.transform.SetParent(panelObj.transform, false);
+
+            RectTransform titleRect = titleObj.AddComponent<RectTransform>();
+            titleRect.anchorMin = new Vector2(0.5f, 1f);
+            titleRect.anchorMax = new Vector2(0.5f, 1f);
+            titleRect.anchoredPosition = new Vector2(0, -80);
+            titleRect.sizeDelta = new Vector2(500, 100);
+
+            Text titleText = CreateText(titleObj, "게임 오버", 60, Color.white);
+            titleText.fontStyle = FontStyle.Bold;
+
+            // Round text
+            GameObject roundObj = new GameObject("RoundText");
+            roundObj.transform.SetParent(panelObj.transform, false);
+
+            RectTransform roundRect = roundObj.AddComponent<RectTransform>();
+            roundRect.anchorMin = new Vector2(0.5f, 0.5f);
+            roundRect.anchorMax = new Vector2(0.5f, 0.5f);
+            roundRect.anchoredPosition = new Vector2(0, 50);
+            roundRect.sizeDelta = new Vector2(500, 60);
+
+            Text roundText = CreateText(roundObj, "도달 라운드: 1", 36, new Color(0.9f, 0.9f, 0.9f));
+
+            // Contribution text
+            GameObject contribObj = new GameObject("ContributionText");
+            contribObj.transform.SetParent(panelObj.transform, false);
+
+            RectTransform contribRect = contribObj.AddComponent<RectTransform>();
+            contribRect.anchorMin = new Vector2(0.5f, 0.5f);
+            contribRect.anchorMax = new Vector2(0.5f, 0.5f);
+            contribRect.anchoredPosition = new Vector2(0, -30);
+            contribRect.sizeDelta = new Vector2(500, 60);
+
+            Text contribText = CreateText(contribObj, "기여도: 0점", 36, new Color(1f, 0.8f, 0.2f));
+
+            // Confirm button
+            GameObject btnObj = new GameObject("ConfirmButton");
+            btnObj.transform.SetParent(panelObj.transform, false);
+
+            RectTransform btnRect = btnObj.AddComponent<RectTransform>();
+            btnRect.anchorMin = new Vector2(0.5f, 0f);
+            btnRect.anchorMax = new Vector2(0.5f, 0f);
+            btnRect.anchoredPosition = new Vector2(0, 80);
+            btnRect.sizeDelta = new Vector2(300, 80);
+
+            Image btnImage = btnObj.AddComponent<Image>();
+            btnImage.color = new Color(0.2f, 0.6f, 0.3f);
+
+            Button button = btnObj.AddComponent<Button>();
+            ColorBlock colors = button.colors;
+            colors.normalColor = Color.white;
+            colors.highlightedColor = new Color(1.1f, 1.1f, 1.1f, 1f);
+            colors.pressedColor = new Color(0.7f, 0.7f, 0.7f, 1f);
+            colors.fadeDuration = 0.1f;
+            button.colors = colors;
+
+            // Button text
+            GameObject btnTextObj = new GameObject("Text");
+            btnTextObj.transform.SetParent(btnObj.transform, false);
+
+            RectTransform btnTextRect = btnTextObj.AddComponent<RectTransform>();
+            btnTextRect.anchorMin = Vector2.zero;
+            btnTextRect.anchorMax = Vector2.one;
+            btnTextRect.offsetMin = Vector2.zero;
+            btnTextRect.offsetMax = Vector2.zero;
+
+            Text btnText = CreateText(btnTextObj, "확인", 40, Color.white);
+            btnText.fontStyle = FontStyle.Bold;
+
+            // Add GameResultUI component
+            GameResultUI resultUIComponent = resultObj.AddComponent<GameResultUI>();
+
+            // Assign references using reflection
+            SetField(resultUIComponent, "canvasGroup", canvasGroup);
+            SetField(resultUIComponent, "resultPanel", panelObj);
+            SetField(resultUIComponent, "titleText", titleText);
+            SetField(resultUIComponent, "roundText", roundText);
+            SetField(resultUIComponent, "contributionText", contribText);
+            SetField(resultUIComponent, "confirmButton", button);
+            SetField(resultUIComponent, "confirmButtonText", btnText);
+
+            Debug.Log("[GameSceneBootstrapper] Created GameResultUI");
         }
         #endregion
 
