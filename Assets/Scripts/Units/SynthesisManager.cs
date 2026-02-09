@@ -120,16 +120,16 @@ namespace LottoDefense.Units
             }
 
             // Check gold cost (if any)
-            if (recipe.goldCost > 0)
+            if (recipe.synthesisGoldCost > 0)
             {
-                if (GameplayManager.Instance == null || GameplayManager.Instance.CurrentGold < recipe.goldCost)
+                if (GameplayManager.Instance == null || GameplayManager.Instance.CurrentGold < recipe.synthesisGoldCost)
                 {
-                    Debug.LogWarning($"[SynthesisManager] Not enough gold: {recipe.goldCost} required");
+                    Debug.LogWarning($"[SynthesisManager] Not enough gold: {recipe.synthesisGoldCost} required");
                     return false;
                 }
 
                 // Deduct gold
-                GameplayManager.Instance.ModifyGold(-recipe.goldCost);
+                GameplayManager.Instance.ModifyGold(-recipe.synthesisGoldCost);
             }
 
             // Perform synthesis
