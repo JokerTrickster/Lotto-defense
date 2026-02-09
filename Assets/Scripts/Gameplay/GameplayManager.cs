@@ -109,20 +109,26 @@ namespace LottoDefense.Gameplay
         #region Unity Lifecycle
         private void Awake()
         {
+            Debug.Log($"[GameplayManager] Awake called - _instance={_instance}, this={this}");
+
             if (_instance != null && _instance != this)
             {
+                Debug.Log("[GameplayManager] Duplicate instance detected, destroying self");
                 Destroy(gameObject);
                 return;
             }
 
             _instance = this;
             DontDestroyOnLoad(gameObject);
+            Debug.Log("[GameplayManager] Set as singleton instance and marked DontDestroyOnLoad");
 
             Initialize();
 
             // Create bootstrapper immediately in Awake (not Start) to avoid
             // timing issues with DontDestroyOnLoad objects during sceneLoaded callbacks
+            Debug.Log("[GameplayManager] About to call EnsureGameSystemsBootstrapped");
             EnsureGameSystemsBootstrapped();
+            Debug.Log("[GameplayManager] Finished EnsureGameSystemsBootstrapped");
         }
 
         private void Start()
@@ -150,13 +156,23 @@ namespace LottoDefense.Gameplay
         /// </summary>
         private void EnsureGameSystemsBootstrapped()
         {
+            Debug.Log("[GameplayManager] EnsureGameSystemsBootstrapped - Searching for existing bootstrapper...");
+
             // Check if bootstrapper already exists
             GameSceneBootstrapper bootstrapper = FindFirstObjectByType<GameSceneBootstrapper>();
+
             if (bootstrapper == null)
             {
-                Debug.Log("[GameplayManager] Creating GameSceneBootstrapper");
+                Debug.Log("[GameplayManager] No bootstrapper found, creating new one");
                 GameObject bootstrapperObj = new GameObject("GameSceneBootstrapper");
-                bootstrapperObj.AddComponent<GameSceneBootstrapper>();
+                Debug.Log($"[GameplayManager] Created GameObject: {bootstrapperObj.name}");
+
+                var component = bootstrapperObj.AddComponent<GameSceneBootstrapper>();
+                Debug.Log($"[GameplayManager] Added GameSceneBootstrapper component: {component}");
+            }
+            else
+            {
+                Debug.Log($"[GameplayManager] Bootstrapper already exists: {bootstrapper.gameObject.name}");
             }
         }
         #endregion

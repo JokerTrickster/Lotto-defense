@@ -16,13 +16,18 @@ namespace LottoDefense.Gameplay
 
         private void Awake()
         {
+            Debug.Log($"[GameSceneBootstrapper] Awake called on GameObject: {gameObject.name}");
             Debug.Log("[GameSceneBootstrapper] Starting game scene initialization...");
 
             defaultFont = Resources.GetBuiltinResource<Font>("Arial.ttf");
             if (defaultFont == null)
                 Debug.LogError("[GameSceneBootstrapper] Failed to load Arial font!");
+            else
+                Debug.Log("[GameSceneBootstrapper] Arial font loaded successfully");
 
+            Debug.Log("[GameSceneBootstrapper] Creating main canvas...");
             EnsureMainCanvas();
+            Debug.Log("[GameSceneBootstrapper] Main canvas created");
 
             EnsureGridManager();
             EnsureMonsterManager();
