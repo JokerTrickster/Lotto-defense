@@ -67,6 +67,22 @@ namespace LottoDefense.VFX
                 return;
             }
 
+            if (rectTransform == null)
+            {
+                rectTransform = GetComponent<RectTransform>();
+                if (rectTransform == null)
+                {
+                    Debug.LogError("[DamageNumberController] RectTransform is null and couldn't be retrieved!");
+                    return;
+                }
+            }
+
+            if (Camera.main == null)
+            {
+                Debug.LogError("[DamageNumberController] Camera.main is null!");
+                return;
+            }
+
             // Position at world location (converted to screen space)
             Vector3 screenPosition = Camera.main.WorldToScreenPoint(worldPosition);
             rectTransform.position = screenPosition;
