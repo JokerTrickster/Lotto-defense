@@ -399,9 +399,9 @@ namespace LottoDefense.VFX
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
 
             // Add CanvasGroup
-            prefab.AddComponent<CanvasGroup>();
+            CanvasGroup canvasGroup = prefab.AddComponent<CanvasGroup>();
 
-            // Add RectTransform
+            // Add RectTransform (automatically added with Canvas)
             RectTransform rectTransform = prefab.GetComponent<RectTransform>();
             rectTransform.sizeDelta = new Vector2(100, 50);
 
@@ -427,6 +427,10 @@ namespace LottoDefense.VFX
             if (textField != null)
                 textField.SetValue(controller, text);
 
+            var canvasGroupField = controller.GetType().GetField("canvasGroup", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (canvasGroupField != null)
+                canvasGroupField.SetValue(controller, canvasGroup);
+
             prefab.SetActive(false);
             return prefab;
         }
@@ -443,9 +447,9 @@ namespace LottoDefense.VFX
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
 
             // Add CanvasGroup
-            prefab.AddComponent<CanvasGroup>();
+            CanvasGroup canvasGroup = prefab.AddComponent<CanvasGroup>();
 
-            // Add RectTransform
+            // Add RectTransform (automatically added with Canvas)
             RectTransform rectTransform = prefab.GetComponent<RectTransform>();
             rectTransform.sizeDelta = new Vector2(150, 50);
 
@@ -470,6 +474,10 @@ namespace LottoDefense.VFX
             var textField = controller.GetType().GetField("messageText", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             if (textField != null)
                 textField.SetValue(controller, text);
+
+            var canvasGroupField = controller.GetType().GetField("canvasGroup", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (canvasGroupField != null)
+                canvasGroupField.SetValue(controller, canvasGroup);
 
             prefab.SetActive(false);
             return prefab;
