@@ -3,6 +3,18 @@ using UnityEngine;
 namespace LottoDefense.Units
 {
     /// <summary>
+    /// Attack pattern type for units.
+    /// </summary>
+    public enum AttackPattern
+    {
+        SingleTarget,   // 단일 대상 공격 (기본)
+        Splash,         // 범위 공격 (주 대상 + 주변 적)
+        AOE,            // 광역 공격 (범위 내 모든 적)
+        Pierce,         // 관통 공격 (일직선상 모든 적)
+        Chain           // 연쇄 공격 (대상에서 대상으로 튕김)
+    }
+
+    /// <summary>
     /// ScriptableObject that defines the data template for a unit type.
     /// Designers can create different unit variants by creating instances of this asset.
     /// All unit stats and visual references are configured here.
@@ -36,6 +48,22 @@ namespace LottoDefense.Units
         [Tooltip("Attacks per second")]
         [Min(0.1f)]
         public float attackSpeed = 1.0f;
+
+        [Header("Attack Pattern")]
+        [Tooltip("Attack pattern type (Single, Splash, AOE, Pierce, Chain)")]
+        public AttackPattern attackPattern = AttackPattern.SingleTarget;
+
+        [Tooltip("Splash/AOE radius (0 = no splash, only for Splash/AOE patterns)")]
+        [Min(0f)]
+        public float splashRadius = 0f;
+
+        [Tooltip("Max targets hit (for Pierce/Chain patterns, 0 = unlimited)")]
+        [Min(0)]
+        public int maxTargets = 1;
+
+        [Tooltip("Damage falloff for splash (% of damage at edge, 100 = no falloff)")]
+        [Range(0f, 100f)]
+        public float splashDamageFalloff = 50f;
 
         [Header("Upgrade Settings")]
         [Tooltip("Base cost for first upgrade")]
@@ -81,6 +109,25 @@ namespace LottoDefense.Units
             defense = Mathf.Max(0, defense);
             attackRange = Mathf.Max(0.1f, attackRange);
             attackSpeed = Mathf.Max(0.1f, attackSpeed);
+
+            // Validate attack pattern settings
+            splashRadius = Mathf.Max(0f, splashRadius);
+            maxTargets = Mathf.Max(0, maxTargets);
+            splashDamageFalloff = Mathf.Clamp(splashDamageFalloff, 0f, 100f);
+
+            // Auto-configure based on attack pattern
+            if (attackPattern == AttackPattern.SingleTarget)
+            {
+                maxTargets = 1;
+                splashRadius = 0f;
+            }
+            else if (attackPattern == AttackPattern.Splash || attackPattern == AttackPattern.AOE)
+            {
+                if (splashRadius <= 0f)
+                {
+                    splashRadius = 1.5f; // Default splash radius
+                }
+            }
 
             // Validate name is not empty
             if (string.IsNullOrWhiteSpace(unitName))

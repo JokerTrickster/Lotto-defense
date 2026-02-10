@@ -417,25 +417,269 @@ namespace LottoDefense.Units
         }
 
         /// <summary>
-        /// Execute an attack on the current target.
+        /// Execute an attack on the current target based on attack pattern.
         /// </summary>
         private void ExecuteAttack()
         {
             if (CurrentTarget == null || !CurrentTarget.IsActive) return;
 
             int damage = CurrentAttack;
-            Vector3 targetPos = CurrentTarget.transform.position; // Save position before TakeDamage
+            Vector3 targetPos = CurrentTarget.transform.position; // Save position before damage
 
-            CurrentTarget.TakeDamage(damage);
-
-            // Visual effect: missile/laser from unit to target (use saved position in case target died)
-            DrawMissileEffect(transform.position, targetPos);
-
-            // Only invoke if target still exists (it might have died from TakeDamage)
-            if (CurrentTarget != null && CurrentTarget.IsActive)
+            // Execute attack based on pattern
+            switch (Data.attackPattern)
             {
-                OnAttack?.Invoke(CurrentTarget, damage);
+                case AttackPattern.SingleTarget:
+                    ExecuteSingleTargetAttack(CurrentTarget, damage);
+                    break;
+
+                case AttackPattern.Splash:
+                    ExecuteSplashAttack(CurrentTarget, targetPos, damage);
+                    break;
+
+                case AttackPattern.AOE:
+                    ExecuteAOEAttack(targetPos, damage);
+                    break;
+
+                case AttackPattern.Pierce:
+                    ExecutePierceAttack(CurrentTarget, damage);
+                    break;
+
+                case AttackPattern.Chain:
+                    ExecuteChainAttack(CurrentTarget, damage);
+                    break;
+
+                default:
+                    ExecuteSingleTargetAttack(CurrentTarget, damage);
+                    break;
             }
+
+            // Visual effect
+            DrawMissileEffect(transform.position, targetPos);
+        }
+
+        /// <summary>
+        /// Execute single target attack (default).
+        /// </summary>
+        private void ExecuteSingleTargetAttack(Monster target, int damage)
+        {
+            if (target == null || !target.IsActive) return;
+
+            target.TakeDamage(damage);
+            OnAttack?.Invoke(target, damage);
+        }
+
+        /// <summary>
+        /// Execute splash attack (primary target + nearby enemies).
+        /// </summary>
+        private void ExecuteSplashAttack(Monster primaryTarget, Vector3 targetPos, int primaryDamage)
+        {
+            if (primaryTarget == null || !primaryTarget.IsActive) return;
+
+            // Damage primary target
+            primaryTarget.TakeDamage(primaryDamage);
+            OnAttack?.Invoke(primaryTarget, primaryDamage);
+
+            // Find nearby enemies within splash radius
+            if (MonsterManager.Instance != null && Data.splashRadius > 0f)
+            {
+                var allMonsters = MonsterManager.Instance.GetActiveMonstersList();
+                float falloffPercent = Data.splashDamageFalloff / 100f;
+
+                foreach (var monster in allMonsters)
+                {
+                    if (monster == null || !monster.IsActive || monster == primaryTarget) continue;
+
+                    float distance = Vector3.Distance(targetPos, monster.transform.position);
+                    if (distance <= Data.splashRadius)
+                    {
+                        // Calculate damage with falloff
+                        float damageMultiplier = Mathf.Lerp(1f, falloffPercent, distance / Data.splashRadius);
+                        int splashDamage = Mathf.RoundToInt(primaryDamage * damageMultiplier);
+
+                        monster.TakeDamage(splashDamage);
+
+                        // Visual splash effect
+                        DrawSplashEffect(targetPos, monster.transform.position);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Execute AOE attack (all enemies in radius).
+        /// </summary>
+        private void ExecuteAOEAttack(Vector3 center, int damage)
+        {
+            if (MonsterManager.Instance == null || Data.splashRadius <= 0f) return;
+
+            var allMonsters = MonsterManager.Instance.GetActiveMonstersList();
+            float falloffPercent = Data.splashDamageFalloff / 100f;
+
+            foreach (var monster in allMonsters)
+            {
+                if (monster == null || !monster.IsActive) continue;
+
+                float distance = Vector3.Distance(center, monster.transform.position);
+                if (distance <= Data.splashRadius)
+                {
+                    // Calculate damage with falloff
+                    float damageMultiplier = Mathf.Lerp(1f, falloffPercent, distance / Data.splashRadius);
+                    int aoeDamage = Mathf.RoundToInt(damage * damageMultiplier);
+
+                    monster.TakeDamage(aoeDamage);
+                    OnAttack?.Invoke(monster, aoeDamage);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Execute pierce attack (hits multiple enemies in a line).
+        /// </summary>
+        private void ExecutePierceAttack(Monster firstTarget, int damage)
+        {
+            if (firstTarget == null || !firstTarget.IsActive || MonsterManager.Instance == null) return;
+
+            Vector3 direction = (firstTarget.transform.position - transform.position).normalized;
+            var allMonsters = MonsterManager.Instance.GetActiveMonstersList();
+
+            int hitCount = 0;
+            int maxHits = Data.maxTargets > 0 ? Data.maxTargets : 999;
+
+            foreach (var monster in allMonsters)
+            {
+                if (monster == null || !monster.IsActive) continue;
+                if (hitCount >= maxHits) break;
+
+                // Check if monster is in line of fire
+                Vector3 toMonster = monster.transform.position - transform.position;
+                float distance = toMonster.magnitude;
+
+                if (distance <= Data.attackRange)
+                {
+                    float angle = Vector3.Angle(direction, toMonster.normalized);
+                    if (angle < 15f) // Within 15 degree cone
+                    {
+                        monster.TakeDamage(damage);
+                        OnAttack?.Invoke(monster, damage);
+                        hitCount++;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Execute chain attack (bounces between nearby enemies).
+        /// </summary>
+        private void ExecuteChainAttack(Monster firstTarget, int damage)
+        {
+            if (firstTarget == null || !firstTarget.IsActive || MonsterManager.Instance == null) return;
+
+            int maxChains = Data.maxTargets > 0 ? Data.maxTargets : 3;
+            float chainRange = Data.splashRadius > 0f ? Data.splashRadius : 2f;
+
+            Monster currentTarget = firstTarget;
+            HashSet<Monster> hitMonsters = new HashSet<Monster>();
+
+            for (int i = 0; i < maxChains; i++)
+            {
+                if (currentTarget == null || !currentTarget.IsActive) break;
+
+                // Damage current target
+                int chainDamage = Mathf.RoundToInt(damage * Mathf.Pow(0.8f, i)); // 20% reduction per chain
+                currentTarget.TakeDamage(chainDamage);
+                OnAttack?.Invoke(currentTarget, chainDamage);
+                hitMonsters.Add(currentTarget);
+
+                // Find next target
+                Monster nextTarget = FindNearestMonsterExcluding(currentTarget.transform.position, chainRange, hitMonsters);
+                if (nextTarget == null) break;
+
+                // Visual chain effect
+                DrawChainEffect(currentTarget.transform.position, nextTarget.transform.position);
+
+                currentTarget = nextTarget;
+            }
+        }
+
+        /// <summary>
+        /// Find nearest monster within range, excluding already hit monsters.
+        /// </summary>
+        private Monster FindNearestMonsterExcluding(Vector3 position, float range, HashSet<Monster> exclude)
+        {
+            if (MonsterManager.Instance == null) return null;
+
+            var allMonsters = MonsterManager.Instance.GetActiveMonstersList();
+            Monster nearest = null;
+            float nearestDist = float.MaxValue;
+
+            foreach (var monster in allMonsters)
+            {
+                if (monster == null || !monster.IsActive || exclude.Contains(monster)) continue;
+
+                float dist = Vector3.Distance(position, monster.transform.position);
+                if (dist <= range && dist < nearestDist)
+                {
+                    nearest = monster;
+                    nearestDist = dist;
+                }
+            }
+
+            return nearest;
+        }
+
+        /// <summary>
+        /// Draw splash effect line from center to hit position.
+        /// </summary>
+        private void DrawSplashEffect(Vector3 center, Vector3 hitPos)
+        {
+            StartCoroutine(SplashEffectCoroutine(center, hitPos));
+        }
+
+        private System.Collections.IEnumerator SplashEffectCoroutine(Vector3 start, Vector3 end)
+        {
+            GameObject lineObj = new GameObject("SplashEffect");
+            LineRenderer lineRenderer = lineObj.AddComponent<LineRenderer>();
+
+            lineRenderer.startWidth = 0.03f;
+            lineRenderer.endWidth = 0.03f;
+            lineRenderer.positionCount = 2;
+            lineRenderer.material = new Material(Shader.Find("Sprites/Default"));
+            lineRenderer.startColor = new Color(1f, 0.5f, 0f, 0.6f); // Orange
+            lineRenderer.endColor = new Color(1f, 0.5f, 0f, 0f);
+
+            lineRenderer.SetPosition(0, start);
+            lineRenderer.SetPosition(1, end);
+
+            yield return new WaitForSeconds(0.1f);
+            Destroy(lineObj);
+        }
+
+        /// <summary>
+        /// Draw chain effect line between targets.
+        /// </summary>
+        private void DrawChainEffect(Vector3 from, Vector3 to)
+        {
+            StartCoroutine(ChainEffectCoroutine(from, to));
+        }
+
+        private System.Collections.IEnumerator ChainEffectCoroutine(Vector3 start, Vector3 end)
+        {
+            GameObject lineObj = new GameObject("ChainEffect");
+            LineRenderer lineRenderer = lineObj.AddComponent<LineRenderer>();
+
+            lineRenderer.startWidth = 0.04f;
+            lineRenderer.endWidth = 0.04f;
+            lineRenderer.positionCount = 2;
+            lineRenderer.material = new Material(Shader.Find("Sprites/Default"));
+            lineRenderer.startColor = new Color(0.5f, 0.5f, 1f, 0.8f); // Electric blue
+            lineRenderer.endColor = new Color(0.5f, 0.5f, 1f, 0.8f);
+
+            lineRenderer.SetPosition(0, start);
+            lineRenderer.SetPosition(1, end);
+
+            yield return new WaitForSeconds(0.15f);
+            Destroy(lineObj);
         }
 
         /// <summary>

@@ -39,6 +39,57 @@ attackSpeed: 1.0        # 초당 공격 횟수
 attackRange: 1.5        # 공격 사거리 (그리드 단위)
 ```
 
+#### ✅ 공격 패턴 (NEW!)
+```yaml
+attackPattern: SingleTarget    # 공격 유형
+  - SingleTarget: 단일 대상 공격 (기본)
+  - Splash: 범위 공격 (주 대상 + 주변 적)
+  - AOE: 광역 공격 (범위 내 모든 적)
+  - Pierce: 관통 공격 (일직선상 적 관통)
+  - Chain: 연쇄 공격 (적에서 적으로 튕김)
+
+splashRadius: 1.5             # 스플래시/AOE 반경 (0 = 없음)
+maxTargets: 3                 # 최대 타겟 수 (Pierce/Chain용, 0 = 무제한)
+splashDamageFalloff: 50       # 범위 끝 데미지 비율 (%, 100 = 감쇠 없음)
+```
+
+**공격 패턴 예시:**
+
+1. **단일 공격 궁수**
+   ```yaml
+   attackPattern: SingleTarget
+   maxTargets: 1
+   splashRadius: 0
+   ```
+
+2. **스플래시 공격 법사**
+   ```yaml
+   attackPattern: Splash
+   splashRadius: 2.0           # 2.0 범위 내 추가 피해
+   splashDamageFalloff: 50     # 범위 끝에서 50% 데미지
+   ```
+
+3. **광역 공격 포병**
+   ```yaml
+   attackPattern: AOE
+   splashRadius: 3.0           # 3.0 범위 내 모든 적
+   splashDamageFalloff: 30     # 범위 끝에서 30% 데미지
+   ```
+
+4. **관통 공격 저격수**
+   ```yaml
+   attackPattern: Pierce
+   maxTargets: 5               # 최대 5명 관통
+   attackRange: 5.0            # 긴 사거리
+   ```
+
+5. **연쇄 공격 번개 마법사**
+   ```yaml
+   attackPattern: Chain
+   maxTargets: 4               # 4번 튕김
+   splashRadius: 2.5           # 튕김 범위 2.5
+   ```
+
 #### ✅ 업그레이드 설정 (NEW!)
 ```yaml
 baseUpgradeCost: 5               # 첫 업그레이드 기본 비용
