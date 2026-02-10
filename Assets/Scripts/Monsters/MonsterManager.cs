@@ -58,11 +58,15 @@ namespace LottoDefense.Monsters
         #endregion
 
         #region Inspector Fields
-        [Header("Monster Data")]
+        [Header("Round Configuration")]
+        [Tooltip("라운드별 몬스터 설정 (RoundConfig 사용 권장)")]
+        [SerializeField] private RoundConfig roundConfig;
+
+        [Header("Fallback Monster Data (RoundConfig 없을 때)")]
         [Tooltip("Pool of monster data to randomly spawn from")]
         [SerializeField] private MonsterData[] monsterDataPool;
 
-        [Header("Spawn Settings")]
+        [Header("Fallback Spawn Settings (RoundConfig 없을 때)")]
         [Tooltip("Spawn rate in seconds (0.5 = 2 per second)")]
         [SerializeField] private float spawnInterval = SPAWN_INTERVAL;
 
@@ -202,7 +206,7 @@ namespace LottoDefense.Monsters
         #region Spawning Control
         /// <summary>
         /// Start monster spawning for the current round.
-        /// Selects ONE monster type per round - all spawns will be this type only.
+        /// Uses RoundConfig if available, otherwise selects ONE random monster type.
         /// </summary>
         public void StartSpawning()
         {
@@ -212,22 +216,38 @@ namespace LottoDefense.Monsters
                 return;
             }
 
-            if (monsterDataPool == null || monsterDataPool.Length == 0)
-            {
-                Debug.LogError("[MonsterManager] No monster data configured!");
-                return;
-            }
-
             monstersSpawnedThisRound = 0;
             isSpawning = true;
 
-            // 라운드 시작 시 1개 몬스터 타입 선택 (이 라운드 동안 이 타입만 스폰)
-            currentRoundMonsterType = SelectRandomMonster();
-            Debug.Log($"[MonsterManager] Round monster type selected: {currentRoundMonsterType.monsterName}");
+            int currentRound = GameplayManager.Instance != null ? GameplayManager.Instance.CurrentRound : 1;
+
+            // RoundConfig가 있으면 사용
+            if (roundConfig != null)
+            {
+                RoundMonsterConfig config = roundConfig.GetRoundConfig(currentRound);
+                currentRoundMonsterType = config.monsterData;
+                maxSpawnsPerRound = config.totalMonsters;
+                spawnInterval = config.spawnInterval;
+                spawnDuration = config.spawnDuration;
+
+                Debug.Log($"[MonsterManager] Round {currentRound} from config: {currentRoundMonsterType.monsterName} (x{maxSpawnsPerRound}, {spawnInterval}s interval)");
+            }
+            // RoundConfig가 없으면 기존 방식 (랜덤)
+            else
+            {
+                if (monsterDataPool == null || monsterDataPool.Length == 0)
+                {
+                    Debug.LogError("[MonsterManager] No monster data configured!");
+                    return;
+                }
+
+                // 라운드 시작 시 1개 몬스터 타입 선택 (이 라운드 동안 이 타입만 스폰)
+                currentRoundMonsterType = SelectRandomMonster();
+                Debug.Log($"[MonsterManager] Round {currentRound} random monster: {currentRoundMonsterType.monsterName}");
+            }
 
             spawnCoroutine = StartCoroutine(SpawnRoutine());
-
-            Debug.Log($"[MonsterManager] Started spawning for round {GameplayManager.Instance.CurrentRound}");
+            Debug.Log($"[MonsterManager] Started spawning for round {currentRound}");
         }
 
         /// <summary>

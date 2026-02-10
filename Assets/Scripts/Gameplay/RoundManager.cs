@@ -48,7 +48,10 @@ namespace LottoDefense.Gameplay
 
         #region Inspector Fields
         [Header("Configuration")]
-        [Tooltip("Difficulty scaling configuration")]
+        [Tooltip("라운드별 몬스터 설정 (RoundConfig 사용 권장)")]
+        [SerializeField] private RoundConfig roundConfig;
+
+        [Tooltip("Difficulty scaling configuration (Fallback)")]
         [SerializeField] private DifficultyConfig difficultyConfig;
 
         [Header("Phase Durations")]
@@ -81,8 +84,19 @@ namespace LottoDefense.Gameplay
 
         /// <summary>
         /// Maximum number of rounds.
+        /// RoundConfig 우선, 없으면 DifficultyConfig 사용.
         /// </summary>
-        public int MaxRounds => difficultyConfig != null ? difficultyConfig.MaxRounds : 30;
+        public int MaxRounds
+        {
+            get
+            {
+                if (roundConfig != null)
+                    return roundConfig.TotalRounds;
+                if (difficultyConfig != null)
+                    return difficultyConfig.MaxRounds;
+                return 30; // Fallback default
+            }
+        }
         #endregion
 
         #region Events
