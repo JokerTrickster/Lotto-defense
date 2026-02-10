@@ -1045,6 +1045,9 @@ namespace LottoDefense.Gameplay
 
             requiredCountTextField?.SetValue(guideUI, reqCountText);
             synthesisInfoTextField?.SetValue(guideUI, infoText);
+
+            // IMPORTANT: Start with guide hidden
+            guideObj.SetActive(false);
         }
 
         private GameObject CreateUnitDisplaySection(Transform parent, string name, Vector2 position, string label)
