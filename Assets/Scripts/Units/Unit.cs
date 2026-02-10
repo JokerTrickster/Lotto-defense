@@ -1054,6 +1054,7 @@ namespace LottoDefense.Units
             bgObj.transform.SetParent(manaBarObj.transform);
             UnityEngine.UI.Image bgImage = bgObj.AddComponent<UnityEngine.UI.Image>();
             bgImage.color = new Color(0.2f, 0.2f, 0.2f, 0.8f); // Dark background
+            bgImage.raycastTarget = false; // Don't block clicks on units
 
             // Setup rect transform for background
             RectTransform bgRect = bgObj.GetComponent<RectTransform>();
@@ -1067,6 +1068,7 @@ namespace LottoDefense.Units
             fillObj.transform.SetParent(manaBarObj.transform);
             UnityEngine.UI.Image fillImage = fillObj.AddComponent<UnityEngine.UI.Image>();
             fillImage.color = new Color(0.2f, 0.5f, 1f, 1f); // Blue mana color
+            fillImage.raycastTarget = false; // Don't block clicks on units
             fillImage.type = UnityEngine.UI.Image.Type.Filled;
             fillImage.fillMethod = UnityEngine.UI.Image.FillMethod.Horizontal;
             fillImage.fillOrigin = (int)UnityEngine.UI.Image.OriginHorizontal.Left;

@@ -29,7 +29,12 @@ namespace LottoDefense.UI
         #endregion
 
         #region Unity Lifecycle
-        private void Awake()
+        /// <summary>
+        /// Use Start instead of Awake because GameSceneBootstrapper sets
+        /// serialized fields via reflection AFTER AddComponent triggers Awake.
+        /// By Start(), all fields are assigned.
+        /// </summary>
+        private void Start()
         {
             // Load balance config
             balanceConfig = Resources.Load<GameBalanceConfig>("GameBalanceConfig");
@@ -38,7 +43,7 @@ namespace LottoDefense.UI
                 Debug.LogError("[UnitSelectionUI] GameBalanceConfig not found in Resources!");
             }
 
-            // Setup button listeners
+            // Setup button listeners (fields are now assigned via reflection)
             if (sellButton != null)
             {
                 sellButton.onClick.AddListener(OnSellButtonClicked);

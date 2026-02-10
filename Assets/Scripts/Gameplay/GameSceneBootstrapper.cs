@@ -1470,6 +1470,7 @@ namespace LottoDefense.Gameplay
             t.alignment = TextAnchor.MiddleCenter;
             t.horizontalOverflow = HorizontalWrapMode.Overflow;
             t.verticalOverflow = VerticalWrapMode.Overflow;
+            t.raycastTarget = false; // Prevent text from blocking clicks on game objects
             return t;
         }
 
