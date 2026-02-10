@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using LottoDefense.Grid;
 using LottoDefense.Gameplay;
+using LottoDefense.UI;
 
 namespace LottoDefense.Units
 {

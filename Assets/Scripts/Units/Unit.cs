@@ -842,14 +842,14 @@ namespace LottoDefense.Units
             // If not found, create a new canvas
             Debug.LogWarning("[Unit] GameCanvas not found, creating new canvas for mana bars");
             GameObject canvasObj = new GameObject("ManaBarCanvas");
-            Canvas canvas = canvasObj.AddComponent<Canvas>();
-            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            canvas.sortingOrder = 100; // Above other UI
+            Canvas newCanvas = canvasObj.AddComponent<Canvas>();
+            newCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            newCanvas.sortingOrder = 100; // Above other UI
 
             canvasObj.AddComponent<UnityEngine.UI.CanvasScaler>();
             canvasObj.AddComponent<UnityEngine.UI.GraphicRaycaster>();
 
-            return canvas;
+            return newCanvas;
         }
         #endregion
     }
