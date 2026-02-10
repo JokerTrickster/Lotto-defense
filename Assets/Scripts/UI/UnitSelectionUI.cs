@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 using LottoDefense.Units;
 using LottoDefense.Gameplay;
 using LottoDefense.Grid;
@@ -57,16 +58,31 @@ namespace LottoDefense.UI
 
         private void Update()
         {
-            // Hide UI if clicked outside
+            // Hide UI if clicked outside (background click)
             if (Input.GetMouseButtonDown(0) && selectionPanel != null && selectionPanel.activeSelf)
             {
-                // Check if click is outside the panel
-                Vector2 mousePos = Input.mousePosition;
-                RectTransform panelRect = selectionPanel.GetComponent<RectTransform>();
-                if (panelRect != null && !RectTransformUtility.RectangleContainsScreenPoint(panelRect, mousePos))
+                // Check if clicking on UI element (button, panel, etc.)
+                if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
                 {
-                    HideUI();
+                    return; // Don't hide if clicking on UI
                 }
+
+                // Check if clicking on a unit
+                Vector2 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+                RaycastHit2D hit = Physics2D.Raycast(mousePos, Vector2.zero);
+
+                if (hit.collider != null)
+                {
+                    // Check if we hit a unit
+                    Unit clickedUnit = hit.collider.GetComponent<Unit>();
+                    if (clickedUnit != null)
+                    {
+                        return; // Don't hide if clicking on a unit (let OnMouseDown handle it)
+                    }
+                }
+
+                // If we reach here, we clicked on background → hide UI
+                HideUI();
             }
         }
         #endregion
