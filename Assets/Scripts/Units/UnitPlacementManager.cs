@@ -267,27 +267,24 @@ namespace LottoDefense.Units
         }
 
         /// <summary>
-        /// Handle clicks on already-placed units for swapping.
+        /// Handle clicks on already-placed units.
+        /// Shows UnitSelectionUI for sell/synthesize options.
         /// </summary>
         public void OnPlacedUnitClicked(Unit clickedUnit)
         {
             if (clickedUnit == null)
                 return;
 
-            // If no unit selected, select this one
-            if (SelectedPlacedUnit == null)
+            // Show unit selection UI (sell/synthesize)
+            UnitSelectionUI selectionUI = FindFirstObjectByType<UnitSelectionUI>();
+            if (selectionUI != null)
             {
-                SelectPlacedUnit(clickedUnit);
+                selectionUI.ShowForUnit(clickedUnit);
+                Debug.Log($"[UnitPlacementManager] Showing selection UI for {clickedUnit.Data.GetDisplayName()}");
             }
-            // If a unit is already selected, swap them
-            else if (SelectedPlacedUnit != clickedUnit)
-            {
-                SwapUnits(SelectedPlacedUnit, clickedUnit);
-            }
-            // If same unit clicked, deselect
             else
             {
-                DeselectPlacedUnit();
+                Debug.LogWarning("[UnitPlacementManager] UnitSelectionUI not found!");
             }
         }
         #endregion

@@ -74,6 +74,7 @@ namespace LottoDefense.UI
         #region Public Methods
         /// <summary>
         /// Show selection UI for a unit.
+        /// Buttons are disabled during Combat phase.
         /// </summary>
         public void ShowForUnit(Unit unit)
         {
@@ -81,18 +82,34 @@ namespace LottoDefense.UI
 
             selectedUnit = unit;
 
+            // Check if we can manage units (Preparation phase only)
+            bool canManage = CanManageUnits();
+
             // Update UI text
             if (unitNameText != null)
             {
                 unitNameText.text = unit.Data.GetDisplayName();
             }
 
-            if (sellButtonText != null)
+            // Sell button
+            if (sellButton != null)
             {
-                sellButtonText.text = $"판매 (+{balanceConfig.unitSellGold} 골드)";
+                sellButton.interactable = canManage;
             }
 
-            // Check if synthesis is available
+            if (sellButtonText != null)
+            {
+                if (canManage)
+                {
+                    sellButtonText.text = $"판매 (+{balanceConfig.unitSellGold} 골드)";
+                }
+                else
+                {
+                    sellButtonText.text = "준비 시간에만 가능";
+                }
+            }
+
+            // Synthesize button
             bool canSynthesize = CanSynthesizeSelectedUnit();
             if (synthesizeButton != null)
             {
@@ -101,7 +118,11 @@ namespace LottoDefense.UI
 
             if (synthesizeButtonText != null)
             {
-                if (canSynthesize)
+                if (!canManage)
+                {
+                    synthesizeButtonText.text = "준비 시간에만 가능";
+                }
+                else if (canSynthesize)
                 {
                     var recipe = balanceConfig.GetSynthesisRecipe(unit.Data.unitName);
                     synthesizeButtonText.text = $"조합 → {recipe.resultUnitName}";
@@ -121,7 +142,7 @@ namespace LottoDefense.UI
                 selectionPanel.SetActive(true);
             }
 
-            Debug.Log($"[UnitSelectionUI] Showing UI for {unit.Data.GetDisplayName()}");
+            Debug.Log($"[UnitSelectionUI] Showing UI for {unit.Data.GetDisplayName()} (CanManage: {canManage})");
         }
 
         /// <summary>
@@ -140,10 +161,18 @@ namespace LottoDefense.UI
         #region Button Handlers
         /// <summary>
         /// Handle sell button click.
+        /// Only allowed during Preparation phase.
         /// </summary>
         private void OnSellButtonClicked()
         {
             if (selectedUnit == null || balanceConfig == null) return;
+
+            // Check if we're in Preparation phase
+            if (!CanManageUnits())
+            {
+                Debug.LogWarning("[UnitSelectionUI] Cannot sell units outside Preparation phase!");
+                return;
+            }
 
             Debug.Log($"[UnitSelectionUI] Selling {selectedUnit.Data.GetDisplayName()} for {balanceConfig.unitSellGold} gold");
 
@@ -168,10 +197,18 @@ namespace LottoDefense.UI
 
         /// <summary>
         /// Handle synthesize button click.
+        /// Only allowed during Preparation phase.
         /// </summary>
         private void OnSynthesizeButtonClicked()
         {
             if (selectedUnit == null || balanceConfig == null) return;
+
+            // Check if we're in Preparation phase
+            if (!CanManageUnits())
+            {
+                Debug.LogWarning("[UnitSelectionUI] Cannot synthesize units outside Preparation phase!");
+                return;
+            }
 
             // Get synthesis recipe
             var recipe = balanceConfig.GetSynthesisRecipe(selectedUnit.Data.unitName);
@@ -208,11 +245,24 @@ namespace LottoDefense.UI
 
         #region Helper Methods
         /// <summary>
+        /// Check if units can be managed (sold/synthesized).
+        /// Only allowed during Preparation phase.
+        /// </summary>
+        private bool CanManageUnits()
+        {
+            return GameplayManager.Instance != null &&
+                   GameplayManager.Instance.CurrentState == GameState.Preparation;
+        }
+
+        /// <summary>
         /// Check if selected unit can be synthesized.
         /// </summary>
         private bool CanSynthesizeSelectedUnit()
         {
             if (selectedUnit == null || balanceConfig == null) return false;
+
+            // Must be in Preparation phase
+            if (!CanManageUnits()) return false;
 
             // Check if recipe exists
             var recipe = balanceConfig.GetSynthesisRecipe(selectedUnit.Data.unitName);
