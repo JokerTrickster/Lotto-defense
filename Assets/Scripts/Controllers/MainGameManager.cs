@@ -7,7 +7,7 @@ namespace LottoDefense.Controllers
     {
         [Header("Development Settings")]
         [Tooltip("Skip authentication check for testing (dev mode only)")]
-        [SerializeField] private bool skipAuthenticationCheck = false;
+        [SerializeField] private bool skipAuthenticationCheck = true;
 
         private void Start()
         {
