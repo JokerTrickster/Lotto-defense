@@ -5,10 +5,6 @@ namespace LottoDefense.Controllers
 {
     public class MainGameManager : MonoBehaviour
     {
-        [Header("Development Settings")]
-        [Tooltip("Skip authentication check for testing (dev mode only)")]
-        [SerializeField] private bool skipAuthenticationCheck = true;
-
         private void Start()
         {
             if (AuthenticationManager.Instance.IsAuthenticated)
@@ -17,17 +13,8 @@ namespace LottoDefense.Controllers
             }
             else
             {
-                if (skipAuthenticationCheck)
-                {
-                    Debug.Log("[MainGameManager] Dev mode: Skipping authentication check");
-                    // Create temporary guest session for testing
-                    AuthenticationManager.Instance.LoginAsGuest("dev_test_user");
-                }
-                else
-                {
-                    Debug.LogWarning("[MainGameManager] User not authenticated. Redirecting to LoginScene...");
-                    UnityEngine.SceneManagement.SceneManager.LoadScene("LoginScene");
-                }
+                Debug.Log("[MainGameManager] Auto guest login for development");
+                AuthenticationManager.Instance.LoginAsGuest("dev_user_" + Random.Range(1000, 9999));
             }
         }
 
