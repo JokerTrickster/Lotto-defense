@@ -82,56 +82,56 @@ namespace LottoDefense.UI
         public static readonly Color CountdownOverlay = new Color(0f, 0f, 0f, 0.5f);
         #endregion
 
-        #region Typography (font sizes for 1080x1920 reference)
+        #region Typography (font sizes - Mobile optimized 1.5x)
         /// <summary>HUD stat value (large, prominent number).</summary>
-        public const int StatValueSize = 34;
+        public const int StatValueSize = 50; // 34 → 50
 
         /// <summary>HUD stat label ("ROUND", "GOLD" etc).</summary>
-        public const int StatLabelSize = 16;
+        public const int StatLabelSize = 24; // 16 → 24
 
         /// <summary>HUD phase/timer text.</summary>
-        public const int PhaseTextSize = 26;
+        public const int PhaseTextSize = 38; // 26 → 38
 
         /// <summary>Summon button main text.</summary>
-        public const int SummonTextSize = 40;
+        public const int SummonTextSize = 60; // 40 → 60
 
         /// <summary>Summon button cost subtext.</summary>
-        public const int SummonCostSize = 28;
+        public const int SummonCostSize = 42; // 28 → 42
 
         /// <summary>Menu button text.</summary>
-        public const int MenuTextSize = 26;
+        public const int MenuTextSize = 38; // 26 → 38
 
         /// <summary>Countdown number.</summary>
-        public const int CountdownSize = 160;
+        public const int CountdownSize = 240; // 160 → 240
         #endregion
 
-        #region Layout (reference 1080x1920)
+        #region Layout (reference 1080x1920 - Mobile optimized 1.5x)
         /// <summary>HUD panel total height.</summary>
-        public const float HudHeight = 160f;
+        public const float HudHeight = 200f; // 160 → 200
 
         /// <summary>HUD horizontal padding.</summary>
-        public const float HudPaddingH = 24f;
+        public const float HudPaddingH = 32f; // 24 → 32
 
         /// <summary>HUD vertical padding.</summary>
-        public const float HudPaddingV = 12f;
+        public const float HudPaddingV = 16f; // 12 → 16
 
         /// <summary>Stat card corner radius approximation (visual padding).</summary>
-        public const float StatCardPadding = 8f;
+        public const float StatCardPadding = 12f; // 8 → 12
 
-        /// <summary>Summon button height (large touch target).</summary>
-        public const float SummonButtonHeight = 110f;
+        /// <summary>Summon button height (large touch target for mobile).</summary>
+        public const float SummonButtonHeight = 140f; // 110 → 140
 
-        /// <summary>Menu button height.</summary>
-        public const float MenuButtonHeight = 64f;
+        /// <summary>Menu button height (comfortable touch target).</summary>
+        public const float MenuButtonHeight = 80f; // 64 → 80
 
         /// <summary>Bottom area total reserve (summon + menu + spacing).</summary>
-        public const float BottomReserve = 230f;
+        public const float BottomReserve = 280f; // 230 → 280
 
         /// <summary>Gap between bottom buttons.</summary>
-        public const float ButtonGap = 12f;
+        public const float ButtonGap = 18f; // 12 → 18
 
         /// <summary>Button horizontal margin from screen edge.</summary>
-        public const float ButtonMarginH = 0.04f;
+        public const float ButtonMarginH = 0.03f; // 0.04 → 0.03 (less margin for more button space)
         #endregion
     }
 }

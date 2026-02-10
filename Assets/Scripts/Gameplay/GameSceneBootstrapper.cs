@@ -435,7 +435,7 @@ namespace LottoDefense.Gameplay
             GameBottomUI bottomUI = FindFirstObjectByType<GameBottomUI>();
             if (bottomUI != null) return;
 
-            // Bottom panel for game actions (auto synthesis, upgrades)
+            // Bottom panel for game actions (auto synthesis, upgrades) - Mobile optimized
             GameObject bottomPanelObj = new GameObject("GameBottomUI");
             bottomPanelObj.transform.SetParent(mainCanvas.transform, false);
 
@@ -443,22 +443,22 @@ namespace LottoDefense.Gameplay
             panelRect.anchorMin = new Vector2(0, 0);
             panelRect.anchorMax = new Vector2(1, 0);
             panelRect.pivot = new Vector2(0.5f, 0);
-            panelRect.anchoredPosition = new Vector2(0, 10);
-            panelRect.sizeDelta = new Vector2(0, 100);
+            panelRect.anchoredPosition = new Vector2(0, 15);
+            panelRect.sizeDelta = new Vector2(-20, 140); // Larger height for mobile (100 → 140)
 
-            // Panel background
+            // Panel background with rounded corners feel
             Image panelBg = bottomPanelObj.AddComponent<Image>();
-            panelBg.color = new Color(0.05f, 0.05f, 0.05f, 0.9f);
+            panelBg.color = new Color(0.05f, 0.05f, 0.05f, 0.95f);
 
-            // Panel outline
+            // Panel outline - thicker for better visibility
             Outline panelOutline = bottomPanelObj.AddComponent<Outline>();
-            panelOutline.effectColor = new Color(0.3f, 0.7f, 1f);
-            panelOutline.effectDistance = new Vector2(2, 2);
+            panelOutline.effectColor = new Color(0.3f, 0.7f, 1f, 1f);
+            panelOutline.effectDistance = new Vector2(3, 3);
 
-            // Horizontal layout for buttons
+            // Horizontal layout for buttons with larger touch targets
             HorizontalLayoutGroup hlayout = bottomPanelObj.AddComponent<HorizontalLayoutGroup>();
-            hlayout.padding = new RectOffset(20, 20, 10, 10);
-            hlayout.spacing = 15;
+            hlayout.padding = new RectOffset(15, 15, 15, 15); // Larger padding
+            hlayout.spacing = 20; // More spacing between buttons
             hlayout.childControlWidth = true;
             hlayout.childControlHeight = true;
             hlayout.childForceExpandWidth = true;
@@ -500,42 +500,56 @@ namespace LottoDefense.Gameplay
             GameObject buttonObj = new GameObject(name);
             buttonObj.transform.SetParent(parent, false);
 
+            // Add minimum size for mobile touch targets (44x44 pt is recommended)
+            LayoutElement layoutElement = buttonObj.AddComponent<LayoutElement>();
+            layoutElement.minHeight = 100; // Larger minimum height for mobile
+            layoutElement.preferredHeight = 110;
+
             // Button background
             Image buttonBg = buttonObj.AddComponent<Image>();
             buttonBg.color = color;
 
-            // Button component
+            // Button component with larger touch area
             Button button = buttonObj.AddComponent<Button>();
             ColorBlock colors = button.colors;
             colors.normalColor = color;
-            colors.highlightedColor = color * 1.2f;
-            colors.pressedColor = color * 0.8f;
-            colors.disabledColor = new Color(0.5f, 0.5f, 0.5f, 1f);
+            colors.highlightedColor = color * 1.3f; // More visible highlight
+            colors.pressedColor = color * 0.7f; // More visible press
+            colors.disabledColor = new Color(0.4f, 0.4f, 0.4f, 0.8f);
             button.colors = colors;
 
-            // Button outline
+            // Thicker button outline for better visibility on mobile
             Outline buttonOutline = buttonObj.AddComponent<Outline>();
-            buttonOutline.effectColor = Color.black;
-            buttonOutline.effectDistance = new Vector2(2, -2);
+            buttonOutline.effectColor = new Color(0, 0, 0, 0.8f);
+            buttonOutline.effectDistance = new Vector2(3, -3);
 
-            // Button text
+            // Add shadow effect for depth
+            Shadow buttonShadow = buttonObj.AddComponent<Shadow>();
+            buttonShadow.effectColor = new Color(0, 0, 0, 0.5f);
+            buttonShadow.effectDistance = new Vector2(4, -4);
+
+            // Button text with larger font for mobile
             GameObject textObj = new GameObject("Text");
             textObj.transform.SetParent(buttonObj.transform, false);
 
             RectTransform textRect = textObj.AddComponent<RectTransform>();
             textRect.anchorMin = Vector2.zero;
             textRect.anchorMax = Vector2.one;
-            textRect.offsetMin = new Vector2(5, 5);
-            textRect.offsetMax = new Vector2(-5, -5);
+            textRect.offsetMin = new Vector2(8, 8); // More padding
+            textRect.offsetMax = new Vector2(-8, -8);
 
-            Text buttonText = CreateText(textObj, text, 16, Color.white);
+            // Larger font size for mobile readability
+            Text buttonText = CreateText(textObj, text, 20, Color.white); // 16 → 20
             buttonText.alignment = TextAnchor.MiddleCenter;
             buttonText.fontStyle = FontStyle.Bold;
+            buttonText.resizeTextForBestFit = true; // Auto-resize for long text
+            buttonText.resizeTextMinSize = 14;
+            buttonText.resizeTextMaxSize = 20;
 
-            // Text outline for better readability
+            // Thicker text outline for better readability on mobile
             Outline textOutline = textObj.AddComponent<Outline>();
-            textOutline.effectColor = Color.black;
-            textOutline.effectDistance = new Vector2(1, -1);
+            textOutline.effectColor = new Color(0, 0, 0, 0.9f);
+            textOutline.effectDistance = new Vector2(2, -2);
 
             return buttonObj;
         }
