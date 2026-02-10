@@ -92,9 +92,9 @@ namespace LottoDefense.Units
         public float MaxMana { get; private set; } = 100f;
 
         /// <summary>
-        /// Mana gained per attack.
+        /// Mana regeneration per second.
         /// </summary>
-        public float ManaPerAttack { get; private set; } = 10f;
+        public float ManaRegenPerSecond { get; private set; } = 10f;
 
         /// <summary>
         /// Whether this unit has at least one skill.
@@ -172,10 +172,10 @@ namespace LottoDefense.Units
                 transform.localScale = Vector3.one * cellSize * 0.8f;
             }
 
-            // Initialize mana system
+            // Initialize mana system (시간 기반 마나 재생)
             CurrentMana = 0f;
             MaxMana = 100f;
-            ManaPerAttack = 10f;
+            ManaRegenPerSecond = 10f; // 초당 10 마나 재생 (10초에 100 마나 = 스킬 발동)
 
             // Initialize skills
             if (unitData.skills != null && unitData.skills.Length > 0)
@@ -309,6 +309,12 @@ namespace LottoDefense.Units
             // Update cooldown
             currentCooldown -= tickInterval;
 
+            // Regenerate mana over time (only if unit has skills)
+            if (HasSkill)
+            {
+                RegenerateMana(tickInterval);
+            }
+
             // Update skill cooldowns
             UpdateSkillCooldowns(tickInterval);
 
@@ -378,7 +384,6 @@ namespace LottoDefense.Units
 
         /// <summary>
         /// Execute an attack on the current target.
-        /// Adds mana on each attack and auto-triggers skill when mana is full.
         /// </summary>
         private void ExecuteAttack()
         {
@@ -391,12 +396,6 @@ namespace LottoDefense.Units
 
             // Visual effect: missile/laser from unit to target (use saved position in case target died)
             DrawMissileEffect(transform.position, targetPos);
-
-            // Gain mana on attack (only if unit has skills)
-            if (HasSkill)
-            {
-                GainMana(ManaPerAttack);
-            }
 
             // Only invoke if target still exists (it might have died from TakeDamage)
             if (CurrentTarget != null && CurrentTarget.IsActive)
@@ -501,13 +500,17 @@ namespace LottoDefense.Units
 
         #region Mana & Skill Management
         /// <summary>
-        /// Gain mana and check for auto skill trigger.
+        /// Regenerate mana over time.
+        /// Called every combat tick to gradually increase mana.
         /// </summary>
-        /// <param name="amount">Mana amount to gain</param>
-        private void GainMana(float amount)
+        /// <param name="deltaTime">Time elapsed since last tick</param>
+        private void RegenerateMana(float deltaTime)
         {
+            if (CurrentMana >= MaxMana) return; // Already full
+
             float previousMana = CurrentMana;
-            CurrentMana = Mathf.Min(CurrentMana + amount, MaxMana);
+            float manaGain = ManaRegenPerSecond * deltaTime;
+            CurrentMana = Mathf.Min(CurrentMana + manaGain, MaxMana);
 
             // Fire mana changed event
             OnManaChanged?.Invoke(CurrentMana, MaxMana);
