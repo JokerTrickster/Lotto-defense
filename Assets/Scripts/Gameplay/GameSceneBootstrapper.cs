@@ -56,6 +56,7 @@ namespace LottoDefense.Gameplay
             EnsureCountdownUI();
             EnsureRoundStartUI();
             EnsureUnitSelectionUI();
+            EnsureGameBottomUI();
             EnsureGameHUD();
             EnsureSummonButton();
             EnsureBackToMenuButton();
@@ -425,6 +426,118 @@ namespace LottoDefense.Gameplay
             selectionPanelObj.SetActive(false);
 
             Debug.Log("[GameSceneBootstrapper] Created UnitSelectionUI");
+        }
+        #endregion
+
+        #region Game Bottom UI
+        private void EnsureGameBottomUI()
+        {
+            GameBottomUI bottomUI = FindFirstObjectByType<GameBottomUI>();
+            if (bottomUI != null) return;
+
+            // Bottom panel for game actions (auto synthesis, upgrades)
+            GameObject bottomPanelObj = new GameObject("GameBottomUI");
+            bottomPanelObj.transform.SetParent(mainCanvas.transform, false);
+
+            RectTransform panelRect = bottomPanelObj.AddComponent<RectTransform>();
+            panelRect.anchorMin = new Vector2(0, 0);
+            panelRect.anchorMax = new Vector2(1, 0);
+            panelRect.pivot = new Vector2(0.5f, 0);
+            panelRect.anchoredPosition = new Vector2(0, 10);
+            panelRect.sizeDelta = new Vector2(0, 100);
+
+            // Panel background
+            Image panelBg = bottomPanelObj.AddComponent<Image>();
+            panelBg.color = new Color(0.05f, 0.05f, 0.05f, 0.9f);
+
+            // Panel outline
+            Outline panelOutline = bottomPanelObj.AddComponent<Outline>();
+            panelOutline.effectColor = new Color(0.3f, 0.7f, 1f);
+            panelOutline.effectDistance = new Vector2(2, 2);
+
+            // Horizontal layout for buttons
+            HorizontalLayoutGroup hlayout = bottomPanelObj.AddComponent<HorizontalLayoutGroup>();
+            hlayout.padding = new RectOffset(20, 20, 10, 10);
+            hlayout.spacing = 15;
+            hlayout.childControlWidth = true;
+            hlayout.childControlHeight = true;
+            hlayout.childForceExpandWidth = true;
+            hlayout.childForceExpandHeight = true;
+
+            // Auto Synthesis button
+            GameObject autoSynthButtonObj = CreateGameButton(bottomPanelObj.transform, "AutoSynthButton", "자동 조합", new Color(0.2f, 0.6f, 1f));
+            Button autoSynthButton = autoSynthButtonObj.GetComponent<Button>();
+            Text autoSynthText = autoSynthButtonObj.GetComponentInChildren<Text>();
+
+            // Attack Upgrade button
+            GameObject attackUpButtonObj = CreateGameButton(bottomPanelObj.transform, "AttackUpgradeButton", "공격력 업그레이드", new Color(0.9f, 0.3f, 0.2f));
+            Button attackUpButton = attackUpButtonObj.GetComponent<Button>();
+            Text attackUpText = attackUpButtonObj.GetComponentInChildren<Text>();
+
+            // Attack Speed Upgrade button
+            GameObject speedUpButtonObj = CreateGameButton(bottomPanelObj.transform, "AttackSpeedUpgradeButton", "공속 업그레이드", new Color(0.2f, 0.8f, 0.3f));
+            Button speedUpButton = speedUpButtonObj.GetComponent<Button>();
+            Text speedUpText = speedUpButtonObj.GetComponentInChildren<Text>();
+
+            // Add GameBottomUI component
+            GameBottomUI component = bottomPanelObj.AddComponent<GameBottomUI>();
+            SetField(component, "panel", bottomPanelObj);
+            SetField(component, "autoSynthesisButton", autoSynthButton);
+            SetField(component, "attackUpgradeButton", attackUpButton);
+            SetField(component, "attackSpeedUpgradeButton", speedUpButton);
+            SetField(component, "autoSynthesisButtonText", autoSynthText);
+            SetField(component, "attackUpgradeButtonText", attackUpText);
+            SetField(component, "attackSpeedUpgradeButtonText", speedUpText);
+
+            // Start hidden
+            bottomPanelObj.SetActive(false);
+
+            Debug.Log("[GameSceneBootstrapper] Created GameBottomUI");
+        }
+
+        private GameObject CreateGameButton(Transform parent, string name, string text, Color color)
+        {
+            GameObject buttonObj = new GameObject(name);
+            buttonObj.transform.SetParent(parent, false);
+
+            // Button background
+            Image buttonBg = buttonObj.AddComponent<Image>();
+            buttonBg.color = color;
+
+            // Button component
+            Button button = buttonObj.AddComponent<Button>();
+            ColorBlock colors = button.colors;
+            colors.normalColor = color;
+            colors.highlightedColor = color * 1.2f;
+            colors.pressedColor = color * 0.8f;
+            colors.disabledColor = new Color(0.5f, 0.5f, 0.5f, 1f);
+            button.colors = colors;
+
+            // Button outline
+            Outline buttonOutline = buttonObj.AddComponent<Outline>();
+            buttonOutline.effectColor = Color.black;
+            buttonOutline.effectDistance = new Vector2(2, -2);
+
+            // Button text
+            GameObject textObj = new GameObject("Text");
+            textObj.transform.SetParent(buttonObj.transform, false);
+
+            RectTransform textRect = textObj.AddComponent<RectTransform>();
+            textRect.anchorMin = Vector2.zero;
+            textRect.anchorMax = Vector2.one;
+            textRect.offsetMin = new Vector2(5, 5);
+            textRect.offsetMax = new Vector2(-5, -5);
+
+            Text buttonText = CreateText(textObj, text, 16, Color.white);
+            buttonText.alignment = TextAnchor.MiddleCenter;
+            buttonText.fontStyle = FontStyle.Bold;
+
+            // Text outline for better readability
+            Outline textOutline = textObj.AddComponent<Outline>();
+            textOutline.effectColor = Color.black;
+            textOutline.effectDistance = new Vector2(1, -1);
+
+            return buttonObj;
         }
         #endregion
 

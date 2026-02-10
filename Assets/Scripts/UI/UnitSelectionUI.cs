@@ -158,6 +158,14 @@ namespace LottoDefense.UI
                 selectionPanel.SetActive(true);
             }
 
+            // Update GameBottomUI with selected unit
+            GameBottomUI bottomUI = FindFirstObjectByType<GameBottomUI>();
+            if (bottomUI != null)
+            {
+                bottomUI.SetSelectedUnit(unit);
+                bottomUI.Show();
+            }
+
             Debug.Log($"[UnitSelectionUI] Showing UI for {unit.Data.GetDisplayName()} (CanManage: {canManage})");
         }
 
@@ -170,6 +178,14 @@ namespace LottoDefense.UI
             {
                 selectionPanel.SetActive(false);
             }
+
+            // Clear selected unit from GameBottomUI
+            GameBottomUI bottomUI = FindFirstObjectByType<GameBottomUI>();
+            if (bottomUI != null)
+            {
+                bottomUI.SetSelectedUnit(null);
+            }
+
             selectedUnit = null;
         }
         #endregion

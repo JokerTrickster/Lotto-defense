@@ -58,9 +58,26 @@ namespace LottoDefense.Units
         public int UpgradeLevel { get; private set; } = 1;
 
         /// <summary>
+        /// Attack upgrade level (0-10).
+        /// Each level increases attack power by 10%.
+        /// </summary>
+        public int AttackUpgradeLevel { get; private set; } = 0;
+
+        /// <summary>
+        /// Attack speed upgrade level (0-10).
+        /// Each level increases attack speed by 8%.
+        /// </summary>
+        public int AttackSpeedUpgradeLevel { get; private set; } = 0;
+
+        /// <summary>
         /// Current attack value including upgrade multiplier.
         /// </summary>
         public int CurrentAttack { get; private set; }
+
+        /// <summary>
+        /// Current attack speed including upgrade multiplier.
+        /// </summary>
+        public float CurrentAttackSpeed { get; private set; }
 
         /// <summary>
         /// Current target monster for combat.
@@ -152,7 +169,10 @@ namespace LottoDefense.Units
             Data = unitData;
             GridPosition = gridPos;
             UpgradeLevel = 1;
+            AttackUpgradeLevel = 0;
+            AttackSpeedUpgradeLevel = 0;
             CurrentAttack = unitData.attack; // Start with base attack
+            CurrentAttackSpeed = unitData.attackSpeed; // Start with base attack speed
             attackCooldown = 1f / unitData.attackSpeed;
             currentCooldown = 0f;
 
@@ -850,6 +870,43 @@ namespace LottoDefense.Units
             canvasObj.AddComponent<UnityEngine.UI.GraphicRaycaster>();
 
             return newCanvas;
+        }
+        #endregion
+
+        #region Upgrade System
+        /// <summary>
+        /// Upgrade attack level (increases attack damage by 10% per level).
+        /// </summary>
+        public void UpgradeAttack()
+        {
+            AttackUpgradeLevel++;
+
+            // Recalculate attack with multiplier
+            if (UnitUpgradeManager.Instance != null)
+            {
+                float multiplier = UnitUpgradeManager.Instance.GetAttackMultiplier(AttackUpgradeLevel);
+                CurrentAttack = Mathf.RoundToInt(Data.attack * multiplier);
+            }
+
+            Debug.Log($"[Unit] {Data.GetDisplayName()} attack upgraded to level {AttackUpgradeLevel} (Attack: {CurrentAttack})");
+        }
+
+        /// <summary>
+        /// Upgrade attack speed level (increases attack speed by 8% per level).
+        /// </summary>
+        public void UpgradeAttackSpeed()
+        {
+            AttackSpeedUpgradeLevel++;
+
+            // Recalculate attack speed and cooldown with multiplier
+            if (UnitUpgradeManager.Instance != null)
+            {
+                float multiplier = UnitUpgradeManager.Instance.GetAttackSpeedMultiplier(AttackSpeedUpgradeLevel);
+                CurrentAttackSpeed = Data.attackSpeed * multiplier;
+                attackCooldown = 1f / CurrentAttackSpeed;
+            }
+
+            Debug.Log($"[Unit] {Data.GetDisplayName()} attack speed upgraded to level {AttackSpeedUpgradeLevel} (Speed: {CurrentAttackSpeed:F2})");
         }
         #endregion
     }
