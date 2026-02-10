@@ -19,48 +19,57 @@ MonoBehaviour:
     attackSpeed: 1
     attackRange: 3
     upgradeCost: 5
+    skillIds: []
   - unitName: "\uAC80\uC0AC"
     rarity: 0
     attack: 15
     attackSpeed: 0.8
     attackRange: 1.5
     upgradeCost: 5
+    skillIds: []
   - unitName: "\uAC15\uD654 \uAD81\uC218"
     rarity: 1
     attack: 20
     attackSpeed: 1.2
     attackRange: 4
     upgradeCost: 10
+    skillIds: []
   - unitName: "\uB9C8\uBC95\uC0AC"
     rarity: 1
     attack: 30
     attackSpeed: 0.6
     attackRange: 5
     upgradeCost: 10
+    skillIds: []
   - unitName: "\uC800\uACA9\uC218"
     rarity: 2
     attack: 50
     attackSpeed: 0.5
     attackRange: 6
     upgradeCost: 20
+    skillIds: []
   - unitName: "\uB300\uB9C8\uBC95\uC0AC"
     rarity: 2
     attack: 60
     attackSpeed: 0.7
     attackRange: 5
     upgradeCost: 20
+    skillIds: []
   - unitName: "\uB4DC\uB798\uACE4 \uC544\uCC98"
     rarity: 3
     attack: 100
     attackSpeed: 1.5
     attackRange: 7
     upgradeCost: 50
+    skillIds: []
   - unitName: "\uB300\uD604\uC790"
     rarity: 3
     attack: 150
     attackSpeed: 1
     attackRange: 6
     upgradeCost: 50
+    skillIds: []
+  skillPresets: []
   monsters:
   - monsterName: "\uAE30\uBCF8 \uBAEC\uC2A4\uD130"
     type: 0
@@ -90,7 +99,7 @@ MonoBehaviour:
     healthScaling: 1.12
     defenseScaling: 1.06
   difficulty:
-    maxRounds: 5
+    maxRounds: 30
     healthScaling:
       serializedVersion: 2
       m_Curve:
@@ -151,3 +160,23 @@ MonoBehaviour:
     summonCost: 5
     maxMonsterCount: 100
     spawnRate: 2
+  synthesisRecipes:
+  - sourceUnitName: "\uAE30\uBCF8 \uAD81\uC218"
+    resultUnitName: "\uAC15\uD654 \uAD81\uC218"
+    synthesisGoldCost: 0
+  - sourceUnitName: "\uAC80\uC0AC"
+    resultUnitName: "\uB9C8\uBC95\uC0AC"
+    synthesisGoldCost: 0
+  - sourceUnitName: "\uAC15\uD654 \uAD81\uC218"
+    resultUnitName: "\uC800\uACA9\uC218"
+    synthesisGoldCost: 0
+  - sourceUnitName: "\uB9C8\uBC95\uC0AC"
+    resultUnitName: "\uB300\uB9C8\uBC95\uC0AC"
+    synthesisGoldCost: 0
+  - sourceUnitName: "\uC800\uACA9\uC218"
+    resultUnitName: "\uB4DC\uB798\uACE4 \uC544\uCC98"
+    synthesisGoldCost: 0
+  - sourceUnitName: "\uB300\uB9C8\uBC95\uC0AC"
+    resultUnitName: "\uB300\uD604\uC790"
+    synthesisGoldCost: 0
+  unitSellGold: 3

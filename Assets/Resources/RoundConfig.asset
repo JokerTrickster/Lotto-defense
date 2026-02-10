@@ -1,0 +1,70 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a1b2c3d4e5f6789012345678901234ab, type: 3}
+  m_Name: RoundConfig
+  m_EditorClassIdentifier:
+  totalRounds: 30
+  roundConfigs:
+  - roundNumber: 1
+    monsterData: {fileID: 11400000, guid: 73771dec6c32c4676afbb616e57dc5c1, type: 2}
+    totalMonsters: 10
+    spawnInterval: 1
+    spawnDuration: 10
+  - roundNumber: 2
+    monsterData: {fileID: 11400000, guid: 73771dec6c32c4676afbb616e57dc5c1, type: 2}
+    totalMonsters: 15
+    spawnInterval: 0.8
+    spawnDuration: 12
+  - roundNumber: 3
+    monsterData: {fileID: 11400000, guid: f258d12fb18914619bca168181c42654, type: 2}
+    totalMonsters: 20
+    spawnInterval: 0.7
+    spawnDuration: 14
+  - roundNumber: 4
+    monsterData: {fileID: 11400000, guid: f258d12fb18914619bca168181c42654, type: 2}
+    totalMonsters: 25
+    spawnInterval: 0.6
+    spawnDuration: 15
+  - roundNumber: 5
+    monsterData: {fileID: 11400000, guid: 6d890ea54bc204c48a46eaf8d613a7b4, type: 2}
+    totalMonsters: 30
+    spawnInterval: 0.5
+    spawnDuration: 15
+  - roundNumber: 6
+    monsterData: {fileID: 11400000, guid: 6d890ea54bc204c48a46eaf8d613a7b4, type: 2}
+    totalMonsters: 30
+    spawnInterval: 0.5
+    spawnDuration: 15
+  - roundNumber: 7
+    monsterData: {fileID: 11400000, guid: 9e3249ddab5224ac3a54d24b09b239a3, type: 2}
+    totalMonsters: 30
+    spawnInterval: 0.5
+    spawnDuration: 15
+  - roundNumber: 8
+    monsterData: {fileID: 11400000, guid: 9e3249ddab5224ac3a54d24b09b239a3, type: 2}
+    totalMonsters: 30
+    spawnInterval: 0.5
+    spawnDuration: 15
+  - roundNumber: 9
+    monsterData: {fileID: 11400000, guid: 9e3249ddab5224ac3a54d24b09b239a3, type: 2}
+    totalMonsters: 30
+    spawnInterval: 0.5
+    spawnDuration: 15
+  - roundNumber: 10
+    monsterData: {fileID: 11400000, guid: dc44c3606cf064dfb80e119756cef625, type: 2}
+    totalMonsters: 30
+    spawnInterval: 0.5
+    spawnDuration: 15
+  defaultMonster: {fileID: 11400000, guid: 73771dec6c32c4676afbb616e57dc5c1, type: 2}
+  defaultTotalMonsters: 30
+  defaultSpawnInterval: 0.5
+  defaultSpawnDuration: 15
