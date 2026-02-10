@@ -83,6 +83,7 @@ namespace LottoDefense.Monsters
         private int monstersSpawnedThisRound = 0;
         private Coroutine spawnCoroutine;
         private GameHUD cachedGameHUD;
+        private MonsterData currentRoundMonsterType; // 현재 라운드에서 스폰할 몬스터 타입 (1종류만)
         #endregion
 
         #region Properties
@@ -201,6 +202,7 @@ namespace LottoDefense.Monsters
         #region Spawning Control
         /// <summary>
         /// Start monster spawning for the current round.
+        /// Selects ONE monster type per round - all spawns will be this type only.
         /// </summary>
         public void StartSpawning()
         {
@@ -218,6 +220,10 @@ namespace LottoDefense.Monsters
 
             monstersSpawnedThisRound = 0;
             isSpawning = true;
+
+            // 라운드 시작 시 1개 몬스터 타입 선택 (이 라운드 동안 이 타입만 스폰)
+            currentRoundMonsterType = SelectRandomMonster();
+            Debug.Log($"[MonsterManager] Round monster type selected: {currentRoundMonsterType.monsterName}");
 
             spawnCoroutine = StartCoroutine(SpawnRoutine());
 
@@ -243,6 +249,7 @@ namespace LottoDefense.Monsters
         /// <summary>
         /// Coroutine that handles timed monster spawning.
         /// Spawns at most maxSpawnsPerRound and only for spawnDuration seconds (e.g. 15s = 30 at 2/sec).
+        /// All monsters in a round are the same type (selected at round start).
         /// </summary>
         private IEnumerator SpawnRoutine()
         {
@@ -253,14 +260,14 @@ namespace LottoDefense.Monsters
                 yield return new WaitForSeconds(spawnInterval);
                 elapsed += spawnInterval;
 
-                MonsterData data = SelectRandomMonster();
-                SpawnMonster(data, PathType.SquareLoop);
+                // 라운드 시작 시 선택된 1개 타입만 스폰
+                SpawnMonster(currentRoundMonsterType, PathType.SquareLoop);
 
                 monstersSpawnedThisRound++;
             }
 
             isSpawning = false;
-            Debug.Log($"[MonsterManager] Finished spawning {monstersSpawnedThisRound} monsters (elapsed {elapsed:F1}s)");
+            Debug.Log($"[MonsterManager] Finished spawning {monstersSpawnedThisRound} {currentRoundMonsterType.monsterName} monsters (elapsed {elapsed:F1}s)");
 
             CheckRoundComplete();
         }

@@ -80,6 +80,40 @@ namespace LottoDefense.Units
         private int combatTickCount; // Track combat ticks for logging throttle
         #endregion
 
+        #region Mana & Skill System
+        /// <summary>
+        /// Current mana amount (0 to maxMana).
+        /// </summary>
+        public float CurrentMana { get; private set; }
+
+        /// <summary>
+        /// Maximum mana capacity.
+        /// </summary>
+        public float MaxMana { get; private set; } = 100f;
+
+        /// <summary>
+        /// Mana gained per attack.
+        /// </summary>
+        public float ManaPerAttack { get; private set; } = 10f;
+
+        /// <summary>
+        /// Whether this unit has at least one skill.
+        /// </summary>
+        public bool HasSkill => Data != null && Data.skills != null && Data.skills.Length > 0;
+
+        /// <summary>
+        /// Fired when mana changes.
+        /// Parameters: currentMana, maxMana
+        /// </summary>
+        public event Action<float, float> OnManaChanged;
+
+        /// <summary>
+        /// Fired when skill is auto-triggered.
+        /// Parameter: UnitSkill
+        /// </summary>
+        public event Action<UnitSkill> OnSkillTriggered;
+        #endregion
+
         #region Unity Lifecycle
         private void Awake()
         {
@@ -136,6 +170,21 @@ namespace LottoDefense.Units
                 transform.position = GridManager.Instance.GridToWorld(gridPos);
                 float cellSize = GridManager.Instance.CellSize;
                 transform.localScale = Vector3.one * cellSize * 0.8f;
+            }
+
+            // Initialize mana system
+            CurrentMana = 0f;
+            MaxMana = 100f;
+            ManaPerAttack = 10f;
+
+            // Initialize skills
+            if (unitData.skills != null && unitData.skills.Length > 0)
+            {
+                foreach (var skill in unitData.skills)
+                {
+                    skill.Initialize();
+                }
+                Debug.Log($"[Unit] Initialized {unitData.skills.Length} skills for {Data.GetDisplayName()}");
             }
 
             gameObject.name = $"Unit_{unitData.unitName}_{gridPos.x}_{gridPos.y}";
@@ -255,8 +304,13 @@ namespace LottoDefense.Units
 
             combatTickCount++;
 
+            float tickInterval = 0.1f; // Combat tick interval
+
             // Update cooldown
-            currentCooldown -= 0.1f; // Combat tick interval
+            currentCooldown -= tickInterval;
+
+            // Update skill cooldowns
+            UpdateSkillCooldowns(tickInterval);
 
             // Find or validate target - ONLY if target is dead/inactive
             // Do NOT switch targets just because out of range - pursue until death!
@@ -324,6 +378,7 @@ namespace LottoDefense.Units
 
         /// <summary>
         /// Execute an attack on the current target.
+        /// Adds mana on each attack and auto-triggers skill when mana is full.
         /// </summary>
         private void ExecuteAttack()
         {
@@ -336,6 +391,12 @@ namespace LottoDefense.Units
 
             // Visual effect: missile/laser from unit to target (use saved position in case target died)
             DrawMissileEffect(transform.position, targetPos);
+
+            // Gain mana on attack (only if unit has skills)
+            if (HasSkill)
+            {
+                GainMana(ManaPerAttack);
+            }
 
             // Only invoke if target still exists (it might have died from TakeDamage)
             if (CurrentTarget != null && CurrentTarget.IsActive)
@@ -435,6 +496,153 @@ namespace LottoDefense.Units
             CurrentTarget = null;
             currentCooldown = 0f;
             combatTickCount = 0;
+        }
+        #endregion
+
+        #region Mana & Skill Management
+        /// <summary>
+        /// Gain mana and check for auto skill trigger.
+        /// </summary>
+        /// <param name="amount">Mana amount to gain</param>
+        private void GainMana(float amount)
+        {
+            float previousMana = CurrentMana;
+            CurrentMana = Mathf.Min(CurrentMana + amount, MaxMana);
+
+            // Fire mana changed event
+            OnManaChanged?.Invoke(CurrentMana, MaxMana);
+
+            // Auto-trigger skill when mana reaches max
+            if (previousMana < MaxMana && CurrentMana >= MaxMana)
+            {
+                TriggerSkill();
+            }
+        }
+
+        /// <summary>
+        /// Auto-trigger the first active skill when mana is full.
+        /// Resets mana to 0 after activation.
+        /// </summary>
+        private void TriggerSkill()
+        {
+            if (Data == null || Data.skills == null || Data.skills.Length == 0)
+            {
+                Debug.LogWarning($"[Unit] {Data.GetDisplayName()} has no skills to trigger!");
+                return;
+            }
+
+            // Find first active skill that can be triggered
+            UnitSkill skillToActivate = null;
+            foreach (var skill in Data.skills)
+            {
+                if (skill.skillType == SkillType.Active && skill.TryActivate())
+                {
+                    skillToActivate = skill;
+                    break;
+                }
+            }
+
+            if (skillToActivate != null)
+            {
+                Debug.Log($"[Unit] {Data.GetDisplayName()} auto-triggered skill: {skillToActivate.skillName}");
+
+                // Apply skill effect
+                ApplySkillEffect(skillToActivate);
+
+                // Reset mana to 0 after using skill
+                CurrentMana = 0f;
+                OnManaChanged?.Invoke(CurrentMana, MaxMana);
+
+                // Fire skill triggered event
+                OnSkillTriggered?.Invoke(skillToActivate);
+            }
+            else
+            {
+                Debug.LogWarning($"[Unit] {Data.GetDisplayName()} mana full but no skill could be activated!");
+            }
+        }
+
+        /// <summary>
+        /// Apply skill effect based on skill type and parameters.
+        /// </summary>
+        /// <param name="skill">Skill to apply</param>
+        private void ApplySkillEffect(UnitSkill skill)
+        {
+            if (skill == null) return;
+
+            // Apply damage multiplier temporarily
+            if (skill.damageMultiplier > 1f)
+            {
+                StartCoroutine(ApplyTemporaryDamageBuff(skill.damageMultiplier, skill.effectDuration));
+            }
+
+            // Apply attack speed buff temporarily
+            if (skill.attackSpeedMultiplier > 1f)
+            {
+                StartCoroutine(ApplyTemporaryAttackSpeedBuff(skill.attackSpeedMultiplier, skill.effectDuration));
+            }
+
+            // Visual effect
+            if (skill.vfxPrefab != null)
+            {
+                GameObject vfx = Instantiate(skill.vfxPrefab, transform.position, Quaternion.identity);
+                Destroy(vfx, 2f); // Clean up after 2 seconds
+            }
+
+            Debug.Log($"[Unit] Applied skill effect: {skill.skillName} (DMG×{skill.damageMultiplier}, AS×{skill.attackSpeedMultiplier}, Duration: {skill.effectDuration}s)");
+        }
+
+        /// <summary>
+        /// Apply temporary damage buff.
+        /// </summary>
+        private System.Collections.IEnumerator ApplyTemporaryDamageBuff(float multiplier, float duration)
+        {
+            int originalAttack = CurrentAttack;
+            CurrentAttack = Mathf.RoundToInt(CurrentAttack * multiplier);
+
+            Debug.Log($"[Unit] Damage buff applied: {originalAttack} → {CurrentAttack} for {duration}s");
+
+            yield return new WaitForSeconds(duration);
+
+            CurrentAttack = originalAttack;
+            Debug.Log($"[Unit] Damage buff expired: {CurrentAttack}");
+        }
+
+        /// <summary>
+        /// Apply temporary attack speed buff.
+        /// </summary>
+        private System.Collections.IEnumerator ApplyTemporaryAttackSpeedBuff(float multiplier, float duration)
+        {
+            float originalCooldown = attackCooldown;
+            attackCooldown = originalCooldown / multiplier;
+
+            Debug.Log($"[Unit] Attack speed buff applied: {originalCooldown:F2}s → {attackCooldown:F2}s for {duration}s");
+
+            yield return new WaitForSeconds(duration);
+
+            attackCooldown = originalCooldown;
+            Debug.Log($"[Unit] Attack speed buff expired: {attackCooldown:F2}s");
+        }
+
+        /// <summary>
+        /// Get mana percentage (0 to 1).
+        /// </summary>
+        public float GetManaPercentage()
+        {
+            return MaxMana > 0f ? CurrentMana / MaxMana : 0f;
+        }
+
+        /// <summary>
+        /// Update skill cooldowns (called from Update or CombatTick).
+        /// </summary>
+        private void UpdateSkillCooldowns(float deltaTime)
+        {
+            if (Data == null || Data.skills == null) return;
+
+            foreach (var skill in Data.skills)
+            {
+                skill.UpdateCooldown(deltaTime);
+            }
         }
         #endregion
 
