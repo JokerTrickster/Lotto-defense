@@ -77,6 +77,17 @@ namespace LottoDefense.Authentication
             Debug.Log("User logged out");
         }
 
+        /// <summary>
+        /// Login as guest (for development/testing purposes).
+        /// </summary>
+        public void LoginAsGuest(string guestId)
+        {
+            _isAuthenticated = true;
+            _userId = guestId;
+            Debug.Log($"[AuthManager] Guest login successful. User ID: {_userId}");
+            OnAuthenticationComplete?.Invoke(true);
+        }
+
         public void CancelAuthentication()
         {
             StopAllCoroutines();
