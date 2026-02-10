@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UI;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -23,6 +24,7 @@ namespace LottoDefense.Units
         #region Components
         private SpriteRenderer spriteRenderer;
         private GameObject rangeIndicator; // Attack range circle indicator
+        private LottoDefense.UI.ManaBar manaBar; // Mana bar UI (for units with skills)
         #endregion
 
         #region Visual State
@@ -128,6 +130,15 @@ namespace LottoDefense.Units
                 UnitPlacementManager.Instance.OnPlacedUnitClicked(this);
             }
         }
+
+        private void OnDestroy()
+        {
+            // Clean up mana bar
+            if (manaBar != null)
+            {
+                Destroy(manaBar.gameObject);
+            }
+        }
         #endregion
 
         #region Initialization
@@ -185,6 +196,9 @@ namespace LottoDefense.Units
                     skill.Initialize();
                 }
                 Debug.Log($"[Unit] Initialized {unitData.skills.Length} skills for {Data.GetDisplayName()}");
+
+                // Create mana bar for units with skills
+                CreateManaBar();
             }
 
             gameObject.name = $"Unit_{unitData.unitName}_{gridPos.x}_{gridPos.y}";
@@ -746,6 +760,96 @@ namespace LottoDefense.Units
         public override string ToString()
         {
             return $"{Data?.GetDisplayName() ?? "Unknown"} at {GridPosition} (L{UpgradeLevel}, ATK:{CurrentAttack})";
+        }
+        #endregion
+
+        #region Mana Bar Management
+        /// <summary>
+        /// Create and initialize mana bar UI for this unit.
+        /// Only called for units with skills.
+        /// </summary>
+        private void CreateManaBar()
+        {
+            // Find or create canvas for mana bars
+            Canvas manaBarCanvas = FindManaBarCanvas();
+            if (manaBarCanvas == null)
+            {
+                Debug.LogError("[Unit] Failed to find/create mana bar canvas!");
+                return;
+            }
+
+            // Create mana bar GameObject
+            GameObject manaBarObj = new GameObject($"ManaBar_{Data.unitName}");
+            manaBarObj.transform.SetParent(manaBarCanvas.transform);
+
+            // Add ManaBar component
+            manaBar = manaBarObj.AddComponent<LottoDefense.UI.ManaBar>();
+
+            // Create background image
+            GameObject bgObj = new GameObject("Background");
+            bgObj.transform.SetParent(manaBarObj.transform);
+            UnityEngine.UI.Image bgImage = bgObj.AddComponent<UnityEngine.UI.Image>();
+            bgImage.color = new Color(0.2f, 0.2f, 0.2f, 0.8f); // Dark background
+
+            // Setup rect transform for background
+            RectTransform bgRect = bgObj.GetComponent<RectTransform>();
+            bgRect.anchorMin = Vector2.zero;
+            bgRect.anchorMax = Vector2.one;
+            bgRect.sizeDelta = Vector2.zero;
+            bgRect.anchoredPosition = Vector2.zero;
+
+            // Create fill image
+            GameObject fillObj = new GameObject("Fill");
+            fillObj.transform.SetParent(manaBarObj.transform);
+            UnityEngine.UI.Image fillImage = fillObj.AddComponent<UnityEngine.UI.Image>();
+            fillImage.color = new Color(0.2f, 0.5f, 1f, 1f); // Blue mana color
+            fillImage.type = UnityEngine.UI.Image.Type.Filled;
+            fillImage.fillMethod = UnityEngine.UI.Image.FillMethod.Horizontal;
+            fillImage.fillOrigin = (int)UnityEngine.UI.Image.OriginHorizontal.Left;
+
+            // Setup rect transform for fill
+            RectTransform fillRect = fillObj.GetComponent<RectTransform>();
+            fillRect.anchorMin = Vector2.zero;
+            fillRect.anchorMax = Vector2.one;
+            fillRect.sizeDelta = Vector2.zero;
+            fillRect.anchoredPosition = Vector2.zero;
+
+            // Setup mana bar rect transform
+            RectTransform manaBarRect = manaBarObj.GetComponent<RectTransform>();
+            manaBarRect.sizeDelta = new Vector2(80f, 8f); // 80 pixels wide, 8 pixels tall
+
+            // Initialize the mana bar
+            manaBar.Initialize(this);
+
+            Debug.Log($"[Unit] Created mana bar for {Data.GetDisplayName()}");
+        }
+
+        /// <summary>
+        /// Find or create the canvas for mana bars.
+        /// </summary>
+        private Canvas FindManaBarCanvas()
+        {
+            // Try to find existing GameCanvas
+            Canvas[] canvases = FindObjectsByType<Canvas>(FindObjectsSortMode.None);
+            foreach (Canvas canvas in canvases)
+            {
+                if (canvas.gameObject.name == "GameCanvas")
+                {
+                    return canvas;
+                }
+            }
+
+            // If not found, create a new canvas
+            Debug.LogWarning("[Unit] GameCanvas not found, creating new canvas for mana bars");
+            GameObject canvasObj = new GameObject("ManaBarCanvas");
+            Canvas canvas = canvasObj.AddComponent<Canvas>();
+            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            canvas.sortingOrder = 100; // Above other UI
+
+            canvasObj.AddComponent<UnityEngine.UI.CanvasScaler>();
+            canvasObj.AddComponent<UnityEngine.UI.GraphicRaycaster>();
+
+            return canvas;
         }
         #endregion
     }
