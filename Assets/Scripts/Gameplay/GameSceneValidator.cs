@@ -52,7 +52,7 @@ namespace LottoDefense.Gameplay
 
         private static void ValidateBootstrapper()
         {
-            GameSceneBootstrapper bootstrapper = FindFirstObjectByType<GameSceneBootstrapper>();
+            GameSceneBootstrapper bootstrapper = Object.FindObjectOfType<GameSceneBootstrapper>();
             if (bootstrapper == null)
             {
                 Debug.LogWarning("[GameSceneValidator] No GameSceneBootstrapper found! Creating one...");
