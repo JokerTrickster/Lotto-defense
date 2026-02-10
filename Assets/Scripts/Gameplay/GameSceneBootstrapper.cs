@@ -59,6 +59,7 @@ namespace LottoDefense.Gameplay
             EnsureGameBottomUI();
             EnsureGameHUD();
             EnsureSummonButton();
+            EnsureSynthesisGuideButton();
             EnsureBackToMenuButton();
             EnsureGameResultUI();
 
@@ -809,6 +810,330 @@ namespace LottoDefense.Gameplay
             costText.fontStyle = FontStyle.Bold;
 
             button.onClick.AddListener(() => OnSummonButtonClicked(mainText, costText));
+        }
+
+        private void EnsureSynthesisGuideButton()
+        {
+            // Create synthesis guide button above back to menu button
+            GameObject btnObj = new GameObject("SynthesisGuideButton");
+            btnObj.transform.SetParent(mainCanvas.transform, false);
+
+            float marginH = GameSceneDesignTokens.ButtonMarginH;
+            RectTransform btnRect = btnObj.AddComponent<RectTransform>();
+            btnRect.anchorMin = new Vector2(marginH, 0);
+            btnRect.anchorMax = new Vector2(marginH, 0);
+            btnRect.pivot = new Vector2(0, 0);
+            btnRect.anchoredPosition = new Vector2(16, 16 + GameSceneDesignTokens.MenuButtonHeight + 12);
+            btnRect.sizeDelta = new Vector2(GameSceneDesignTokens.MenuButtonHeight, GameSceneDesignTokens.MenuButtonHeight);
+
+            Image btnImage = btnObj.AddComponent<Image>();
+            btnImage.color = new Color(0.3f, 0.6f, 0.9f, 1f); // Blue
+
+            Button button = btnObj.AddComponent<Button>();
+            ColorBlock colors = button.colors;
+            colors.normalColor = Color.white;
+            colors.highlightedColor = new Color(1.1f, 1.1f, 1.1f, 1f);
+            colors.pressedColor = new Color(0.7f, 0.7f, 0.7f, 1f);
+            colors.fadeDuration = 0.1f;
+            button.colors = colors;
+
+            // Create or find SynthesisGuideUI
+            SynthesisGuideUI guideUI = FindFirstObjectByType<SynthesisGuideUI>();
+            if (guideUI == null)
+            {
+                EnsureSynthesisGuideUI();
+                guideUI = FindFirstObjectByType<SynthesisGuideUI>();
+            }
+
+            button.onClick.AddListener(() => {
+                if (guideUI != null)
+                {
+                    guideUI.Show();
+                }
+            });
+
+            // Button icon (book symbol)
+            GameObject textObj = new GameObject("Text");
+            textObj.transform.SetParent(btnObj.transform, false);
+            RectTransform textRect = textObj.AddComponent<RectTransform>();
+            textRect.anchorMin = Vector2.zero;
+            textRect.anchorMax = Vector2.one;
+            textRect.offsetMin = Vector2.zero;
+            textRect.offsetMax = Vector2.zero;
+
+            Text btnText = CreateText(textObj, "\ud83d\udcd6", 40, GameSceneDesignTokens.ButtonText); // Book emoji
+            btnText.fontStyle = FontStyle.Bold;
+
+            Outline outline = textObj.AddComponent<Outline>();
+            outline.effectColor = new Color(0, 0, 0, 0.5f);
+            outline.effectDistance = new Vector2(2, -2);
+        }
+
+        private void EnsureSynthesisGuideUI()
+        {
+            SynthesisGuideUI existingUI = FindFirstObjectByType<SynthesisGuideUI>();
+            if (existingUI != null) return;
+
+            // Create guide panel
+            GameObject guideObj = new GameObject("SynthesisGuideUI");
+            guideObj.transform.SetParent(mainCanvas.transform, false);
+
+            RectTransform rect = guideObj.AddComponent<RectTransform>();
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
+            rect.offsetMin = Vector2.zero;
+            rect.offsetMax = Vector2.zero;
+
+            // Semi-transparent background
+            Image bgImage = guideObj.AddComponent<Image>();
+            bgImage.color = new Color(0f, 0f, 0f, 0.7f);
+
+            // Main panel
+            GameObject panelObj = new GameObject("Panel");
+            panelObj.transform.SetParent(guideObj.transform, false);
+
+            RectTransform panelRect = panelObj.AddComponent<RectTransform>();
+            panelRect.anchorMin = new Vector2(0.5f, 0.5f);
+            panelRect.anchorMax = new Vector2(0.5f, 0.5f);
+            panelRect.anchoredPosition = Vector2.zero;
+            panelRect.sizeDelta = new Vector2(700, 800);
+
+            Image panelImage = panelObj.AddComponent<Image>();
+            panelImage.color = new Color(0.15f, 0.15f, 0.2f, 0.95f);
+
+            // Close button (top right)
+            GameObject closeBtn = new GameObject("CloseButton");
+            closeBtn.transform.SetParent(panelObj.transform, false);
+            RectTransform closeBtnRect = closeBtn.AddComponent<RectTransform>();
+            closeBtnRect.anchorMin = new Vector2(1f, 1f);
+            closeBtnRect.anchorMax = new Vector2(1f, 1f);
+            closeBtnRect.pivot = new Vector2(1f, 1f);
+            closeBtnRect.anchoredPosition = new Vector2(-20, -20);
+            closeBtnRect.sizeDelta = new Vector2(60, 60);
+
+            Image closeBtnImage = closeBtn.AddComponent<Image>();
+            closeBtnImage.color = new Color(0.8f, 0.2f, 0.2f, 1f);
+
+            Button closeBtnButton = closeBtn.AddComponent<Button>();
+
+            GameObject closeBtnText = new GameObject("Text");
+            closeBtnText.transform.SetParent(closeBtn.transform, false);
+            RectTransform closeBtnTextRect = closeBtnText.AddComponent<RectTransform>();
+            closeBtnTextRect.anchorMin = Vector2.zero;
+            closeBtnTextRect.anchorMax = Vector2.one;
+            closeBtnTextRect.offsetMin = Vector2.zero;
+            closeBtnTextRect.offsetMax = Vector2.zero;
+
+            Text closeBtnTextComponent = CreateText(closeBtnText, "X", 32, Color.white);
+            closeBtnTextComponent.fontStyle = FontStyle.Bold;
+
+            // Title
+            GameObject titleObj = new GameObject("Title");
+            titleObj.transform.SetParent(panelObj.transform, false);
+            RectTransform titleRect = titleObj.AddComponent<RectTransform>();
+            titleRect.anchorMin = new Vector2(0.5f, 1f);
+            titleRect.anchorMax = new Vector2(0.5f, 1f);
+            titleRect.pivot = new Vector2(0.5f, 1f);
+            titleRect.anchoredPosition = new Vector2(0, -30);
+            titleRect.sizeDelta = new Vector2(600, 50);
+
+            Text titleText = CreateText(titleObj, "합성 레시피", 40, new Color(1f, 0.9f, 0.5f));
+            titleText.fontStyle = FontStyle.Bold;
+
+            // Page number
+            GameObject pageNumObj = new GameObject("PageNumber");
+            pageNumObj.transform.SetParent(panelObj.transform, false);
+            RectTransform pageNumRect = pageNumObj.AddComponent<RectTransform>();
+            pageNumRect.anchorMin = new Vector2(0.5f, 1f);
+            pageNumRect.anchorMax = new Vector2(0.5f, 1f);
+            pageNumRect.pivot = new Vector2(0.5f, 1f);
+            pageNumRect.anchoredPosition = new Vector2(0, -90);
+            pageNumRect.sizeDelta = new Vector2(200, 30);
+
+            Text pageNumText = CreateText(pageNumObj, "1 / 6", 24, Color.white);
+
+            // Source unit section (left side)
+            GameObject sourceSection = CreateUnitDisplaySection(panelObj.transform, "Source", new Vector2(-200, -250), "소스 유닛");
+
+            // Arrow
+            GameObject arrowObj = new GameObject("Arrow");
+            arrowObj.transform.SetParent(panelObj.transform, false);
+            RectTransform arrowRect = arrowObj.AddComponent<RectTransform>();
+            arrowRect.anchorMin = new Vector2(0.5f, 0.5f);
+            arrowRect.anchorMax = new Vector2(0.5f, 0.5f);
+            arrowRect.pivot = new Vector2(0.5f, 0.5f);
+            arrowRect.anchoredPosition = new Vector2(0, -50);
+            arrowRect.sizeDelta = new Vector2(100, 50);
+
+            Text arrowText = CreateText(arrowObj, "\u2192", 50, Color.yellow); // Right arrow
+
+            // Result unit section (right side)
+            GameObject resultSection = CreateUnitDisplaySection(panelObj.transform, "Result", new Vector2(200, -250), "결과 유닛");
+
+            // Required count text
+            GameObject reqCountObj = new GameObject("RequiredCount");
+            reqCountObj.transform.SetParent(panelObj.transform, false);
+            RectTransform reqCountRect = reqCountObj.AddComponent<RectTransform>();
+            reqCountRect.anchorMin = new Vector2(0.5f, 0);
+            reqCountRect.anchorMax = new Vector2(0.5f, 0);
+            reqCountRect.pivot = new Vector2(0.5f, 0);
+            reqCountRect.anchoredPosition = new Vector2(0, 150);
+            reqCountRect.sizeDelta = new Vector2(600, 40);
+
+            Text reqCountText = CreateText(reqCountObj, "3개 필요", 28, new Color(1f, 0.8f, 0.3f));
+            reqCountText.fontStyle = FontStyle.Bold;
+
+            // Synthesis info text
+            GameObject infoObj = new GameObject("SynthesisInfo");
+            infoObj.transform.SetParent(panelObj.transform, false);
+            RectTransform infoRect = infoObj.AddComponent<RectTransform>();
+            infoRect.anchorMin = new Vector2(0.5f, 0);
+            infoRect.anchorMax = new Vector2(0.5f, 0);
+            infoRect.pivot = new Vector2(0.5f, 0);
+            infoRect.anchoredPosition = new Vector2(0, 100);
+            infoRect.sizeDelta = new Vector2(600, 60);
+
+            Text infoText = CreateText(infoObj, "같은 유닛 3개를 모아서 합성하세요!", 20, Color.white);
+
+            // Previous page button (left arrow)
+            GameObject prevBtn = CreatePageButton(panelObj.transform, "PrevButton", new Vector2(50, 400), "\u25C0");
+
+            // Next page button (right arrow)
+            GameObject nextBtn = CreatePageButton(panelObj.transform, "NextButton", new Vector2(650, 400), "\u25B6");
+
+            // Add SynthesisGuideUI component
+            SynthesisGuideUI guideUI = guideObj.AddComponent<SynthesisGuideUI>();
+
+            // Wire up references via reflection (since fields are private)
+            var guidePanelField = typeof(SynthesisGuideUI).GetField("guidePanel", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            var closeButtonField = typeof(SynthesisGuideUI).GetField("closeButton", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            var prevPageButtonField = typeof(SynthesisGuideUI).GetField("prevPageButton", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            var nextPageButtonField = typeof(SynthesisGuideUI).GetField("nextPageButton", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            var pageNumberTextField = typeof(SynthesisGuideUI).GetField("pageNumberText", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            var recipeTitleTextField = typeof(SynthesisGuideUI).GetField("recipeTitleText", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            var sourceUnitIconField = typeof(SynthesisGuideUI).GetField("sourceUnitIcon", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            var sourceUnitNameTextField = typeof(SynthesisGuideUI).GetField("sourceUnitNameText", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            var sourceUnitStatsTextField = typeof(SynthesisGuideUI).GetField("sourceUnitStatsText", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            var resultUnitIconField = typeof(SynthesisGuideUI).GetField("resultUnitIcon", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            var resultUnitNameTextField = typeof(SynthesisGuideUI).GetField("resultUnitNameText", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            var resultUnitStatsTextField = typeof(SynthesisGuideUI).GetField("resultUnitStatsText", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            var requiredCountTextField = typeof(SynthesisGuideUI).GetField("requiredCountText", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            var synthesisInfoTextField = typeof(SynthesisGuideUI).GetField("synthesisInfoText", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+
+            guidePanelField?.SetValue(guideUI, guideObj);
+            closeButtonField?.SetValue(guideUI, closeBtnButton);
+            prevPageButtonField?.SetValue(guideUI, prevBtn.GetComponent<Button>());
+            nextPageButtonField?.SetValue(guideUI, nextBtn.GetComponent<Button>());
+            pageNumberTextField?.SetValue(guideUI, pageNumText);
+            recipeTitleTextField?.SetValue(guideUI, titleText);
+
+            // Source unit references
+            var sourceIcon = sourceSection.transform.Find("Icon")?.GetComponent<Image>();
+            var sourceName = sourceSection.transform.Find("Name")?.GetComponent<Text>();
+            var sourceStats = sourceSection.transform.Find("Stats")?.GetComponent<Text>();
+            sourceUnitIconField?.SetValue(guideUI, sourceIcon);
+            sourceUnitNameTextField?.SetValue(guideUI, sourceName);
+            sourceUnitStatsTextField?.SetValue(guideUI, sourceStats);
+
+            // Result unit references
+            var resultIcon = resultSection.transform.Find("Icon")?.GetComponent<Image>();
+            var resultName = resultSection.transform.Find("Name")?.GetComponent<Text>();
+            var resultStats = resultSection.transform.Find("Stats")?.GetComponent<Text>();
+            resultUnitIconField?.SetValue(guideUI, resultIcon);
+            resultUnitNameTextField?.SetValue(guideUI, resultName);
+            resultUnitStatsTextField?.SetValue(guideUI, resultStats);
+
+            requiredCountTextField?.SetValue(guideUI, reqCountText);
+            synthesisInfoTextField?.SetValue(guideUI, infoText);
+        }
+
+        private GameObject CreateUnitDisplaySection(Transform parent, string name, Vector2 position, string label)
+        {
+            GameObject section = new GameObject(name + "Section");
+            section.transform.SetParent(parent, false);
+
+            RectTransform sectionRect = section.AddComponent<RectTransform>();
+            sectionRect.anchorMin = new Vector2(0.5f, 0.5f);
+            sectionRect.anchorMax = new Vector2(0.5f, 0.5f);
+            sectionRect.pivot = new Vector2(0.5f, 0.5f);
+            sectionRect.anchoredPosition = position;
+            sectionRect.sizeDelta = new Vector2(250, 350);
+
+            // Icon
+            GameObject iconObj = new GameObject("Icon");
+            iconObj.transform.SetParent(section.transform, false);
+            RectTransform iconRect = iconObj.AddComponent<RectTransform>();
+            iconRect.anchorMin = new Vector2(0.5f, 1f);
+            iconRect.anchorMax = new Vector2(0.5f, 1f);
+            iconRect.pivot = new Vector2(0.5f, 1f);
+            iconRect.anchoredPosition = new Vector2(0, -10);
+            iconRect.sizeDelta = new Vector2(120, 120);
+
+            Image iconImage = iconObj.AddComponent<Image>();
+            iconImage.color = Color.white;
+
+            // Name
+            GameObject nameObj = new GameObject("Name");
+            nameObj.transform.SetParent(section.transform, false);
+            RectTransform nameRect = nameObj.AddComponent<RectTransform>();
+            nameRect.anchorMin = new Vector2(0.5f, 1f);
+            nameRect.anchorMax = new Vector2(0.5f, 1f);
+            nameRect.pivot = new Vector2(0.5f, 1f);
+            nameRect.anchoredPosition = new Vector2(0, -145);
+            nameRect.sizeDelta = new Vector2(240, 40);
+
+            Text nameText = CreateText(nameObj, label, 22, Color.white);
+            nameText.fontStyle = FontStyle.Bold;
+
+            // Stats
+            GameObject statsObj = new GameObject("Stats");
+            statsObj.transform.SetParent(section.transform, false);
+            RectTransform statsRect = statsObj.AddComponent<RectTransform>();
+            statsRect.anchorMin = new Vector2(0.5f, 1f);
+            statsRect.anchorMax = new Vector2(0.5f, 1f);
+            statsRect.pivot = new Vector2(0.5f, 1f);
+            statsRect.anchoredPosition = new Vector2(0, -195);
+            statsRect.sizeDelta = new Vector2(240, 140);
+
+            Text statsText = CreateText(statsObj, "공격력: ?\n공격속도: ?\n사거리: ?\nDPS: ?", 18, Color.white);
+
+            return section;
+        }
+
+        private GameObject CreatePageButton(Transform parent, string name, Vector2 position, string text)
+        {
+            GameObject btnObj = new GameObject(name);
+            btnObj.transform.SetParent(parent, false);
+
+            RectTransform btnRect = btnObj.AddComponent<RectTransform>();
+            btnRect.anchorMin = Vector2.zero;
+            btnRect.anchorMax = Vector2.zero;
+            btnRect.pivot = new Vector2(0.5f, 0.5f);
+            btnRect.anchoredPosition = position;
+            btnRect.sizeDelta = new Vector2(80, 80);
+
+            Image btnImage = btnObj.AddComponent<Image>();
+            btnImage.color = new Color(0.3f, 0.3f, 0.4f, 1f);
+
+            Button button = btnObj.AddComponent<Button>();
+            ColorBlock colors = button.colors;
+            colors.normalColor = Color.white;
+            colors.highlightedColor = new Color(1.2f, 1.2f, 1.2f, 1f);
+            colors.pressedColor = new Color(0.8f, 0.8f, 0.8f, 1f);
+            button.colors = colors;
+
+            GameObject textObj = new GameObject("Text");
+            textObj.transform.SetParent(btnObj.transform, false);
+            RectTransform textRect = textObj.AddComponent<RectTransform>();
+            textRect.anchorMin = Vector2.zero;
+            textRect.anchorMax = Vector2.one;
+            textRect.offsetMin = Vector2.zero;
+            textRect.offsetMax = Vector2.zero;
+
+            Text btnText = CreateText(textObj, text, 36, Color.white);
+            btnText.fontStyle = FontStyle.Bold;
+
+            return btnObj;
         }
 
         private void EnsureBackToMenuButton()

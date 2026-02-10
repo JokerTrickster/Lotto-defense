@@ -37,6 +37,23 @@ namespace LottoDefense.Units
         [Min(0.1f)]
         public float attackSpeed = 1.0f;
 
+        [Header("Upgrade Settings")]
+        [Tooltip("Base cost for first upgrade")]
+        [Min(1)]
+        public int baseUpgradeCost = 5;
+
+        [Tooltip("Attack damage increase per upgrade level (%)")]
+        [Range(0f, 100f)]
+        public float attackUpgradePercent = 10f;
+
+        [Tooltip("Attack speed increase per upgrade level (%)")]
+        [Range(0f, 100f)]
+        public float attackSpeedUpgradePercent = 8f;
+
+        [Tooltip("Maximum upgrade level")]
+        [Min(1)]
+        public int maxUpgradeLevel = 10;
+
         [Header("Visual References")]
         [Tooltip("Icon displayed in UI and inventory")]
         public Sprite icon;

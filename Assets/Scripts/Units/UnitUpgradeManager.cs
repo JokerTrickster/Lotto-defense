@@ -31,11 +31,9 @@ namespace LottoDefense.Units
         }
         #endregion
 
-        #region Constants
-        private const int MAX_ATTACK_UPGRADE_LEVEL = 10;
-        private const int MAX_ATTACK_SPEED_UPGRADE_LEVEL = 10;
-        private const float ATTACK_UPGRADE_MULTIPLIER = 0.1f; // +10% per level
-        private const float ATTACK_SPEED_UPGRADE_MULTIPLIER = 0.08f; // +8% per level
+        #region (No longer used - now uses UnitData settings)
+        // Legacy constants - kept for reference
+        // Now uses UnitData.maxUpgradeLevel, attackUpgradePercent, attackSpeedUpgradePercent
         #endregion
 
         #region Events
@@ -74,10 +72,11 @@ namespace LottoDefense.Units
                 return false;
             }
 
-            // Check max level
-            if (unit.AttackUpgradeLevel >= MAX_ATTACK_UPGRADE_LEVEL)
+            // Check max level (from UnitData)
+            int maxLevel = unit.Data != null ? unit.Data.maxUpgradeLevel : 10;
+            if (unit.AttackUpgradeLevel >= maxLevel)
             {
-                Debug.LogWarning($"[UnitUpgradeManager] {unit.Data.GetDisplayName()} attack already at max level {MAX_ATTACK_UPGRADE_LEVEL}");
+                Debug.LogWarning($"[UnitUpgradeManager] {unit.Data.GetDisplayName()} attack already at max level {maxLevel}");
                 return false;
             }
 
@@ -123,10 +122,11 @@ namespace LottoDefense.Units
                 return false;
             }
 
-            // Check max level
-            if (unit.AttackSpeedUpgradeLevel >= MAX_ATTACK_SPEED_UPGRADE_LEVEL)
+            // Check max level (from UnitData)
+            int maxLevel = unit.Data != null ? unit.Data.maxUpgradeLevel : 10;
+            if (unit.AttackSpeedUpgradeLevel >= maxLevel)
             {
-                Debug.LogWarning($"[UnitUpgradeManager] {unit.Data.GetDisplayName()} attack speed already at max level {MAX_ATTACK_SPEED_UPGRADE_LEVEL}");
+                Debug.LogWarning($"[UnitUpgradeManager] {unit.Data.GetDisplayName()} attack speed already at max level {maxLevel}");
                 return false;
             }
 
@@ -164,7 +164,8 @@ namespace LottoDefense.Units
 
         #region Cost Calculation
         /// <summary>
-        /// Calculate upgrade cost based on rarity and current level.
+        /// Calculate upgrade cost based on UnitData settings and current level.
+        /// Uses UnitData.baseUpgradeCost as base cost.
         /// </summary>
         public int GetUpgradeCost(Unit unit, UpgradeType upgradeType)
         {
@@ -172,23 +173,8 @@ namespace LottoDefense.Units
 
             int currentLevel = upgradeType == UpgradeType.Attack ? unit.AttackUpgradeLevel : unit.AttackSpeedUpgradeLevel;
 
-            // Base cost by rarity
-            int baseCost = 0;
-            switch (unit.Data.rarity)
-            {
-                case Rarity.Normal:
-                    baseCost = 5;
-                    break;
-                case Rarity.Rare:
-                    baseCost = 10;
-                    break;
-                case Rarity.Epic:
-                    baseCost = 20;
-                    break;
-                case Rarity.Legendary:
-                    baseCost = 50;
-                    break;
-            }
+            // Use base cost from UnitData
+            int baseCost = unit.Data.baseUpgradeCost;
 
             // Cost increases with level: baseCost * (1 + level * 0.5)
             int cost = Mathf.RoundToInt(baseCost * (1f + currentLevel * 0.5f));
@@ -198,18 +184,22 @@ namespace LottoDefense.Units
 
         /// <summary>
         /// Get attack upgrade multiplier for a level.
+        /// Uses UnitData.attackUpgradePercent if available.
         /// </summary>
-        public float GetAttackMultiplier(int level)
+        public float GetAttackMultiplier(int level, UnitData data = null)
         {
-            return 1f + (level * ATTACK_UPGRADE_MULTIPLIER);
+            float percentPerLevel = data != null ? data.attackUpgradePercent / 100f : 0.1f;
+            return 1f + (level * percentPerLevel);
         }
 
         /// <summary>
         /// Get attack speed upgrade multiplier for a level.
+        /// Uses UnitData.attackSpeedUpgradePercent if available.
         /// </summary>
-        public float GetAttackSpeedMultiplier(int level)
+        public float GetAttackSpeedMultiplier(int level, UnitData data = null)
         {
-            return 1f + (level * ATTACK_SPEED_UPGRADE_MULTIPLIER);
+            float percentPerLevel = data != null ? data.attackSpeedUpgradePercent / 100f : 0.08f;
+            return 1f + (level * percentPerLevel);
         }
         #endregion
 

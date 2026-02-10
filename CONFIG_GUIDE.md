@@ -24,7 +24,52 @@ Assets/Resources/
 
 ---
 
-## 1️⃣ GameBalanceConfig - 게임 밸런스 설정
+## 1️⃣ UnitData - 유닛별 스탯 및 업그레이드 설정
+
+### 📍 경로
+- **파일**: `Assets/Resources/Units/*.asset` (각 유닛별 에셋)
+- **스크립트**: `Assets/Scripts/Units/UnitData.cs`
+
+### 🎮 설정 가능한 항목
+
+#### ✅ 기본 스탯
+```yaml
+attack: 10              # 기본 공격력
+attackSpeed: 1.0        # 초당 공격 횟수
+attackRange: 1.5        # 공격 사거리 (그리드 단위)
+```
+
+#### ✅ 업그레이드 설정 (NEW!)
+```yaml
+baseUpgradeCost: 5               # 첫 업그레이드 기본 비용
+attackUpgradePercent: 10         # 업그레이드당 공격력 증가율 (%)
+attackSpeedUpgradePercent: 8     # 업그레이드당 공격속도 증가율 (%)
+maxUpgradeLevel: 10              # 최대 업그레이드 레벨
+```
+
+**예시: Normal 등급 유닛**
+- 기본 비용: 5 골드
+- 레벨 1 업그레이드: 5 * (1 + 0 * 0.5) = 5 골드
+- 레벨 2 업그레이드: 5 * (1 + 1 * 0.5) = 7 골드
+- 레벨 3 업그레이드: 5 * (1 + 2 * 0.5) = 10 골드
+
+**예시: Legendary 등급 유닛**
+- 기본 비용: 50 골드로 설정하면
+- 레벨 1: 50 골드
+- 레벨 2: 75 골드
+- 레벨 3: 100 골드
+
+### 🔧 Unity 에디터에서 수정하는 방법
+
+1. `Assets/Resources/Units/` 폴더에서 유닛 에셋 선택 (예: Archer.asset)
+2. Inspector 창에서 수정:
+   - **Combat Stats**: 공격력, 공격속도, 사거리
+   - **Upgrade Settings**: 업그레이드 비용, 증가율, 최대 레벨
+3. Ctrl+S (Cmd+S) 저장
+
+---
+
+## 2️⃣ GameBalanceConfig - 게임 밸런스 설정
 
 ### 📍 경로
 - **파일**: `Assets/Resources/GameBalanceConfig.asset`
@@ -90,7 +135,25 @@ int sellGold = balanceConfig.unitSellGold; // 3
 
 ---
 
-## 2️⃣ RoundConfig - 라운드별 몬스터 설정
+## 3️⃣ 조합 가이드 UI (NEW!)
+
+### 📍 기능
+- 게임 중 **책 모양 버튼**(왼쪽 하단)을 클릭하면 조합 가이드 열람
+- 페이지를 넘기며 모든 조합 레시피 확인 가능
+- 각 페이지에 표시되는 정보:
+  - 소스 유닛 (3개 필요)
+  - 결과 유닛
+  - 각 유닛의 스탯 (공격력, 공격속도, 사거리, DPS)
+  - 조합 비용
+
+### 🎮 사용 방법
+1. 게임 플레이 중 왼쪽 하단의 📖 버튼 클릭
+2. ◀/▶ 버튼으로 페이지 넘기기
+3. X 버튼으로 닫기
+
+---
+
+## 4️⃣ RoundConfig - 라운드별 몬스터 설정
 
 ### 📍 경로
 - **파일**: `Assets/Resources/RoundConfig.asset`
@@ -167,7 +230,7 @@ int maxRounds = roundConfig.TotalRounds; // 30
 
 ---
 
-## 3️⃣ 실제 동작 예시
+## 5️⃣ 실제 동작 예시
 
 ### ✅ 유닛 조합 시나리오
 

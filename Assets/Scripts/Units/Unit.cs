@@ -875,16 +875,16 @@ namespace LottoDefense.Units
 
         #region Upgrade System
         /// <summary>
-        /// Upgrade attack level (increases attack damage by 10% per level).
+        /// Upgrade attack level (increases attack damage by percentage from UnitData).
         /// </summary>
         public void UpgradeAttack()
         {
             AttackUpgradeLevel++;
 
-            // Recalculate attack with multiplier
+            // Recalculate attack with multiplier from UnitData settings
             if (UnitUpgradeManager.Instance != null)
             {
-                float multiplier = UnitUpgradeManager.Instance.GetAttackMultiplier(AttackUpgradeLevel);
+                float multiplier = UnitUpgradeManager.Instance.GetAttackMultiplier(AttackUpgradeLevel, Data);
                 CurrentAttack = Mathf.RoundToInt(Data.attack * multiplier);
             }
 
@@ -892,16 +892,16 @@ namespace LottoDefense.Units
         }
 
         /// <summary>
-        /// Upgrade attack speed level (increases attack speed by 8% per level).
+        /// Upgrade attack speed level (increases attack speed by percentage from UnitData).
         /// </summary>
         public void UpgradeAttackSpeed()
         {
             AttackSpeedUpgradeLevel++;
 
-            // Recalculate attack speed and cooldown with multiplier
+            // Recalculate attack speed and cooldown with multiplier from UnitData settings
             if (UnitUpgradeManager.Instance != null)
             {
-                float multiplier = UnitUpgradeManager.Instance.GetAttackSpeedMultiplier(AttackSpeedUpgradeLevel);
+                float multiplier = UnitUpgradeManager.Instance.GetAttackSpeedMultiplier(AttackSpeedUpgradeLevel, Data);
                 CurrentAttackSpeed = Data.attackSpeed * multiplier;
                 attackCooldown = 1f / CurrentAttackSpeed;
             }
