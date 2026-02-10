@@ -80,7 +80,7 @@ MonoBehaviour:
     goldReward: 10
     healthScaling: 1.1
     defenseScaling: 1.05
-  - monsterName: "\uBE E\uB978 \uBABC\uC2A4\uD130"
+  - monsterName: "\uBE60\uB978 \uBABC\uC2A4\uD130"
     type: 1
     maxHealth: 70
     attack: 8

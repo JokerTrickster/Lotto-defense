@@ -46,8 +46,8 @@ namespace LottoDefense.UI
         #endregion
 
         #region Button Colors
-        /// <summary>Summon button gradient main (vibrant green).</summary>
-        public static readonly Color SummonButtonBg = new Color(0.1f, 0.7f, 0.3f, 1f);
+        /// <summary>Summon button gradient main (brighter vibrant green).</summary>
+        public static readonly Color SummonButtonBg = new Color(0.15f, 0.8f, 0.35f, 1f);
 
         /// <summary>Summon button pressed state.</summary>
         public static readonly Color SummonButtonPressed = new Color(0.08f, 0.5f, 0.2f, 1f);
@@ -79,15 +79,27 @@ namespace LottoDefense.UI
         public static readonly Color CountdownText = Color.white;
 
         /// <summary>Countdown overlay background (dark vignette).</summary>
-        public static readonly Color CountdownOverlay = new Color(0f, 0f, 0f, 0.5f);
+        public static readonly Color CountdownOverlay = new Color(0f, 0f, 0f, 0.75f);
+
+        /// <summary>Countdown "3" color (red).</summary>
+        public static readonly Color Countdown3Color = new Color(1f, 0.3f, 0.3f, 1f);
+
+        /// <summary>Countdown "2" color (yellow).</summary>
+        public static readonly Color Countdown2Color = new Color(1f, 0.9f, 0.3f, 1f);
+
+        /// <summary>Countdown "1" color (green).</summary>
+        public static readonly Color Countdown1Color = new Color(0.3f, 1f, 0.5f, 1f);
+
+        /// <summary>Countdown "START!" color (bright green).</summary>
+        public static readonly Color CountdownStartColor = new Color(0.3f, 1f, 0.5f, 1f);
         #endregion
 
         #region Typography (font sizes - Mobile optimized 1.5x)
         /// <summary>HUD stat value (large, prominent number).</summary>
-        public const int StatValueSize = 50; // 34 → 50
+        public const int StatValueSize = 38; // 50 → 38 (compact HUD)
 
         /// <summary>HUD stat label ("ROUND", "GOLD" etc).</summary>
-        public const int StatLabelSize = 24; // 16 → 24
+        public const int StatLabelSize = 18; // 24 → 18 (compact HUD)
 
         /// <summary>HUD phase/timer text.</summary>
         public const int PhaseTextSize = 38; // 26 → 38
@@ -107,13 +119,13 @@ namespace LottoDefense.UI
 
         #region Layout (reference 1080x1920 - Mobile optimized 1.5x)
         /// <summary>HUD panel total height.</summary>
-        public const float HudHeight = 200f; // 160 → 200
+        public const float HudHeight = 160f; // 200 → 160 (compact HUD)
 
         /// <summary>HUD horizontal padding.</summary>
         public const float HudPaddingH = 32f; // 24 → 32
 
         /// <summary>HUD vertical padding.</summary>
-        public const float HudPaddingV = 16f; // 12 → 16
+        public const float HudPaddingV = 8f; // 16 → 8 (compact HUD)
 
         /// <summary>Stat card corner radius approximation (visual padding).</summary>
         public const float StatCardPadding = 12f; // 8 → 12
@@ -122,10 +134,13 @@ namespace LottoDefense.UI
         public const float SummonButtonHeight = 140f; // 110 → 140
 
         /// <summary>Menu button height (comfortable touch target).</summary>
-        public const float MenuButtonHeight = 80f; // 64 → 80
+        public const float MenuButtonHeight = 52f; // 80 → 52 (compact utility icon)
 
-        /// <summary>Bottom area total reserve (summon + menu + spacing).</summary>
-        public const float BottomReserve = 280f; // 230 → 280
+        /// <summary>Bottom area total reserve (summon + spacing).</summary>
+        public const float BottomReserve = 180f; // 280 → 180 (less bottom reserve)
+
+        /// <summary>Utility button size (back, guide icons).</summary>
+        public const float UtilityButtonSize = 52f;
 
         /// <summary>Gap between bottom buttons.</summary>
         public const float ButtonGap = 18f; // 12 → 18

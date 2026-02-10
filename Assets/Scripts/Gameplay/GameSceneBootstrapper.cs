@@ -255,8 +255,29 @@ namespace LottoDefense.Gameplay
             outline.effectColor = new Color(0, 0, 0, 0.5f);
             outline.effectDistance = new Vector2(3, -3);
 
+            // "START!" text (hidden initially, shown after "1")
+            GameObject startTextObj = new GameObject("StartText");
+            startTextObj.transform.SetParent(countdownObj.transform, false);
+
+            RectTransform startTextRect = startTextObj.AddComponent<RectTransform>();
+            startTextRect.anchorMin = new Vector2(0.5f, 0.5f);
+            startTextRect.anchorMax = new Vector2(0.5f, 0.5f);
+            startTextRect.anchoredPosition = Vector2.zero;
+            startTextRect.sizeDelta = new Vector2(600, 300);
+
+            Text startText = CreateText(startTextObj, "START!", 160, GameSceneDesignTokens.CountdownStartColor);
+            startText.fontStyle = FontStyle.Bold;
+            startText.raycastTarget = false;
+
+            Outline startOutline = startTextObj.AddComponent<Outline>();
+            startOutline.effectColor = new Color(0, 0, 0, 0.5f);
+            startOutline.effectDistance = new Vector2(3, -3);
+
+            startTextObj.SetActive(false); // Hidden initially
+
             countdown = countdownObj.AddComponent<CountdownUI>();
             SetField(countdown, "countdownText", countdownText);
+            SetField(countdown, "startText", startText);
             SetField(countdown, "canvasGroup", canvasGroup);
         }
         #endregion
@@ -444,7 +465,8 @@ namespace LottoDefense.Gameplay
             panelRect.anchorMin = new Vector2(0, 0);
             panelRect.anchorMax = new Vector2(1, 0);
             panelRect.pivot = new Vector2(0.5f, 0);
-            panelRect.anchoredPosition = new Vector2(0, 15);
+            // Position above the summon button (summonY=16 + summonHeight=140 + gap=12)
+            panelRect.anchoredPosition = new Vector2(0, 16 + GameSceneDesignTokens.SummonButtonHeight + 12);
             panelRect.sizeDelta = new Vector2(-20, 140); // Larger height for mobile (100 → 140)
 
             // Panel background with rounded corners feel
@@ -765,7 +787,7 @@ namespace LottoDefense.Gameplay
             btnRect.anchorMin = new Vector2(marginH, 0);
             btnRect.anchorMax = new Vector2(1f - marginH, 0);
             btnRect.pivot = new Vector2(0.5f, 0);
-            btnRect.anchoredPosition = new Vector2(0, GameSceneDesignTokens.MenuButtonHeight + GameSceneDesignTokens.ButtonGap * 2 + 16);
+            btnRect.anchoredPosition = new Vector2(0, 16); // Anchored to very bottom
             btnRect.sizeDelta = new Vector2(0, GameSceneDesignTokens.SummonButtonHeight);
 
             // Button background
@@ -814,17 +836,17 @@ namespace LottoDefense.Gameplay
 
         private void EnsureSynthesisGuideButton()
         {
-            // Create synthesis guide button above back to menu button
+            // Top-right corner icon button (52x52) positioned below HUD
             GameObject btnObj = new GameObject("SynthesisGuideButton");
             btnObj.transform.SetParent(mainCanvas.transform, false);
 
-            float marginH = GameSceneDesignTokens.ButtonMarginH;
+            float btnSize = GameSceneDesignTokens.UtilityButtonSize;
             RectTransform btnRect = btnObj.AddComponent<RectTransform>();
-            btnRect.anchorMin = new Vector2(marginH, 0);
-            btnRect.anchorMax = new Vector2(marginH, 0);
-            btnRect.pivot = new Vector2(0, 0);
-            btnRect.anchoredPosition = new Vector2(16, 16 + GameSceneDesignTokens.MenuButtonHeight + 12);
-            btnRect.sizeDelta = new Vector2(GameSceneDesignTokens.MenuButtonHeight, GameSceneDesignTokens.MenuButtonHeight);
+            btnRect.anchorMin = new Vector2(1, 1);
+            btnRect.anchorMax = new Vector2(1, 1);
+            btnRect.pivot = new Vector2(1, 1);
+            btnRect.anchoredPosition = new Vector2(-12, -(GameSceneDesignTokens.HudHeight + 8));
+            btnRect.sizeDelta = new Vector2(btnSize, btnSize);
 
             Image btnImage = btnObj.AddComponent<Image>();
             btnImage.color = new Color(0.3f, 0.6f, 0.9f, 1f); // Blue
@@ -837,22 +859,19 @@ namespace LottoDefense.Gameplay
             colors.fadeDuration = 0.1f;
             button.colors = colors;
 
-            // Create or find SynthesisGuideUI
-            SynthesisGuideUI guideUI = FindFirstObjectByType<SynthesisGuideUI>();
-            if (guideUI == null)
-            {
-                EnsureSynthesisGuideUI();
-                guideUI = FindFirstObjectByType<SynthesisGuideUI>();
-            }
+            // Create SynthesisGuideUI first (before it gets deactivated)
+            EnsureSynthesisGuideUI();
 
+            // Use lambda that finds the guide at click-time, since it may be inactive
             button.onClick.AddListener(() => {
-                if (guideUI != null)
+                SynthesisGuideUI guide = FindFirstObjectByType<SynthesisGuideUI>(FindObjectsInactive.Include);
+                if (guide != null)
                 {
-                    guideUI.Show();
+                    guide.Show();
                 }
             });
 
-            // Button icon (book symbol)
+            // Button icon ("?" as fallback - emoji may not render in legacy Text)
             GameObject textObj = new GameObject("Text");
             textObj.transform.SetParent(btnObj.transform, false);
             RectTransform textRect = textObj.AddComponent<RectTransform>();
@@ -861,7 +880,7 @@ namespace LottoDefense.Gameplay
             textRect.offsetMin = Vector2.zero;
             textRect.offsetMax = Vector2.zero;
 
-            Text btnText = CreateText(textObj, "\ud83d\udcd6", 40, GameSceneDesignTokens.ButtonText); // Book emoji
+            Text btnText = CreateText(textObj, "?", 28, GameSceneDesignTokens.ButtonText);
             btnText.fontStyle = FontStyle.Bold;
 
             Outline outline = textObj.AddComponent<Outline>();
@@ -1141,16 +1160,17 @@ namespace LottoDefense.Gameplay
 
         private void EnsureBackToMenuButton()
         {
+            // Top-left corner icon button (52x52) positioned below HUD
             GameObject btnObj = new GameObject("BackToMenuButton");
             btnObj.transform.SetParent(mainCanvas.transform, false);
 
-            float marginH = GameSceneDesignTokens.ButtonMarginH;
+            float btnSize = GameSceneDesignTokens.UtilityButtonSize;
             RectTransform btnRect = btnObj.AddComponent<RectTransform>();
-            btnRect.anchorMin = new Vector2(marginH + 0.1f, 0);
-            btnRect.anchorMax = new Vector2(1f - marginH - 0.1f, 0);
-            btnRect.pivot = new Vector2(0.5f, 0);
-            btnRect.anchoredPosition = new Vector2(0, 16);
-            btnRect.sizeDelta = new Vector2(0, GameSceneDesignTokens.MenuButtonHeight);
+            btnRect.anchorMin = new Vector2(0, 1);
+            btnRect.anchorMax = new Vector2(0, 1);
+            btnRect.pivot = new Vector2(0, 1);
+            btnRect.anchoredPosition = new Vector2(12, -(GameSceneDesignTokens.HudHeight + 8));
+            btnRect.sizeDelta = new Vector2(btnSize, btnSize);
 
             Image btnImage = btnObj.AddComponent<Image>();
             btnImage.color = GameSceneDesignTokens.MenuButtonBg;
@@ -1166,7 +1186,7 @@ namespace LottoDefense.Gameplay
             SceneNavigator navigator = btnObj.AddComponent<SceneNavigator>();
             button.onClick.AddListener(navigator.LoadMainGame);
 
-            // Button text
+            // Button icon (back arrow)
             GameObject textObj = new GameObject("Text");
             textObj.transform.SetParent(btnObj.transform, false);
             RectTransform textRect = textObj.AddComponent<RectTransform>();
@@ -1175,7 +1195,7 @@ namespace LottoDefense.Gameplay
             textRect.offsetMin = Vector2.zero;
             textRect.offsetMax = Vector2.zero;
 
-            Text btnText = CreateText(textObj, "\u25C0 \uBA54\uC778 \uBA54\uB274", GameSceneDesignTokens.MenuTextSize, GameSceneDesignTokens.ButtonText);
+            Text btnText = CreateText(textObj, "\u25C0", 28, GameSceneDesignTokens.ButtonText);
             btnText.fontStyle = FontStyle.Bold;
 
             Outline outline = textObj.AddComponent<Outline>();

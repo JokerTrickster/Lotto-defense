@@ -27,7 +27,12 @@ namespace LottoDefense.UI
         #endregion
 
         #region Unity Lifecycle
-        private void Awake()
+        /// <summary>
+        /// Use Start instead of Awake because GameSceneBootstrapper sets
+        /// serialized fields via reflection AFTER AddComponent triggers Awake.
+        /// By Start(), all fields are assigned.
+        /// </summary>
+        private void Start()
         {
             // Start hidden
             if (canvasGroup != null)
@@ -42,15 +47,16 @@ namespace LottoDefense.UI
                 resultPanel.SetActive(false);
             }
 
-            // Setup button
+            // Setup button (fields are now assigned via reflection)
             if (confirmButton != null)
             {
                 confirmButton.onClick.AddListener(OnConfirmButtonClicked);
             }
-        }
+            else
+            {
+                Debug.LogWarning("[GameResultUI] confirmButton is null in Start!");
+            }
 
-        private void OnEnable()
-        {
             // Subscribe to game state changes
             if (GameplayManager.Instance != null)
             {
@@ -58,7 +64,7 @@ namespace LottoDefense.UI
             }
         }
 
-        private void OnDisable()
+        private void OnDestroy()
         {
             // Unsubscribe from game state changes
             if (GameplayManager.Instance != null)
@@ -104,7 +110,7 @@ namespace LottoDefense.UI
             // Update UI
             if (titleText != null)
             {
-                titleText.text = isVictory ? "🎉 승리!" : "💀 게임 오버";
+                titleText.text = isVictory ? "승리!" : "게임 오버";
                 titleText.color = isVictory ? new Color(0.2f, 1f, 0.3f) : new Color(1f, 0.2f, 0.2f);
             }
 
@@ -183,7 +189,7 @@ namespace LottoDefense.UI
 
             while (elapsed < duration)
             {
-                elapsed += Time.deltaTime;
+                elapsed += Time.unscaledDeltaTime;
                 canvasGroup.alpha = Mathf.Lerp(0f, 1f, elapsed / duration);
                 yield return null;
             }
@@ -208,16 +214,12 @@ namespace LottoDefense.UI
             }
             else
             {
-                // Fallback: cleanup with coroutine
-                StartCoroutine(CleanupAndLoadMainGame());
+                // Fallback: cleanup and load synchronously.
+                // Cannot use coroutine because CleanupAllGameplaySingletons() destroys
+                // GameCanvas (our parent), which would kill the coroutine before LoadScene.
+                GameplayManager.CleanupAllGameplaySingletons();
+                UnityEngine.SceneManagement.SceneManager.LoadScene("MainGame");
             }
-        }
-
-        private System.Collections.IEnumerator CleanupAndLoadMainGame()
-        {
-            GameplayManager.CleanupAllGameplaySingletons();
-            yield return null; // Wait for Destroy() to take effect
-            UnityEngine.SceneManagement.SceneManager.LoadScene("MainGame");
         }
         #endregion
     }

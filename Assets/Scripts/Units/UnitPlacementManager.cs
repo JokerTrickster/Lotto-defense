@@ -217,13 +217,26 @@ namespace LottoDefense.Units
         /// </summary>
         private void OnGridCellClicked(Vector2Int gridPos)
         {
-            // Case 1: Unit selected for movement - move to empty cell
-            if (SelectedPlacedUnit != null)
+            // Case 1: Unit selected for movement
+            if (SelectedPlacedUnit != null && GridManager.Instance != null)
             {
-                if (GridManager.Instance != null && GridManager.Instance.GetUnitAt(gridPos) == null)
+                Unit occupant = GridManager.Instance.GetUnitAt(gridPos);
+                if (occupant == null)
                 {
                     // Move selected unit to empty cell
                     MoveUnitToPosition(SelectedPlacedUnit, gridPos);
+                    DeselectPlacedUnit();
+                    return;
+                }
+                else if (occupant != SelectedPlacedUnit)
+                {
+                    // Swap with occupant unit
+                    SwapUnits(SelectedPlacedUnit, occupant);
+                    return;
+                }
+                else
+                {
+                    // Clicked same unit's cell - deselect
                     DeselectPlacedUnit();
                     return;
                 }
@@ -276,16 +289,29 @@ namespace LottoDefense.Units
             if (clickedUnit == null)
                 return;
 
-            // Show unit selection UI (sell/synthesize)
+            // If another unit is already selected for movement, swap them
+            if (SelectedPlacedUnit != null && SelectedPlacedUnit != clickedUnit)
+            {
+                SwapUnits(SelectedPlacedUnit, clickedUnit);
+                return;
+            }
+
+            // Select unit for movement (clicking empty cell will move it)
+            SelectPlacedUnit(clickedUnit);
+
+            // Also show unit selection UI (sell/synthesize/upgrade options)
             UnitSelectionUI selectionUI = FindFirstObjectByType<UnitSelectionUI>();
             if (selectionUI != null)
             {
                 selectionUI.ShowForUnit(clickedUnit);
-                Debug.Log($"[UnitPlacementManager] Showing selection UI for {clickedUnit.Data.GetDisplayName()}");
+                Debug.Log($"[UnitPlacementManager] Selected {clickedUnit.Data.GetDisplayName()} for movement and showing UI");
             }
-            else
+
+            // Notify GameBottomUI of selected unit for upgrade buttons
+            GameBottomUI bottomUI = FindFirstObjectByType<GameBottomUI>();
+            if (bottomUI != null)
             {
-                Debug.LogWarning("[UnitPlacementManager] UnitSelectionUI not found!");
+                bottomUI.SetSelectedUnit(clickedUnit);
             }
         }
         #endregion

@@ -48,6 +48,7 @@ namespace LottoDefense.UI
             if (GameplayManager.Instance != null)
             {
                 GameplayManager.Instance.OnGameValueChanged += HandleGameValueChanged;
+                GameplayManager.Instance.OnStateChanged += HandleStateChanged;
             }
         }
 
@@ -57,6 +58,7 @@ namespace LottoDefense.UI
             if (GameplayManager.Instance != null)
             {
                 GameplayManager.Instance.OnGameValueChanged -= HandleGameValueChanged;
+                GameplayManager.Instance.OnStateChanged -= HandleStateChanged;
             }
         }
 
@@ -105,6 +107,40 @@ namespace LottoDefense.UI
         #endregion
 
         #region Event Handlers
+        /// <summary>
+        /// Handle game state changes from GameplayManager.
+        /// Maps GameState to Korean display string and updates phase text.
+        /// </summary>
+        private void HandleStateChanged(GameState oldState, GameState newState)
+        {
+            string phaseDisplay;
+            switch (newState)
+            {
+                case GameState.Countdown:
+                    phaseDisplay = "\uCE74\uC6B4\uD2B8\uB2E4\uC6B4";
+                    break;
+                case GameState.Preparation:
+                    phaseDisplay = "\uC900\uBE44 \uB2E8\uACC4";
+                    break;
+                case GameState.Combat:
+                    phaseDisplay = "\uC804\uD22C \uC911";
+                    break;
+                case GameState.RoundResult:
+                    phaseDisplay = "\uB77C\uC6B4\uB4DC \uC644\uB8CC";
+                    break;
+                case GameState.Victory:
+                    phaseDisplay = "\uC2B9\uB9AC";
+                    break;
+                case GameState.Defeat:
+                    phaseDisplay = "\uD328\uBC30";
+                    break;
+                default:
+                    phaseDisplay = newState.ToString();
+                    break;
+            }
+            UpdatePhase(phaseDisplay);
+        }
+
         /// <summary>
         /// Handle game value changes from GameplayManager.
         /// </summary>

@@ -13,9 +13,9 @@ namespace LottoDefense.Grid
         #region Constants
         public const int GRID_WIDTH = 8;  // Changed from 4 to 8
         public const int GRID_HEIGHT = 4; // Changed from 8 to 4
-        private const float SCREEN_WIDTH_USAGE = 0.85f; // Use 85% of screen width for mobile (1.5x larger)
-        private const float HUD_TOP_RESERVE = 0.12f;    // Reserve 12% top for HUD (reduced for more game space)
-        private const float BUTTON_BOTTOM_RESERVE = 0.18f; // Reserve 18% bottom for buttons
+        private const float SCREEN_WIDTH_USAGE = 0.82f; // Use 82% of screen width (room for monster path margin)
+        private const float HUD_TOP_RESERVE = 0.10f;    // Reserve 10% top for compact HUD
+        private const float BUTTON_BOTTOM_RESERVE = 0.14f; // Reserve 14% bottom for buttons
         private const float CELL_BORDER_WIDTH = 0.02f;
         private const float PATH_MARGIN = 0.3f; // Reduced from 1.2 to 0.3 - monsters closer to grid
         private const int PATH_POINTS_PER_SIDE = 6; // Waypoints per side for smooth movement

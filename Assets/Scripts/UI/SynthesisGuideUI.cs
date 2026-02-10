@@ -39,7 +39,12 @@ namespace LottoDefense.UI
         #endregion
 
         #region Unity Lifecycle
-        private void Awake()
+        /// <summary>
+        /// Use Start instead of Awake because GameSceneBootstrapper sets
+        /// serialized fields via reflection AFTER AddComponent triggers Awake.
+        /// By Start(), all fields are assigned.
+        /// </summary>
+        private void Start()
         {
             // Load config
             balanceConfig = Resources.Load<GameBalanceConfig>("GameBalanceConfig");
@@ -52,20 +57,32 @@ namespace LottoDefense.UI
             // Get all recipes
             recipes = balanceConfig.synthesisRecipes;
 
-            // Setup buttons
+            // Setup buttons (fields are now assigned via reflection)
             if (closeButton != null)
             {
                 closeButton.onClick.AddListener(Hide);
+            }
+            else
+            {
+                Debug.LogWarning("[SynthesisGuideUI] closeButton is null in Start!");
             }
 
             if (prevPageButton != null)
             {
                 prevPageButton.onClick.AddListener(OnPrevPage);
             }
+            else
+            {
+                Debug.LogWarning("[SynthesisGuideUI] prevPageButton is null in Start!");
+            }
 
             if (nextPageButton != null)
             {
                 nextPageButton.onClick.AddListener(OnNextPage);
+            }
+            else
+            {
+                Debug.LogWarning("[SynthesisGuideUI] nextPageButton is null in Start!");
             }
 
             // Start hidden

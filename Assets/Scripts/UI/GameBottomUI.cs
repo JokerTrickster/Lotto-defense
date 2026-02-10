@@ -57,6 +57,21 @@ namespace LottoDefense.UI
             {
                 panel.SetActive(false);
             }
+
+            // Subscribe in Awake since this GameObject may be disabled before OnEnable fires.
+            // The panel field points to the same GameObject, so SetActive(false) prevents OnEnable.
+            if (GameplayManager.Instance != null)
+            {
+                GameplayManager.Instance.OnStateChanged += HandleStateChanged;
+            }
+        }
+
+        private void OnDestroy()
+        {
+            if (GameplayManager.Instance != null)
+            {
+                GameplayManager.Instance.OnStateChanged -= HandleStateChanged;
+            }
         }
 
         private void Update()
@@ -101,6 +116,24 @@ namespace LottoDefense.UI
         {
             selectedUnit = unit;
             UpdateButtonStates();
+        }
+        #endregion
+
+        #region State Handlers
+        /// <summary>
+        /// Auto show/hide based on game state changes.
+        /// Shows during Preparation, hides otherwise.
+        /// </summary>
+        private void HandleStateChanged(GameState oldState, GameState newState)
+        {
+            if (newState == GameState.Preparation)
+            {
+                Show();
+            }
+            else
+            {
+                Hide();
+            }
         }
         #endregion
 
