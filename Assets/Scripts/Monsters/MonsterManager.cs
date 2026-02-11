@@ -355,10 +355,12 @@ namespace LottoDefense.Monsters
             // Create a copy with boosted stats
             MonsterData bossData = ScriptableObject.CreateInstance<MonsterData>();
             bossData.monsterName = $"BOSS {baseData.monsterName}";
-            bossData.maxHealth = baseData.maxHealth * 10f; // 10x HP
+            bossData.maxHealth = baseData.maxHealth * 10; // 10x HP
             bossData.moveSpeed = baseData.moveSpeed * 0.7f; // 30% slower (more imposing)
-            bossData.damageToLife = baseData.damageToLife * 5; // 5x damage
+            bossData.attack = baseData.attack * 5; // 5x attack
+            bossData.defense = baseData.defense * 3; // 3x defense
             bossData.goldReward = baseData.goldReward * 20; // 20x gold reward
+            bossData.type = MonsterType.Boss;
 
             return bossData;
         }
@@ -368,9 +370,10 @@ namespace LottoDefense.Monsters
         /// </summary>
         private Monster GetLastSpawnedMonster()
         {
-            if (activeMonsters.Count > 0)
+            List<Monster> monsters = monsterPool.GetActiveMonsters();
+            if (monsters != null && monsters.Count > 0)
             {
-                return activeMonsters[activeMonsters.Count - 1];
+                return monsters[monsters.Count - 1];
             }
             return null;
         }
