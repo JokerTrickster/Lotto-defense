@@ -57,6 +57,8 @@ namespace LottoDefense.Monsters
         private const int MAX_SPAWNS_PER_ROUND = 30; // 30 monsters per round
         private const float SPAWN_DURATION = 15f; // Spawn for 15 seconds only
         private const int MAX_ACTIVE_MONSTERS = 100; // Game over when active monsters exceed this
+        private const int BOSS_ROUND = 5; // Boss appears on round 5
+        private const float BOSS_SPAWN_DELAY = 2f; // Delay before boss spawn for dramatic effect
         #endregion
 
         #region Inspector Fields
@@ -272,26 +274,104 @@ namespace LottoDefense.Monsters
         /// Coroutine that handles timed monster spawning.
         /// Spawns at most maxSpawnsPerRound and only for spawnDuration seconds (e.g. 15s = 30 at 2/sec).
         /// All monsters in a round are the same type (selected at round start).
+        /// Boss round (round 5): Shows boss entrance effect and spawns 1 boss monster.
         /// </summary>
         private IEnumerator SpawnRoutine()
         {
-            float elapsed = 0f;
+            int currentRound = GameplayManager.Instance != null ? GameplayManager.Instance.CurrentRound : 1;
 
-            while (monstersSpawnedThisRound < maxSpawnsPerRound && elapsed < spawnDuration)
+            // Check if this is boss round
+            if (currentRound == BOSS_ROUND)
             {
-                yield return new WaitForSeconds(spawnInterval);
-                elapsed += spawnInterval;
+                yield return StartCoroutine(SpawnBossRoutine());
+            }
+            else
+            {
+                // Normal spawning routine
+                float elapsed = 0f;
 
-                // 라운드 시작 시 선택된 1개 타입만 스폰
-                SpawnMonster(currentRoundMonsterType, PathType.SquareLoop);
+                while (monstersSpawnedThisRound < maxSpawnsPerRound && elapsed < spawnDuration)
+                {
+                    yield return new WaitForSeconds(spawnInterval);
+                    elapsed += spawnInterval;
 
-                monstersSpawnedThisRound++;
+                    // 라운드 시작 시 선택된 1개 타입만 스폰
+                    SpawnMonster(currentRoundMonsterType, PathType.SquareLoop);
+
+                    monstersSpawnedThisRound++;
+                }
+
+                isSpawning = false;
+                Debug.Log($"[MonsterManager] Finished spawning {monstersSpawnedThisRound} {currentRoundMonsterType.monsterName} monsters (elapsed {elapsed:F1}s)");
             }
 
-            isSpawning = false;
-            Debug.Log($"[MonsterManager] Finished spawning {monstersSpawnedThisRound} {currentRoundMonsterType.monsterName} monsters (elapsed {elapsed:F1}s)");
-
             CheckRoundComplete();
+        }
+
+        /// <summary>
+        /// Boss spawn routine with dramatic entrance effect.
+        /// </summary>
+        private IEnumerator SpawnBossRoutine()
+        {
+            Debug.Log("[MonsterManager] ⚔️ BOSS ROUND - Preparing boss entrance!");
+
+            // Show boss warning effect
+            if (VFXManager.Instance != null)
+            {
+                VFXManager.Instance.ShowBossWarning();
+            }
+
+            // Wait for dramatic pause
+            yield return new WaitForSeconds(BOSS_SPAWN_DELAY);
+
+            // Create boss with increased stats
+            MonsterData bossData = CreateBossData(currentRoundMonsterType);
+
+            // Spawn boss at center of top edge
+            SpawnMonster(bossData, PathType.SquareLoop);
+
+            // Boss spawn effect
+            if (VFXManager.Instance != null)
+            {
+                Monster boss = GetLastSpawnedMonster();
+                if (boss != null)
+                {
+                    VFXManager.Instance.ShowBossSpawnEffect(boss.transform.position);
+                }
+            }
+
+            monstersSpawnedThisRound = 1; // Only 1 boss
+            isSpawning = false;
+
+            Debug.Log($"[MonsterManager] 👑 BOSS SPAWNED: {bossData.monsterName} (HP: {bossData.maxHealth})");
+        }
+
+        /// <summary>
+        /// Create enhanced boss version of a monster.
+        /// </summary>
+        private MonsterData CreateBossData(MonsterData baseData)
+        {
+            // Create a copy with boosted stats
+            MonsterData bossData = ScriptableObject.CreateInstance<MonsterData>();
+            bossData.monsterName = $"BOSS {baseData.monsterName}";
+            bossData.maxHealth = baseData.maxHealth * 10f; // 10x HP
+            bossData.moveSpeed = baseData.moveSpeed * 0.7f; // 30% slower (more imposing)
+            bossData.damageToLife = baseData.damageToLife * 5; // 5x damage
+            bossData.goldReward = baseData.goldReward * 20; // 20x gold reward
+
+            return bossData;
+        }
+
+        /// <summary>
+        /// Get the most recently spawned monster.
+        /// </summary>
+        private Monster GetLastSpawnedMonster()
+        {
+            if (activeMonsters.Count > 0)
+            {
+                return activeMonsters[activeMonsters.Count - 1];
+            }
+            return null;
         }
         #endregion
 

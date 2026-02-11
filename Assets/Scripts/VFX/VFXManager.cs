@@ -486,5 +486,82 @@ namespace LottoDefense.VFX
             return prefab;
         }
         #endregion
+
+        #region Boss Effects
+        /// <summary>
+        /// Show boss warning effect (screen shake, red overlay).
+        /// </summary>
+        public void ShowBossWarning()
+        {
+            StartCoroutine(BossWarningRoutine());
+        }
+
+        /// <summary>
+        /// Boss warning visual effect.
+        /// </summary>
+        private IEnumerator BossWarningRoutine()
+        {
+            Debug.Log("[VFXManager] ⚠️ BOSS WARNING!");
+
+            // Show warning text in center of screen
+            Vector3 screenCenter = new Vector3(Screen.width / 2f, Screen.height / 2f, 0f);
+            Vector3 worldCenter = Camera.main.ScreenToWorldPoint(screenCenter);
+            worldCenter.z = 0f;
+
+            ShowFloatingText(worldCenter, "⚔️ BOSS INCOMING! ⚔️", new Color(1f, 0.2f, 0.2f)); // Red
+
+            // Simple screen shake effect (move camera slightly)
+            Camera mainCamera = Camera.main;
+            if (mainCamera != null)
+            {
+                Vector3 originalPos = mainCamera.transform.position;
+
+                for (int i = 0; i < 10; i++)
+                {
+                    float offsetX = Random.Range(-0.1f, 0.1f);
+                    float offsetY = Random.Range(-0.1f, 0.1f);
+                    mainCamera.transform.position = originalPos + new Vector3(offsetX, offsetY, 0f);
+
+                    yield return new WaitForSeconds(0.05f);
+                }
+
+                mainCamera.transform.position = originalPos;
+            }
+        }
+
+        /// <summary>
+        /// Show boss spawn effect at position.
+        /// </summary>
+        public void ShowBossSpawnEffect(Vector3 worldPosition)
+        {
+            StartCoroutine(BossSpawnEffectRoutine(worldPosition));
+        }
+
+        /// <summary>
+        /// Boss spawn visual effect (expanding circle, particles).
+        /// </summary>
+        private IEnumerator BossSpawnEffectRoutine(Vector3 worldPosition)
+        {
+            Debug.Log($"[VFXManager] 👑 Boss spawn effect at {worldPosition}");
+
+            // Show boss title text
+            ShowFloatingText(worldPosition + Vector3.up * 1.5f, "👑 BOSS 👑", new Color(1f, 0.8f, 0.2f)); // Gold
+
+            // Create expanding circle effect (using multiple damage numbers as particles)
+            int particleCount = 20;
+            float radius = 0.5f;
+
+            for (int i = 0; i < particleCount; i++)
+            {
+                float angle = (360f / particleCount) * i * Mathf.Deg2Rad;
+                Vector3 offset = new Vector3(Mathf.Cos(angle), Mathf.Sin(angle), 0f) * radius;
+                Vector3 particlePos = worldPosition + offset;
+
+                ShowFloatingText(particlePos, "★", new Color(1f, 0.8f, 0.2f)); // Gold stars
+            }
+
+            yield return null;
+        }
+        #endregion
     }
 }
