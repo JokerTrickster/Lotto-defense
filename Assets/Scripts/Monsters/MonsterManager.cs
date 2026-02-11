@@ -35,6 +35,8 @@ namespace LottoDefense.Monsters
         {
             get
             {
+                if (GameplayManager.IsCleaningUp) return null;
+
                 if (_instance == null)
                 {
                     _instance = FindFirstObjectByType<MonsterManager>();

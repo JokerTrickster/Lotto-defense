@@ -1046,12 +1046,17 @@ namespace LottoDefense.Units
             GameObject manaBarObj = new GameObject($"ManaBar_{Data.unitName}");
             manaBarObj.transform.SetParent(manaBarCanvas.transform);
 
-            // Add ManaBar component
-            manaBar = manaBarObj.AddComponent<LottoDefense.UI.ManaBar>();
+            // Setup mana bar rect transform FIRST (before adding component)
+            RectTransform manaBarRect = manaBarObj.GetComponent<RectTransform>();
+            if (manaBarRect == null)
+            {
+                manaBarRect = manaBarObj.AddComponent<RectTransform>();
+            }
+            manaBarRect.sizeDelta = new Vector2(80f, 8f); // 80 pixels wide, 8 pixels tall
 
             // Create background image
             GameObject bgObj = new GameObject("Background");
-            bgObj.transform.SetParent(manaBarObj.transform);
+            bgObj.transform.SetParent(manaBarObj.transform, false);
             UnityEngine.UI.Image bgImage = bgObj.AddComponent<UnityEngine.UI.Image>();
             bgImage.color = new Color(0.2f, 0.2f, 0.2f, 0.8f); // Dark background
             bgImage.raycastTarget = false; // Don't block clicks on units
@@ -1065,7 +1070,7 @@ namespace LottoDefense.Units
 
             // Create fill image
             GameObject fillObj = new GameObject("Fill");
-            fillObj.transform.SetParent(manaBarObj.transform);
+            fillObj.transform.SetParent(manaBarObj.transform, false);
             UnityEngine.UI.Image fillImage = fillObj.AddComponent<UnityEngine.UI.Image>();
             fillImage.color = new Color(0.2f, 0.5f, 1f, 1f); // Blue mana color
             fillImage.raycastTarget = false; // Don't block clicks on units
@@ -1080,11 +1085,10 @@ namespace LottoDefense.Units
             fillRect.sizeDelta = Vector2.zero;
             fillRect.anchoredPosition = Vector2.zero;
 
-            // Setup mana bar rect transform
-            RectTransform manaBarRect = manaBarObj.GetComponent<RectTransform>();
-            manaBarRect.sizeDelta = new Vector2(80f, 8f); // 80 pixels wide, 8 pixels tall
+            // Add ManaBar component AFTER creating children
+            manaBar = manaBarObj.AddComponent<LottoDefense.UI.ManaBar>();
 
-            // Initialize the mana bar
+            // Initialize the mana bar (this will find the Fill image via GetComponentInChildren)
             manaBar.Initialize(this);
 
             Debug.Log($"[Unit] Created mana bar for {Data.GetDisplayName()}");

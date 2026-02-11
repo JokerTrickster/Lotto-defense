@@ -36,14 +36,12 @@ namespace LottoDefense.Gameplay
         #endregion
 
         #region Unity Lifecycle
-        private void Awake()
+        /// <summary>
+        /// Use Start instead of Awake because GameSceneBootstrapper sets
+        /// serialized fields via reflection AFTER AddComponent triggers Awake.
+        /// </summary>
+        private void Start()
         {
-            // Auto-setup references if not assigned
-            if (countdownText == null)
-            {
-                countdownText = GetComponentInChildren<Text>();
-            }
-
             if (canvasGroup == null)
             {
                 canvasGroup = GetComponent<CanvasGroup>();
@@ -60,7 +58,6 @@ namespace LottoDefense.Gameplay
 
             // Start hidden but keep GameObject active so FindFirstObjectByType can find it
             canvasGroup.alpha = 0f;
-            // NOTE: Do NOT call gameObject.SetActive(false) here as it prevents FindFirstObjectByType from finding this component
         }
         #endregion
 

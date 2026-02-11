@@ -1,6 +1,7 @@
 using UnityEngine;
 using System;
 using System.Collections.Generic;
+using LottoDefense.Gameplay;
 
 namespace LottoDefense.Grid
 {
@@ -23,7 +24,6 @@ namespace LottoDefense.Grid
 
         #region Singleton
         private static GridManager _instance;
-        private static bool _isCleaningUp;
 
         /// <summary>
         /// Global access point for the GridManager singleton.
@@ -33,7 +33,7 @@ namespace LottoDefense.Grid
         {
             get
             {
-                if (_isCleaningUp) return null;
+                if (GameplayManager.IsCleaningUp) return null;
 
                 if (_instance == null)
                 {

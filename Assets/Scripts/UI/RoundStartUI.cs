@@ -29,14 +29,12 @@ namespace LottoDefense.UI
         #endregion
 
         #region Unity Lifecycle
-        private void Awake()
+        /// <summary>
+        /// Use Start instead of Awake because GameSceneBootstrapper sets
+        /// serialized fields via reflection AFTER AddComponent triggers Awake.
+        /// </summary>
+        private void Start()
         {
-            // Auto-setup references if not assigned
-            if (roundText == null)
-            {
-                roundText = GetComponentInChildren<Text>();
-            }
-
             if (canvasGroup == null)
             {
                 canvasGroup = GetComponent<CanvasGroup>();

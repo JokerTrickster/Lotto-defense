@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using LottoDefense.Units;
 using LottoDefense.Monsters;
+using LottoDefense.Gameplay;
 
 namespace LottoDefense.VFX
 {
@@ -24,6 +25,8 @@ namespace LottoDefense.VFX
         {
             get
             {
+                if (GameplayManager.IsCleaningUp) return null;
+
                 if (_instance == null)
                 {
                     _instance = FindFirstObjectByType<VFXManager>();

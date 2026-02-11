@@ -97,19 +97,30 @@ namespace LottoDefense.UI
             // Setup fill image if not assigned
             if (fillImage == null)
             {
-                // Try to find in children
-                fillImage = GetComponentInChildren<Image>();
+                // Try to find Fill object specifically (not Background)
+                Transform fillTransform = transform.Find("Fill");
+                if (fillTransform != null)
+                {
+                    fillImage = fillTransform.GetComponent<Image>();
+                }
 
                 // Create if not found
                 if (fillImage == null)
                 {
                     GameObject fillObj = new GameObject("Fill");
-                    fillObj.transform.SetParent(transform);
+                    fillObj.transform.SetParent(transform, false);
                     fillImage = fillObj.AddComponent<Image>();
                     fillImage.color = manaColor;
                     fillImage.type = Image.Type.Filled;
                     fillImage.fillMethod = Image.FillMethod.Horizontal;
                     fillImage.fillOrigin = (int)Image.OriginHorizontal.Left;
+
+                    // Setup rect transform for fill
+                    RectTransform fillRect = fillObj.GetComponent<RectTransform>();
+                    fillRect.anchorMin = Vector2.zero;
+                    fillRect.anchorMax = Vector2.one;
+                    fillRect.sizeDelta = Vector2.zero;
+                    fillRect.anchoredPosition = Vector2.zero;
                 }
             }
 

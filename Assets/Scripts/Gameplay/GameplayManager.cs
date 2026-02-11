@@ -21,6 +21,12 @@ namespace LottoDefense.Gameplay
         private static bool _isCleaningUp;
 
         /// <summary>
+        /// True while CleanupAllGameplaySingletons is running.
+        /// All singletons should check this in their Instance getter to prevent auto-creation.
+        /// </summary>
+        public static bool IsCleaningUp => _isCleaningUp;
+
+        /// <summary>
         /// Global access point for the GameplayManager singleton.
         /// Returns null during cleanup to prevent auto-creation cascade from OnDisable callbacks.
         /// </summary>
@@ -367,15 +373,6 @@ namespace LottoDefense.Gameplay
             Debug.Log("[GameplayManager] Cleaning up all gameplay singletons");
             _isCleaningUp = true;
 
-            // Set GridManager cleanup flag using reflection
-            var gridMgrType = typeof(LottoDefense.Grid.GridManager);
-            var cleanupField = gridMgrType.GetField("_isCleaningUp",
-                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
-            if (cleanupField != null)
-            {
-                cleanupField.SetValue(null, true);
-            }
-
             DestroyIfExists<LottoDefense.Grid.GridManager>();
             DestroyIfExists<MonsterManager>();
             DestroyIfExists<RoundManager>();
@@ -405,12 +402,6 @@ namespace LottoDefense.Gameplay
             }
 
             _isCleaningUp = false;
-
-            // Reset GridManager cleanup flag
-            if (cleanupField != null)
-            {
-                cleanupField.SetValue(null, false);
-            }
 
             Debug.Log("[GameplayManager] Cleanup complete");
         }

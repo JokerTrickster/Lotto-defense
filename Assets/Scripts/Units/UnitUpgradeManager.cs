@@ -16,6 +16,8 @@ namespace LottoDefense.Units
         {
             get
             {
+                if (GameplayManager.IsCleaningUp) return null;
+
                 if (_instance == null)
                 {
                     _instance = FindFirstObjectByType<UnitUpgradeManager>();

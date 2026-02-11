@@ -31,6 +31,8 @@ namespace LottoDefense.Gameplay
         {
             get
             {
+                if (GameplayManager.IsCleaningUp) return null;
+
                 if (_instance == null)
                 {
                     _instance = FindFirstObjectByType<RoundManager>();
