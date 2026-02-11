@@ -82,10 +82,10 @@ namespace LottoDefense.Units
                 return false;
             }
 
-            // Check if in Preparation phase
+            // Check if GameplayManager is available
             if (!CanUpgrade())
             {
-                Debug.LogWarning("[UnitUpgradeManager] Can only upgrade during Preparation phase");
+                Debug.LogWarning("[UnitUpgradeManager] GameplayManager not available for upgrade");
                 return false;
             }
 
@@ -132,10 +132,10 @@ namespace LottoDefense.Units
                 return false;
             }
 
-            // Check if in Preparation phase
+            // Check if GameplayManager is available
             if (!CanUpgrade())
             {
-                Debug.LogWarning("[UnitUpgradeManager] Can only upgrade during Preparation phase");
+                Debug.LogWarning("[UnitUpgradeManager] GameplayManager not available for upgrade");
                 return false;
             }
 
@@ -207,12 +207,11 @@ namespace LottoDefense.Units
 
         #region Helper Methods
         /// <summary>
-        /// Check if upgrades are allowed (Preparation phase only).
+        /// Check if upgrades are allowed (any active game state).
         /// </summary>
         private bool CanUpgrade()
         {
-            return GameplayManager.Instance != null &&
-                   GameplayManager.Instance.CurrentState == GameState.Preparation;
+            return GameplayManager.Instance != null;
         }
         #endregion
     }

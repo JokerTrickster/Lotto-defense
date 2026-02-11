@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
@@ -8,9 +9,9 @@ using LottoDefense.Grid;
 namespace LottoDefense.UI
 {
     /// <summary>
-    /// Displays sell/synthesize buttons when a unit is selected.
-    /// Handles unit selling (+3 gold) and synthesis (2 same units → 1 upgraded unit).
-    /// Two-step selection: select unit 1, then unit 2, then press synthesize.
+    /// Compact floating panel above selected unit with sell + synthesis buttons.
+    /// Sell price is based on unit rarity.
+    /// Synthesis button shown when a recipe exists; floating buttons appear over compatible units.
     /// </summary>
     public class UnitSelectionUI : MonoBehaviour
     {
@@ -18,60 +19,37 @@ namespace LottoDefense.UI
         [Header("UI References")]
         [SerializeField] private GameObject selectionPanel;
         [SerializeField] private Button sellButton;
-        [SerializeField] private Button synthesizeButton;
+        [SerializeField] private Button synthesisButton;
         [SerializeField] private Text unitNameText;
         [SerializeField] private Text sellButtonText;
-        [SerializeField] private Text synthesizeButtonText;
-        [SerializeField] private Text slot1Text;
-        [SerializeField] private Text slot2Text;
-        [SerializeField] private Button slot1Button;
-        [SerializeField] private Button slot2Button;
+        [SerializeField] private Text synthesisButtonText;
         #endregion
 
         #region Private Fields
-        private Unit selectedUnit1;
-        private Unit selectedUnit2;
-        private bool isSelectingSlot2;
+        private Unit selectedUnit;
         private GameBalanceConfig balanceConfig;
+        private readonly List<SynthesisButtonController> activeSynthesisButtons = new List<SynthesisButtonController>();
+        private bool listenersInitialized;
         #endregion
 
         #region Unity Lifecycle
-        private void Start()
+        private void Awake()
         {
             balanceConfig = Resources.Load<GameBalanceConfig>("GameBalanceConfig");
             if (balanceConfig == null)
             {
                 Debug.LogError("[UnitSelectionUI] GameBalanceConfig not found in Resources!");
             }
+        }
 
-            if (sellButton != null)
-            {
-                sellButton.onClick.AddListener(OnSellButtonClicked);
-            }
-
-            if (synthesizeButton != null)
-            {
-                synthesizeButton.onClick.AddListener(OnSynthesizeButtonClicked);
-            }
-
-            if (slot1Button != null)
-            {
-                slot1Button.onClick.AddListener(OnSlot1Clicked);
-            }
-
-            if (slot2Button != null)
-            {
-                slot2Button.onClick.AddListener(OnSlot2Clicked);
-            }
-
-            if (selectionPanel != null)
-            {
-                selectionPanel.SetActive(false);
-            }
+        private void OnDestroy()
+        {
+            ClearSynthesisButtons();
         }
 
         private void Update()
         {
+            // Dismiss panel when clicking empty space
             if (Input.GetMouseButtonDown(0) && selectionPanel != null && selectionPanel.activeSelf)
             {
                 if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
@@ -93,57 +71,73 @@ namespace LottoDefense.UI
 
                 HideUI();
             }
+
+            // Track selected unit position each frame
+            if (selectedUnit != null && selectionPanel != null && selectionPanel.activeSelf)
+            {
+                PositionPanelNearUnit(selectedUnit);
+            }
+        }
+        #endregion
+
+        #region Initialization
+        private void EnsureListeners()
+        {
+            if (listenersInitialized) return;
+            listenersInitialized = true;
+
+            if (sellButton != null)
+                sellButton.onClick.AddListener(OnSellButtonClicked);
+            if (synthesisButton != null)
+                synthesisButton.onClick.AddListener(OnSynthesisDirectClicked);
         }
         #endregion
 
         #region Public Methods
         /// <summary>
-        /// Show selection UI for a unit. If in slot2 selection mode, assign to slot2.
+        /// Show compact panel above the unit with sell + synthesis buttons.
+        /// Also shows floating synthesis buttons over compatible units.
         /// </summary>
         public void ShowForUnit(Unit unit)
         {
-            if (unit == null || balanceConfig == null) return;
+            if (unit == null) return;
 
-            // If selecting second unit for synthesis
-            if (isSelectingSlot2 && selectedUnit1 != null)
+            if (balanceConfig == null)
             {
-                if (unit == selectedUnit1)
-                {
-                    Debug.LogWarning("[UnitSelectionUI] Cannot select same unit for both slots");
-                    return;
-                }
-
-                selectedUnit2 = unit;
-                isSelectingSlot2 = false;
-                UpdateUI();
-                return;
+                balanceConfig = Resources.Load<GameBalanceConfig>("GameBalanceConfig");
             }
+            if (balanceConfig == null) return;
 
-            // First selection - set as slot 1
-            selectedUnit1 = unit;
-            selectedUnit2 = null;
-            isSelectingSlot2 = false;
+            EnsureListeners();
 
-            bool canManage = CanManageUnits();
+            selectedUnit = unit;
 
+            // Update unit name with rarity color
             if (unitNameText != null)
             {
                 unitNameText.text = unit.Data.GetDisplayName();
+                unitNameText.color = UnitData.GetRarityColor(unit.Data.rarity);
             }
 
-            if (sellButton != null)
-            {
-                sellButton.interactable = canManage;
-            }
-
+            // Update sell button with rarity-based price
+            int sellPrice = balanceConfig.GetSellGold(unit.Data.rarity);
             if (sellButtonText != null)
             {
-                sellButtonText.text = canManage
-                    ? $"판매 (+{balanceConfig.unitSellGold} 골드)"
-                    : "준비 시간에만 가능";
+                sellButtonText.text = $"\uD310\uB9E4 (+{sellPrice}G)";
             }
 
-            UpdateUI();
+            // Update synthesis button - show if recipe exists
+            var recipe = balanceConfig.GetSynthesisRecipe(unit.Data.unitName);
+            bool hasRecipe = recipe != null;
+            if (synthesisButton != null)
+            {
+                synthesisButton.gameObject.SetActive(hasRecipe);
+            }
+            if (synthesisButtonText != null && hasRecipe)
+            {
+                synthesisButtonText.text = "\uC870\uD569";
+            }
+
             PositionPanelNearUnit(unit);
 
             if (selectionPanel != null)
@@ -151,6 +145,7 @@ namespace LottoDefense.UI
                 selectionPanel.SetActive(true);
             }
 
+            // Notify bottom UI
             GameBottomUI bottomUI = FindFirstObjectByType<GameBottomUI>();
             if (bottomUI != null)
             {
@@ -158,7 +153,14 @@ namespace LottoDefense.UI
                 bottomUI.Show();
             }
 
-            Debug.Log($"[UnitSelectionUI] Showing UI for {unit.Data.GetDisplayName()}");
+            // Show floating synthesis buttons over compatible units
+            ClearSynthesisButtons();
+            if (hasRecipe)
+            {
+                ShowSynthesisButtons(unit);
+            }
+
+            Debug.Log($"[UnitSelectionUI] Showing UI for {unit.Data.GetDisplayName()} (sell: {sellPrice}G, recipe: {hasRecipe})");
         }
 
         /// <summary>
@@ -177,80 +179,52 @@ namespace LottoDefense.UI
                 bottomUI.SetSelectedUnit(null);
             }
 
-            selectedUnit1 = null;
-            selectedUnit2 = null;
-            isSelectingSlot2 = false;
+            selectedUnit = null;
+            ClearSynthesisButtons();
         }
         #endregion
 
-        #region Button Handlers
-        private void OnSlot1Clicked()
+        #region Synthesis Buttons
+        private void ShowSynthesisButtons(Unit source)
         {
-            // Slot 1 is already selected when ShowForUnit is called
-            // Clicking slot 1 clears it
-            if (selectedUnit1 != null)
+            if (GridManager.Instance == null || balanceConfig == null) return;
+
+            var recipe = balanceConfig.GetSynthesisRecipe(source.Data.unitName);
+            if (recipe == null) return;
+
+            Canvas canvas = FindGameCanvas();
+            if (canvas == null) return;
+
+            for (int x = 0; x < GridManager.GRID_WIDTH; x++)
             {
-                selectedUnit1 = null;
-                selectedUnit2 = null;
-                isSelectingSlot2 = false;
-                UpdateUI();
+                for (int y = 0; y < GridManager.GRID_HEIGHT; y++)
+                {
+                    Unit candidate = GridManager.Instance.GetUnitAt(x, y);
+                    if (candidate == null) continue;
+                    if (candidate == source) continue;
+                    if (candidate.Data.unitName != source.Data.unitName) continue;
+
+                    GameObject btnObj = new GameObject($"SynthesisBtn_{x}_{y}");
+                    btnObj.transform.SetParent(canvas.transform, false);
+
+                    SynthesisButtonController controller = btnObj.AddComponent<SynthesisButtonController>();
+                    controller.Initialize(source, candidate, OnSynthesisFloatingClicked);
+                    activeSynthesisButtons.Add(controller);
+                }
+            }
+
+            if (activeSynthesisButtons.Count > 0)
+            {
+                Debug.Log($"[UnitSelectionUI] Showing {activeSynthesisButtons.Count} synthesis button(s) for {source.Data.unitName}");
             }
         }
 
-        private void OnSlot2Clicked()
+        /// <summary>
+        /// Handle floating synthesis button click (over a compatible unit).
+        /// </summary>
+        private void OnSynthesisFloatingClicked(Unit source, Unit target)
         {
-            if (selectedUnit1 == null) return;
-
-            if (selectedUnit2 != null)
-            {
-                // Clear slot 2
-                selectedUnit2 = null;
-                isSelectingSlot2 = false;
-                UpdateUI();
-            }
-            else
-            {
-                // Enter slot 2 selection mode
-                isSelectingSlot2 = true;
-                UpdateUI();
-            }
-        }
-
-        private void OnSellButtonClicked()
-        {
-            if (selectedUnit1 == null || balanceConfig == null) return;
-
-            if (!CanManageUnits())
-            {
-                Debug.LogWarning("[UnitSelectionUI] Cannot sell units outside Preparation phase!");
-                return;
-            }
-
-            Debug.Log($"[UnitSelectionUI] Selling {selectedUnit1.Data.GetDisplayName()} for {balanceConfig.unitSellGold} gold");
-
-            if (GameplayManager.Instance != null)
-            {
-                GameplayManager.Instance.ModifyGold(balanceConfig.unitSellGold);
-            }
-
-            if (GridManager.Instance != null)
-            {
-                GridManager.Instance.RemoveUnit(selectedUnit1.GridPosition);
-            }
-
-            Destroy(selectedUnit1.gameObject);
-            HideUI();
-        }
-
-        private void OnSynthesizeButtonClicked()
-        {
-            if (selectedUnit1 == null || selectedUnit2 == null || balanceConfig == null) return;
-
-            if (!CanManageUnits())
-            {
-                Debug.LogWarning("[UnitSelectionUI] Cannot synthesize units outside Preparation phase!");
-                return;
-            }
+            if (source == null || target == null) return;
 
             if (SynthesisManager.Instance == null)
             {
@@ -258,113 +232,130 @@ namespace LottoDefense.UI
                 return;
             }
 
-            bool success = SynthesisManager.Instance.TrySynthesize(selectedUnit1, selectedUnit2);
-
+            bool success = SynthesisManager.Instance.TrySynthesize(source, target);
             if (success)
             {
-                Debug.Log($"[UnitSelectionUI] Synthesis successful!");
+                Debug.Log("[UnitSelectionUI] 1-click synthesis successful!");
             }
             else
             {
-                Debug.LogWarning($"[UnitSelectionUI] Synthesis failed");
+                Debug.LogWarning("[UnitSelectionUI] 1-click synthesis failed");
             }
 
+            HideUI();
+        }
+
+        private void ClearSynthesisButtons()
+        {
+            for (int i = activeSynthesisButtons.Count - 1; i >= 0; i--)
+            {
+                if (activeSynthesisButtons[i] != null)
+                {
+                    Destroy(activeSynthesisButtons[i].gameObject);
+                }
+            }
+            activeSynthesisButtons.Clear();
+        }
+
+        private Canvas FindGameCanvas()
+        {
+            Canvas[] canvases = FindObjectsByType<Canvas>(FindObjectsSortMode.None);
+            foreach (Canvas canvas in canvases)
+            {
+                if (canvas.gameObject.name == "GameCanvas")
+                {
+                    return canvas;
+                }
+            }
+            Debug.LogWarning("[UnitSelectionUI] GameCanvas not found for synthesis buttons");
+            return null;
+        }
+        #endregion
+
+        #region Button Handlers
+        /// <summary>
+        /// Synthesis button in the panel clicked - find first compatible unit and synthesize.
+        /// </summary>
+        private void OnSynthesisDirectClicked()
+        {
+            if (selectedUnit == null || balanceConfig == null) return;
+
+            if (SynthesisManager.Instance == null)
+            {
+                Debug.LogError("[UnitSelectionUI] SynthesisManager not found!");
+                return;
+            }
+
+            // Find a compatible unit on the grid
+            Unit target = FindCompatibleUnit(selectedUnit);
+            if (target == null)
+            {
+                Debug.LogWarning("[UnitSelectionUI] No compatible unit found for synthesis");
+                return;
+            }
+
+            bool success = SynthesisManager.Instance.TrySynthesize(selectedUnit, target);
+            if (success)
+            {
+                Debug.Log("[UnitSelectionUI] Panel synthesis successful!");
+            }
+            else
+            {
+                Debug.LogWarning("[UnitSelectionUI] Panel synthesis failed");
+            }
+
+            HideUI();
+        }
+
+        private void OnSellButtonClicked()
+        {
+            if (selectedUnit == null || balanceConfig == null) return;
+
+            int sellPrice = balanceConfig.GetSellGold(selectedUnit.Data.rarity);
+            Debug.Log($"[UnitSelectionUI] Selling {selectedUnit.Data.GetDisplayName()} ({selectedUnit.Data.rarity}) for {sellPrice} gold");
+
+            if (GameplayManager.Instance != null)
+            {
+                GameplayManager.Instance.ModifyGold(sellPrice);
+            }
+
+            if (GridManager.Instance != null)
+            {
+                GridManager.Instance.RemoveUnit(selectedUnit.GridPosition);
+            }
+
+            Destroy(selectedUnit.gameObject);
             HideUI();
         }
         #endregion
 
         #region Helper Methods
-        private bool CanManageUnits()
-        {
-            return GameplayManager.Instance != null &&
-                   GameplayManager.Instance.CurrentState == GameState.Preparation;
-        }
-
         /// <summary>
-        /// Update slot texts and synthesize button state.
+        /// Find a compatible unit on the grid for synthesis (same name, different instance).
         /// </summary>
-        private void UpdateUI()
+        private Unit FindCompatibleUnit(Unit source)
         {
-            bool canManage = CanManageUnits();
+            if (GridManager.Instance == null) return null;
 
-            // Slot 1 text
-            if (slot1Text != null)
+            for (int x = 0; x < GridManager.GRID_WIDTH; x++)
             {
-                slot1Text.text = selectedUnit1 != null
-                    ? $"유닛 1: {selectedUnit1.Data.unitName}"
-                    : "유닛 선택 1: 비어있음";
-            }
-
-            // Slot 2 text
-            if (slot2Text != null)
-            {
-                if (isSelectingSlot2)
+                for (int y = 0; y < GridManager.GRID_HEIGHT; y++)
                 {
-                    slot2Text.text = "유닛 선택 2: 유닛을 터치하세요";
-                }
-                else if (selectedUnit2 != null)
-                {
-                    slot2Text.text = $"유닛 2: {selectedUnit2.Data.unitName}";
-                }
-                else
-                {
-                    slot2Text.text = "유닛 선택 2: 비어있음";
+                    Unit candidate = GridManager.Instance.GetUnitAt(x, y);
+                    if (candidate == null) continue;
+                    if (candidate == source) continue;
+                    if (candidate.Data.unitName == source.Data.unitName)
+                        return candidate;
                 }
             }
-
-            // Synthesize button
-            bool canSynthesize = CanSynthesizeCurrentSelection();
-            if (synthesizeButton != null)
-            {
-                synthesizeButton.interactable = canSynthesize;
-            }
-
-            if (synthesizeButtonText != null)
-            {
-                if (!canManage)
-                {
-                    synthesizeButtonText.text = "준비 시간에만 가능";
-                }
-                else if (selectedUnit1 != null && selectedUnit2 != null)
-                {
-                    if (selectedUnit1.Data.unitName != selectedUnit2.Data.unitName)
-                    {
-                        synthesizeButtonText.text = "같은 유닛만 조합 가능";
-                    }
-                    else if (canSynthesize)
-                    {
-                        var recipe = balanceConfig.GetSynthesisRecipe(selectedUnit1.Data.unitName);
-                        UnitData resultData = Resources.Load<UnitData>($"Units/{recipe.resultUnitName}");
-                        string displayName = resultData != null ? resultData.unitName : recipe.resultUnitName;
-                        synthesizeButtonText.text = $"조합 → {displayName}";
-                    }
-                    else
-                    {
-                        synthesizeButtonText.text = "조합 불가";
-                    }
-                }
-                else
-                {
-                    synthesizeButtonText.text = "유닛 2개를 선택하세요";
-                }
-            }
-        }
-
-        private bool CanSynthesizeCurrentSelection()
-        {
-            if (selectedUnit1 == null || selectedUnit2 == null || balanceConfig == null) return false;
-            if (!CanManageUnits()) return false;
-            if (selectedUnit1.Data.unitName != selectedUnit2.Data.unitName) return false;
-
-            var recipe = balanceConfig.GetSynthesisRecipe(selectedUnit1.Data.unitName);
-            return recipe != null;
+            return null;
         }
 
         private void PositionPanelNearUnit(Unit unit)
         {
             if (selectionPanel == null || unit == null) return;
 
-            Vector3 worldPos = unit.transform.position + Vector3.up * 0.5f;
+            Vector3 worldPos = unit.transform.position + Vector3.up * 0.7f;
             Vector3 screenPos = Camera.main.WorldToScreenPoint(worldPos);
 
             RectTransform panelRect = selectionPanel.GetComponent<RectTransform>();

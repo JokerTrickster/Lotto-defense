@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using LottoDefense.Gameplay;
 using LottoDefense.Units;
+using LottoDefense.Utils;
 using System.Collections.Generic;
 
 namespace LottoDefense.UI
@@ -193,8 +194,10 @@ namespace LottoDefense.UI
             {
                 if (sourceUnitIcon != null)
                 {
-                    sourceUnitIcon.sprite = sourceUnit.icon != null ? sourceUnit.icon : CreatePlaceholderSprite(sourceUnit.rarity);
-                    sourceUnitIcon.color = sourceUnit.icon != null ? Color.white : UnitData.GetRarityColor(sourceUnit.rarity);
+                    sourceUnitIcon.sprite = sourceUnit.icon != null
+                        ? sourceUnit.icon
+                        : GameSpriteLoader.LoadUnitSprite(sourceUnit.unitName) ?? CreatePlaceholderSprite(sourceUnit.rarity);
+                    sourceUnitIcon.color = UnitData.GetRarityColor(sourceUnit.rarity);
                 }
 
                 if (sourceUnitNameText != null)
@@ -214,8 +217,10 @@ namespace LottoDefense.UI
             {
                 if (resultUnitIcon != null)
                 {
-                    resultUnitIcon.sprite = resultUnit.icon != null ? resultUnit.icon : CreatePlaceholderSprite(resultUnit.rarity);
-                    resultUnitIcon.color = resultUnit.icon != null ? Color.white : UnitData.GetRarityColor(resultUnit.rarity);
+                    resultUnitIcon.sprite = resultUnit.icon != null
+                        ? resultUnit.icon
+                        : GameSpriteLoader.LoadUnitSprite(resultUnit.unitName) ?? CreatePlaceholderSprite(resultUnit.rarity);
+                    resultUnitIcon.color = UnitData.GetRarityColor(resultUnit.rarity);
                 }
 
                 if (resultUnitNameText != null)

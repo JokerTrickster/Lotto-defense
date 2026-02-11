@@ -72,6 +72,54 @@ namespace LottoDefense.UI
 
         /// <summary>Gold cost text on summon button (gold accent).</summary>
         public static readonly Color ButtonCostText = new Color(1f, 0.88f, 0.3f, 1f);
+
+        /// <summary>Summon button border glow (bright green outline).</summary>
+        public static readonly Color SummonButtonBorder = new Color(0.3f, 1f, 0.55f, 0.8f);
+
+        /// <summary>Summon button inner highlight (lighter green for depth).</summary>
+        public static readonly Color SummonButtonInner = new Color(0.2f, 0.9f, 0.45f, 1f);
+        #endregion
+
+        #region Action Button Colors (Bottom Panel)
+        /// <summary>Auto synthesis button (cyan-blue).</summary>
+        public static readonly Color AutoSynthBtnBg = new Color(0.15f, 0.5f, 0.9f, 1f);
+        public static readonly Color AutoSynthBtnBorder = new Color(0.3f, 0.65f, 1f, 0.8f);
+
+        /// <summary>Attack upgrade button (fiery red-orange).</summary>
+        public static readonly Color AttackUpBtnBg = new Color(0.85f, 0.25f, 0.15f, 1f);
+        public static readonly Color AttackUpBtnBorder = new Color(1f, 0.45f, 0.3f, 0.8f);
+
+        /// <summary>Attack speed upgrade button (emerald green).</summary>
+        public static readonly Color SpeedUpBtnBg = new Color(0.1f, 0.7f, 0.35f, 1f);
+        public static readonly Color SpeedUpBtnBorder = new Color(0.25f, 0.9f, 0.5f, 0.8f);
+
+        /// <summary>Disabled action button.</summary>
+        public static readonly Color ActionBtnDisabled = new Color(0.25f, 0.25f, 0.3f, 0.85f);
+        public static readonly Color ActionBtnDisabledBorder = new Color(0.35f, 0.35f, 0.4f, 0.5f);
+        #endregion
+
+        #region Selection Panel Colors
+        /// <summary>Panel background (dark navy, high opacity).</summary>
+        public static readonly Color SelectionPanelBg = new Color(0.08f, 0.1f, 0.18f, 0.96f);
+
+        /// <summary>Panel border (gold accent).</summary>
+        public static readonly Color SelectionPanelBorder = new Color(1f, 0.78f, 0.2f, 0.9f);
+
+        /// <summary>Sell button (red).</summary>
+        public static readonly Color SellBtnBg = new Color(0.8f, 0.2f, 0.15f, 1f);
+        public static readonly Color SellBtnBorder = new Color(1f, 0.4f, 0.35f, 0.7f);
+
+        #endregion
+
+        #region Synthesis Floating Button Colors
+        /// <summary>Floating synthesis button background (bright amber-gold).</summary>
+        public static readonly Color SynthFloatBtnBg = new Color(1f, 0.78f, 0.1f, 1f);
+
+        /// <summary>Floating synthesis button border.</summary>
+        public static readonly Color SynthFloatBtnBorder = new Color(1f, 0.92f, 0.5f, 0.9f);
+
+        /// <summary>Floating synthesis button text (dark brown).</summary>
+        public static readonly Color SynthFloatBtnText = new Color(0.2f, 0.12f, 0f, 1f);
         #endregion
 
         #region Countdown Colors
@@ -147,6 +195,13 @@ namespace LottoDefense.UI
 
         /// <summary>Button horizontal margin from screen edge.</summary>
         public const float ButtonMarginH = 0.03f; // 0.04 → 0.03 (less margin for more button space)
+
+        /// <summary>Bottom action panel height.</summary>
+        public const float BottomPanelHeight = 130f;
+
+        /// <summary>Floating synthesis button size.</summary>
+        public const float SynthFloatBtnWidth = 100f;
+        public const float SynthFloatBtnHeight = 44f;
         #endregion
     }
 }

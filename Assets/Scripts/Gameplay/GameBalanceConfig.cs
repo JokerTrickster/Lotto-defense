@@ -529,11 +529,35 @@ namespace LottoDefense.Gameplay
         };
 
         [Header("=== 판매 시스템 ===")]
-        [Tooltip("유닛 판매 시 획득 골드")]
+        [Tooltip("유닛 판매 시 획득 골드 (기본값, 등급별 미지정 시 사용)")]
         public int unitSellGold = 3;
+
+        [Tooltip("Normal 등급 판매 골드")]
+        public int sellGoldNormal = 3;
+        [Tooltip("Rare 등급 판매 골드")]
+        public int sellGoldRare = 8;
+        [Tooltip("Epic 등급 판매 골드")]
+        public int sellGoldEpic = 20;
+        [Tooltip("Legendary 등급 판매 골드")]
+        public int sellGoldLegendary = 50;
         #endregion
 
         #region Helper Methods
+        /// <summary>
+        /// 등급별 판매 골드 반환.
+        /// </summary>
+        public int GetSellGold(Rarity rarity)
+        {
+            return rarity switch
+            {
+                Rarity.Normal => sellGoldNormal,
+                Rarity.Rare => sellGoldRare,
+                Rarity.Epic => sellGoldEpic,
+                Rarity.Legendary => sellGoldLegendary,
+                _ => unitSellGold
+            };
+        }
+
         /// <summary>
         /// 특정 등급의 유닛 리스트 가져오기
         /// </summary>

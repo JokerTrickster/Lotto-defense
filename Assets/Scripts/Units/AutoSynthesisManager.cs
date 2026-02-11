@@ -90,10 +90,9 @@ namespace LottoDefense.Units
                 return 0;
             }
 
-            // Check if we're in Preparation phase
-            if (GameplayManager.Instance == null || GameplayManager.Instance.CurrentState != GameState.Preparation)
+            if (GameplayManager.Instance == null)
             {
-                Debug.LogWarning("[AutoSynthesisManager] Auto-synthesis only allowed during Preparation phase!");
+                Debug.LogWarning("[AutoSynthesisManager] GameplayManager not found!");
                 return 0;
             }
 

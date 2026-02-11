@@ -7,7 +7,7 @@ namespace LottoDefense.UI
 {
     /// <summary>
     /// Bottom UI panel with game action buttons: Auto Synthesis, Attack Upgrade, Attack Speed Upgrade.
-    /// Only active during Preparation phase.
+    /// Active in all game states for unit management.
     /// </summary>
     public class GameBottomUI : MonoBehaviour
     {
@@ -23,47 +23,38 @@ namespace LottoDefense.UI
         [SerializeField] private Text attackUpgradeButtonText;
         [SerializeField] private Text attackSpeedUpgradeButtonText;
 
-        [Header("Colors")]
-        [SerializeField] private Color buttonNormalColor = new Color(0.2f, 0.6f, 1f, 1f); // Blue
-        [SerializeField] private Color buttonDisabledColor = new Color(0.5f, 0.5f, 0.5f, 1f); // Gray
-        [SerializeField] private Color buttonHighlightColor = new Color(0.3f, 0.8f, 1f, 1f); // Bright blue
         #endregion
 
         #region Private Fields
         private Unit selectedUnit;
+        private bool listenersInitialized;
         #endregion
 
         #region Unity Lifecycle
         private void Awake()
         {
-            // Setup button listeners
-            if (autoSynthesisButton != null)
-            {
-                autoSynthesisButton.onClick.AddListener(OnAutoSynthesisClicked);
-            }
-
-            if (attackUpgradeButton != null)
-            {
-                attackUpgradeButton.onClick.AddListener(OnAttackUpgradeClicked);
-            }
-
-            if (attackSpeedUpgradeButton != null)
-            {
-                attackSpeedUpgradeButton.onClick.AddListener(OnAttackSpeedUpgradeClicked);
-            }
-
-            // Hide by default
-            if (panel != null)
-            {
-                panel.SetActive(false);
-            }
-
             // Subscribe in Awake since this GameObject may be disabled before OnEnable fires.
-            // The panel field points to the same GameObject, so SetActive(false) prevents OnEnable.
             if (GameplayManager.Instance != null)
             {
                 GameplayManager.Instance.OnStateChanged += HandleStateChanged;
             }
+        }
+
+        /// <summary>
+        /// Lazy-init button listeners. Serialized fields are set via reflection by
+        /// GameSceneBootstrapper AFTER Awake, so we init on first Show/Update.
+        /// </summary>
+        private void EnsureListeners()
+        {
+            if (listenersInitialized) return;
+            listenersInitialized = true;
+
+            if (autoSynthesisButton != null)
+                autoSynthesisButton.onClick.AddListener(OnAutoSynthesisClicked);
+            if (attackUpgradeButton != null)
+                attackUpgradeButton.onClick.AddListener(OnAttackUpgradeClicked);
+            if (attackSpeedUpgradeButton != null)
+                attackSpeedUpgradeButton.onClick.AddListener(OnAttackSpeedUpgradeClicked);
         }
 
         private void OnDestroy()
@@ -76,8 +67,8 @@ namespace LottoDefense.UI
 
         private void Update()
         {
-            // Update button states every frame during Preparation phase
-            if (GameplayManager.Instance != null && GameplayManager.Instance.CurrentState == GameState.Preparation)
+            // Update button states every frame
+            if (GameplayManager.Instance != null)
             {
                 UpdateButtonStates();
             }
@@ -90,6 +81,7 @@ namespace LottoDefense.UI
         /// </summary>
         public void Show()
         {
+            EnsureListeners();
             if (panel != null)
             {
                 panel.SetActive(true);
@@ -121,19 +113,11 @@ namespace LottoDefense.UI
 
         #region State Handlers
         /// <summary>
-        /// Auto show/hide based on game state changes.
-        /// Shows during Preparation, hides otherwise.
+        /// Handle game state changes. Bottom UI stays visible in all states.
         /// </summary>
         private void HandleStateChanged(GameState oldState, GameState newState)
         {
-            if (newState == GameState.Preparation)
-            {
-                Show();
-            }
-            else
-            {
-                Hide();
-            }
+            UpdateButtonStates();
         }
         #endregion
 
@@ -220,18 +204,9 @@ namespace LottoDefense.UI
 
                 if (autoSynthesisButtonText != null)
                 {
-                    if (!canManage)
-                    {
-                        autoSynthesisButtonText.text = "준비 시간에만 가능";
-                    }
-                    else if (possibleSynthesis > 0)
-                    {
-                        autoSynthesisButtonText.text = $"자동 조합 ({possibleSynthesis})";
-                    }
-                    else
-                    {
-                        autoSynthesisButtonText.text = "자동 조합 (0)";
-                    }
+                    autoSynthesisButtonText.text = possibleSynthesis > 0
+                        ? $"자동 조합 ({possibleSynthesis})"
+                        : "자동 조합 (0)";
                 }
 
                 UpdateButtonColor(autoSynthesisButton, autoSynthesisButton.interactable);
@@ -257,10 +232,6 @@ namespace LottoDefense.UI
                     if (selectedUnit == null)
                     {
                         attackUpgradeButtonText.text = "유닛을 선택하세요";
-                    }
-                    else if (!canManage)
-                    {
-                        attackUpgradeButtonText.text = "준비 시간에만 가능";
                     }
                     else if (selectedUnit.AttackUpgradeLevel >= 10)
                     {
@@ -296,10 +267,6 @@ namespace LottoDefense.UI
                     {
                         attackSpeedUpgradeButtonText.text = "유닛을 선택하세요";
                     }
-                    else if (!canManage)
-                    {
-                        attackSpeedUpgradeButtonText.text = "준비 시간에만 가능";
-                    }
                     else if (selectedUnit.AttackSpeedUpgradeLevel >= 10)
                     {
                         attackSpeedUpgradeButtonText.text = "최대 레벨";
@@ -321,21 +288,31 @@ namespace LottoDefense.UI
         {
             if (button == null) return;
 
+            // Button colors use white-based tinting: Image.color holds the identity color,
+            // ColorBlock tints it (white = full color, gray = dimmed).
             ColorBlock colors = button.colors;
-            colors.normalColor = isInteractable ? buttonNormalColor : buttonDisabledColor;
-            colors.highlightedColor = isInteractable ? buttonHighlightColor : buttonDisabledColor;
-            colors.pressedColor = isInteractable ? buttonHighlightColor * 0.8f : buttonDisabledColor;
-            colors.disabledColor = buttonDisabledColor;
+            if (isInteractable)
+            {
+                colors.normalColor = Color.white;
+                colors.highlightedColor = new Color(1.2f, 1.2f, 1.2f, 1f);
+                colors.pressedColor = new Color(0.7f, 0.7f, 0.7f, 1f);
+            }
+            else
+            {
+                colors.normalColor = new Color(0.4f, 0.4f, 0.4f, 0.7f);
+                colors.highlightedColor = new Color(0.4f, 0.4f, 0.4f, 0.7f);
+                colors.pressedColor = new Color(0.4f, 0.4f, 0.4f, 0.7f);
+            }
+            colors.disabledColor = new Color(0.35f, 0.35f, 0.35f, 0.7f);
             button.colors = colors;
         }
 
         /// <summary>
-        /// Check if units can be managed (Preparation phase only).
+        /// Check if units can be managed (any active game state).
         /// </summary>
         private bool CanManageUnits()
         {
-            return GameplayManager.Instance != null &&
-                   GameplayManager.Instance.CurrentState == GameState.Preparation;
+            return GameplayManager.Instance != null;
         }
         #endregion
     }

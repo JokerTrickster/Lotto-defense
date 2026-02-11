@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using LottoDefense.Gameplay;
 using LottoDefense.Grid;
+using LottoDefense.Utils;
 
 namespace LottoDefense.Units
 {
@@ -501,9 +502,18 @@ namespace LottoDefense.Units
                 }
                 else if (renderer.sprite == null)
                 {
-                    // Generate circle placeholder when no icon and no sprite set
-                    renderer.sprite = UnitData.CreateCircleSprite(32);
-                    renderer.color = UnitData.GetRarityColor(unitData.rarity);
+                    // Try loading sprite from Resources/Sprites/Units/
+                    Sprite loaded = GameSpriteLoader.LoadUnitSprite(unitData.unitName);
+                    if (loaded != null)
+                    {
+                        renderer.sprite = loaded;
+                        renderer.color = UnitData.GetRarityColor(unitData.rarity);
+                    }
+                    else
+                    {
+                        renderer.sprite = UnitData.CreateCircleSprite(32);
+                        renderer.color = UnitData.GetRarityColor(unitData.rarity);
+                    }
                 }
                 renderer.sortingOrder = 10;
             }

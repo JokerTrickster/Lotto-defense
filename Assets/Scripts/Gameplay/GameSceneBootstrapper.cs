@@ -366,23 +366,36 @@ namespace LottoDefense.Gameplay
             UnitSelectionUI selectionUI = FindFirstObjectByType<UnitSelectionUI>();
             if (selectionUI != null) return;
 
-            // Selection panel (shown when unit is clicked)
+            // Always-active container for UnitSelectionUI component
+            // (panel child toggles visibility; container stays active so FindFirstObjectByType works)
+            GameObject containerObj = new GameObject("UnitSelectionUIContainer");
+            containerObj.transform.SetParent(mainCanvas.transform, false);
+
+            // Compact floating panel: unit name + 2 buttons (synthesis + sell)
             GameObject selectionPanelObj = new GameObject("UnitSelectionPanel");
             selectionPanelObj.transform.SetParent(mainCanvas.transform, false);
 
             RectTransform panelRect = selectionPanelObj.AddComponent<RectTransform>();
-            panelRect.sizeDelta = new Vector2(260, 240);
+            panelRect.anchorMin = Vector2.zero;
+            panelRect.anchorMax = Vector2.zero;
+            panelRect.pivot = new Vector2(0.5f, 0f);
+            panelRect.sizeDelta = new Vector2(180f, 120f);
 
+            // Dark background with gold border
             Image panelBg = selectionPanelObj.AddComponent<Image>();
-            panelBg.color = new Color(0.1f, 0.1f, 0.1f, 0.95f);
+            panelBg.color = GameSceneDesignTokens.SelectionPanelBg;
 
             Outline panelOutline = selectionPanelObj.AddComponent<Outline>();
-            panelOutline.effectColor = new Color(1f, 0.8f, 0.2f);
+            panelOutline.effectColor = GameSceneDesignTokens.SelectionPanelBorder;
             panelOutline.effectDistance = new Vector2(2, -2);
 
+            Shadow panelShadow = selectionPanelObj.AddComponent<Shadow>();
+            panelShadow.effectColor = new Color(0f, 0f, 0f, 0.6f);
+            panelShadow.effectDistance = new Vector2(3, -3);
+
             VerticalLayoutGroup vlayout = selectionPanelObj.AddComponent<VerticalLayoutGroup>();
-            vlayout.padding = new RectOffset(10, 10, 8, 8);
-            vlayout.spacing = 6;
+            vlayout.padding = new RectOffset(8, 8, 6, 6);
+            vlayout.spacing = 4;
             vlayout.childControlWidth = true;
             vlayout.childControlHeight = true;
             vlayout.childForceExpandWidth = true;
@@ -391,125 +404,107 @@ namespace LottoDefense.Gameplay
             // Unit name text
             GameObject unitNameObj = new GameObject("UnitNameText");
             unitNameObj.transform.SetParent(selectionPanelObj.transform, false);
-            Text unitNameText = CreateText(unitNameObj, "유닛 선택", 18, Color.white);
+            Text unitNameText = CreateText(unitNameObj, "\uC720\uB2DB", 20, GameSceneDesignTokens.GoldColor);
             unitNameText.alignment = TextAnchor.MiddleCenter;
             unitNameText.fontStyle = FontStyle.Bold;
+            Outline nameOutline = unitNameObj.AddComponent<Outline>();
+            nameOutline.effectColor = new Color(0f, 0f, 0f, 0.5f);
+            nameOutline.effectDistance = new Vector2(1, -1);
             LayoutElement nameLayout = unitNameObj.AddComponent<LayoutElement>();
-            nameLayout.preferredHeight = 25;
+            nameLayout.preferredHeight = 28;
 
-            // Slot 1 button (select unit 1)
-            GameObject slot1Obj = new GameObject("Slot1Button");
-            slot1Obj.transform.SetParent(selectionPanelObj.transform, false);
-            Image slot1Bg = slot1Obj.AddComponent<Image>();
-            slot1Bg.color = new Color(0.2f, 0.3f, 0.5f);
-            Button slot1Button = slot1Obj.AddComponent<Button>();
-            ColorBlock slot1Colors = slot1Button.colors;
-            slot1Colors.normalColor = new Color(0.2f, 0.3f, 0.5f);
-            slot1Colors.highlightedColor = new Color(0.3f, 0.4f, 0.6f);
-            slot1Colors.pressedColor = new Color(0.15f, 0.2f, 0.4f);
-            slot1Button.colors = slot1Colors;
+            // Synthesis button (purple)
+            GameObject synthesisButtonObj = CreateStyledPanelButton(selectionPanelObj.transform, "SynthesisButton",
+                "\uC870\uD569",
+                GameSceneDesignTokens.SynthFloatBtnBg, GameSceneDesignTokens.SynthFloatBtnBorder, 34);
+            Button synthesisButton = synthesisButtonObj.GetComponent<Button>();
+            Text synthesisButtonText = synthesisButtonObj.GetComponentInChildren<Text>();
+            synthesisButtonText.color = GameSceneDesignTokens.SynthFloatBtnText;
 
-            GameObject slot1TextObj = new GameObject("Text");
-            slot1TextObj.transform.SetParent(slot1Obj.transform, false);
-            Text slot1Text = CreateText(slot1TextObj, "유닛 선택 1: 비어있음", 14, Color.white);
-            slot1Text.alignment = TextAnchor.MiddleCenter;
-            RectTransform slot1TextRect = slot1TextObj.GetComponent<RectTransform>();
-            slot1TextRect.anchorMin = Vector2.zero;
-            slot1TextRect.anchorMax = Vector2.one;
-            slot1TextRect.offsetMin = Vector2.zero;
-            slot1TextRect.offsetMax = Vector2.zero;
-            LayoutElement slot1Layout = slot1Obj.AddComponent<LayoutElement>();
-            slot1Layout.preferredHeight = 32;
+            // Sell button (red)
+            GameObject sellButtonObj = CreateStyledPanelButton(selectionPanelObj.transform, "SellButton",
+                "\uD310\uB9E4 (+3G)",
+                GameSceneDesignTokens.SellBtnBg, GameSceneDesignTokens.SellBtnBorder, 34);
+            Button sellButton = sellButtonObj.GetComponent<Button>();
+            Text sellButtonText = sellButtonObj.GetComponentInChildren<Text>();
 
-            // Slot 2 button (select unit 2)
-            GameObject slot2Obj = new GameObject("Slot2Button");
-            slot2Obj.transform.SetParent(selectionPanelObj.transform, false);
-            Image slot2Bg = slot2Obj.AddComponent<Image>();
-            slot2Bg.color = new Color(0.2f, 0.3f, 0.5f);
-            Button slot2Button = slot2Obj.AddComponent<Button>();
-            ColorBlock slot2Colors = slot2Button.colors;
-            slot2Colors.normalColor = new Color(0.2f, 0.3f, 0.5f);
-            slot2Colors.highlightedColor = new Color(0.3f, 0.4f, 0.6f);
-            slot2Colors.pressedColor = new Color(0.15f, 0.2f, 0.4f);
-            slot2Button.colors = slot2Colors;
-
-            GameObject slot2TextObj = new GameObject("Text");
-            slot2TextObj.transform.SetParent(slot2Obj.transform, false);
-            Text slot2Text = CreateText(slot2TextObj, "유닛 선택 2: 비어있음", 14, Color.white);
-            slot2Text.alignment = TextAnchor.MiddleCenter;
-            RectTransform slot2TextRect = slot2TextObj.GetComponent<RectTransform>();
-            slot2TextRect.anchorMin = Vector2.zero;
-            slot2TextRect.anchorMax = Vector2.one;
-            slot2TextRect.offsetMin = Vector2.zero;
-            slot2TextRect.offsetMax = Vector2.zero;
-            LayoutElement slot2Layout = slot2Obj.AddComponent<LayoutElement>();
-            slot2Layout.preferredHeight = 32;
-
-            // Synthesize button
-            GameObject synthesizeButtonObj = new GameObject("SynthesizeButton");
-            synthesizeButtonObj.transform.SetParent(selectionPanelObj.transform, false);
-            Image synthesizeBg = synthesizeButtonObj.AddComponent<Image>();
-            synthesizeBg.color = new Color(0.6f, 0.3f, 0.6f);
-            Button synthesizeButton = synthesizeButtonObj.AddComponent<Button>();
-            ColorBlock synthesizeColors = synthesizeButton.colors;
-            synthesizeColors.normalColor = new Color(0.6f, 0.3f, 0.6f);
-            synthesizeColors.highlightedColor = new Color(0.7f, 0.4f, 0.7f);
-            synthesizeColors.pressedColor = new Color(0.5f, 0.2f, 0.5f);
-            synthesizeButton.colors = synthesizeColors;
-
-            GameObject synthesizeTextObj = new GameObject("Text");
-            synthesizeTextObj.transform.SetParent(synthesizeButtonObj.transform, false);
-            Text synthesizeButtonText = CreateText(synthesizeTextObj, "유닛 2개를 선택하세요", 16, Color.white);
-            synthesizeButtonText.alignment = TextAnchor.MiddleCenter;
-            RectTransform synthesizeTextRect = synthesizeTextObj.GetComponent<RectTransform>();
-            synthesizeTextRect.anchorMin = Vector2.zero;
-            synthesizeTextRect.anchorMax = Vector2.one;
-            synthesizeTextRect.offsetMin = Vector2.zero;
-            synthesizeTextRect.offsetMax = Vector2.zero;
-            LayoutElement synthesizeLayout = synthesizeButtonObj.AddComponent<LayoutElement>();
-            synthesizeLayout.preferredHeight = 35;
-
-            // Sell button
-            GameObject sellButtonObj = new GameObject("SellButton");
-            sellButtonObj.transform.SetParent(selectionPanelObj.transform, false);
-            Image sellBg = sellButtonObj.AddComponent<Image>();
-            sellBg.color = new Color(0.3f, 0.6f, 0.3f);
-            Button sellButton = sellButtonObj.AddComponent<Button>();
-            ColorBlock sellColors = sellButton.colors;
-            sellColors.normalColor = new Color(0.3f, 0.6f, 0.3f);
-            sellColors.highlightedColor = new Color(0.4f, 0.7f, 0.4f);
-            sellColors.pressedColor = new Color(0.2f, 0.5f, 0.2f);
-            sellButton.colors = sellColors;
-
-            GameObject sellTextObj = new GameObject("Text");
-            sellTextObj.transform.SetParent(sellButtonObj.transform, false);
-            Text sellButtonText = CreateText(sellTextObj, "판매 (+3 골드)", 16, Color.white);
-            sellButtonText.alignment = TextAnchor.MiddleCenter;
-            RectTransform sellTextRect = sellTextObj.GetComponent<RectTransform>();
-            sellTextRect.anchorMin = Vector2.zero;
-            sellTextRect.anchorMax = Vector2.one;
-            sellTextRect.offsetMin = Vector2.zero;
-            sellTextRect.offsetMax = Vector2.zero;
-            LayoutElement sellLayout = sellButtonObj.AddComponent<LayoutElement>();
-            sellLayout.preferredHeight = 35;
-
-            // Add UnitSelectionUI component
-            UnitSelectionUI component = selectionPanelObj.AddComponent<UnitSelectionUI>();
+            // Add UnitSelectionUI component on the always-active container
+            UnitSelectionUI component = containerObj.AddComponent<UnitSelectionUI>();
             SetField(component, "selectionPanel", selectionPanelObj);
             SetField(component, "sellButton", sellButton);
-            SetField(component, "synthesizeButton", synthesizeButton);
+            SetField(component, "synthesisButton", synthesisButton);
             SetField(component, "unitNameText", unitNameText);
             SetField(component, "sellButtonText", sellButtonText);
-            SetField(component, "synthesizeButtonText", synthesizeButtonText);
-            SetField(component, "slot1Text", slot1Text);
-            SetField(component, "slot2Text", slot2Text);
-            SetField(component, "slot1Button", slot1Button);
-            SetField(component, "slot2Button", slot2Button);
+            SetField(component, "synthesisButtonText", synthesisButtonText);
 
-            // Start hidden
+            // Start panel hidden (container stays active)
             selectionPanelObj.SetActive(false);
 
-            Debug.Log("[GameSceneBootstrapper] Created UnitSelectionUI with 2-unit synthesis slots");
+            Debug.Log("[GameSceneBootstrapper] Created compact UnitSelectionUI with sell button");
+        }
+
+        /// <summary>
+        /// Create a styled button for the selection panel with border, shadow, and highlight.
+        /// </summary>
+        private GameObject CreateStyledPanelButton(Transform parent, string name, string text,
+            Color bgColor, Color borderColor, float height)
+        {
+            GameObject btnObj = new GameObject(name);
+            btnObj.transform.SetParent(parent, false);
+
+            LayoutElement layout = btnObj.AddComponent<LayoutElement>();
+            layout.preferredHeight = height;
+
+            // Background with border effect
+            Image btnBg = btnObj.AddComponent<Image>();
+            btnBg.color = bgColor;
+
+            Outline btnOutline = btnObj.AddComponent<Outline>();
+            btnOutline.effectColor = borderColor;
+            btnOutline.effectDistance = new Vector2(2, -2);
+
+            Button button = btnObj.AddComponent<Button>();
+            ColorBlock colors = button.colors;
+            colors.normalColor = Color.white;
+            colors.highlightedColor = new Color(1.2f, 1.2f, 1.2f, 1f);
+            colors.pressedColor = new Color(0.7f, 0.7f, 0.7f, 1f);
+            colors.disabledColor = new Color(0.4f, 0.4f, 0.4f, 0.8f);
+            colors.fadeDuration = 0.08f;
+            button.colors = colors;
+
+            // Inner highlight (top half lighter)
+            GameObject highlightObj = new GameObject("Highlight");
+            highlightObj.transform.SetParent(btnObj.transform, false);
+            RectTransform hlRect = highlightObj.AddComponent<RectTransform>();
+            hlRect.anchorMin = new Vector2(0, 0.5f);
+            hlRect.anchorMax = Vector2.one;
+            hlRect.offsetMin = new Vector2(2, 0);
+            hlRect.offsetMax = new Vector2(-2, -2);
+            Image hlImg = highlightObj.AddComponent<Image>();
+            hlImg.color = new Color(1f, 1f, 1f, 0.08f);
+            hlImg.raycastTarget = false;
+
+            // Text
+            GameObject textObj = new GameObject("Text");
+            textObj.transform.SetParent(btnObj.transform, false);
+            RectTransform textRect = textObj.AddComponent<RectTransform>();
+            textRect.anchorMin = Vector2.zero;
+            textRect.anchorMax = Vector2.one;
+            textRect.offsetMin = new Vector2(6, 2);
+            textRect.offsetMax = new Vector2(-6, -2);
+
+            Text btnText = CreateText(textObj, text, 18, Color.white);
+            btnText.alignment = TextAnchor.MiddleCenter;
+            btnText.fontStyle = FontStyle.Bold;
+            btnText.resizeTextForBestFit = true;
+            btnText.resizeTextMinSize = 14;
+            btnText.resizeTextMaxSize = 18;
+
+            Outline textOutline = textObj.AddComponent<Outline>();
+            textOutline.effectColor = new Color(0f, 0f, 0f, 0.7f);
+            textOutline.effectDistance = new Vector2(1, -1);
+
+            return btnObj;
         }
         #endregion
 
@@ -519,7 +514,7 @@ namespace LottoDefense.Gameplay
             GameBottomUI bottomUI = FindFirstObjectByType<GameBottomUI>();
             if (bottomUI != null) return;
 
-            // Bottom panel for game actions (auto synthesis, upgrades) - Mobile optimized
+            // Bottom panel for game actions (auto synthesis, upgrades)
             GameObject bottomPanelObj = new GameObject("GameBottomUI");
             bottomPanelObj.transform.SetParent(mainCanvas.transform, false);
 
@@ -527,40 +522,46 @@ namespace LottoDefense.Gameplay
             panelRect.anchorMin = new Vector2(0, 0);
             panelRect.anchorMax = new Vector2(1, 0);
             panelRect.pivot = new Vector2(0.5f, 0);
-            // Position above the summon button (summonY=16 + summonHeight=140 + gap=12)
             panelRect.anchoredPosition = new Vector2(0, 16 + GameSceneDesignTokens.SummonButtonHeight + 12);
-            panelRect.sizeDelta = new Vector2(-20, 140); // Larger height for mobile (100 → 140)
+            panelRect.sizeDelta = new Vector2(-20, GameSceneDesignTokens.BottomPanelHeight);
 
-            // Panel background with rounded corners feel
+            // Dark panel background
             Image panelBg = bottomPanelObj.AddComponent<Image>();
-            panelBg.color = new Color(0.05f, 0.05f, 0.05f, 0.95f);
+            panelBg.color = new Color(0.04f, 0.05f, 0.08f, 0.94f);
 
-            // Panel outline - thicker for better visibility
+            // Subtle border
             Outline panelOutline = bottomPanelObj.AddComponent<Outline>();
-            panelOutline.effectColor = new Color(0.3f, 0.7f, 1f, 1f);
-            panelOutline.effectDistance = new Vector2(3, 3);
+            panelOutline.effectColor = new Color(0.3f, 0.35f, 0.45f, 0.5f);
+            panelOutline.effectDistance = new Vector2(2, -2);
 
-            // Horizontal layout for buttons with larger touch targets
+            Shadow panelShadow = bottomPanelObj.AddComponent<Shadow>();
+            panelShadow.effectColor = new Color(0f, 0f, 0f, 0.4f);
+            panelShadow.effectDistance = new Vector2(0, -3);
+
+            // Horizontal layout for buttons
             HorizontalLayoutGroup hlayout = bottomPanelObj.AddComponent<HorizontalLayoutGroup>();
-            hlayout.padding = new RectOffset(15, 15, 15, 15); // Larger padding
-            hlayout.spacing = 20; // More spacing between buttons
+            hlayout.padding = new RectOffset(12, 12, 10, 10);
+            hlayout.spacing = 12;
             hlayout.childControlWidth = true;
             hlayout.childControlHeight = true;
             hlayout.childForceExpandWidth = true;
             hlayout.childForceExpandHeight = true;
 
             // Auto Synthesis button
-            GameObject autoSynthButtonObj = CreateGameButton(bottomPanelObj.transform, "AutoSynthButton", "자동 조합", new Color(0.2f, 0.6f, 1f));
+            GameObject autoSynthButtonObj = CreateGameButton(bottomPanelObj.transform, "AutoSynthButton",
+                "\uC790\uB3D9 \uC870\uD569", GameSceneDesignTokens.AutoSynthBtnBg, GameSceneDesignTokens.AutoSynthBtnBorder);
             Button autoSynthButton = autoSynthButtonObj.GetComponent<Button>();
             Text autoSynthText = autoSynthButtonObj.GetComponentInChildren<Text>();
 
             // Attack Upgrade button
-            GameObject attackUpButtonObj = CreateGameButton(bottomPanelObj.transform, "AttackUpgradeButton", "공격력 업그레이드", new Color(0.9f, 0.3f, 0.2f));
+            GameObject attackUpButtonObj = CreateGameButton(bottomPanelObj.transform, "AttackUpgradeButton",
+                "\uACF5\uACA9\uB825 \uC5C5\uADF8\uB808\uC774\uB4DC", GameSceneDesignTokens.AttackUpBtnBg, GameSceneDesignTokens.AttackUpBtnBorder);
             Button attackUpButton = attackUpButtonObj.GetComponent<Button>();
             Text attackUpText = attackUpButtonObj.GetComponentInChildren<Text>();
 
             // Attack Speed Upgrade button
-            GameObject speedUpButtonObj = CreateGameButton(bottomPanelObj.transform, "AttackSpeedUpgradeButton", "공속 업그레이드", new Color(0.2f, 0.8f, 0.3f));
+            GameObject speedUpButtonObj = CreateGameButton(bottomPanelObj.transform, "AttackSpeedUpgradeButton",
+                "\uACF5\uC18D \uC5C5\uADF8\uB808\uC774\uB4DC", GameSceneDesignTokens.SpeedUpBtnBg, GameSceneDesignTokens.SpeedUpBtnBorder);
             Button speedUpButton = speedUpButtonObj.GetComponent<Button>();
             Text speedUpText = speedUpButtonObj.GetComponentInChildren<Text>();
 
@@ -580,61 +581,71 @@ namespace LottoDefense.Gameplay
             Debug.Log("[GameSceneBootstrapper] Created GameBottomUI");
         }
 
-        private GameObject CreateGameButton(Transform parent, string name, string text, Color color)
+        private GameObject CreateGameButton(Transform parent, string name, string text, Color bgColor, Color borderColor)
         {
             GameObject buttonObj = new GameObject(name);
             buttonObj.transform.SetParent(parent, false);
 
-            // Add minimum size for mobile touch targets (44x44 pt is recommended)
             LayoutElement layoutElement = buttonObj.AddComponent<LayoutElement>();
-            layoutElement.minHeight = 100; // Larger minimum height for mobile
-            layoutElement.preferredHeight = 110;
+            layoutElement.minHeight = 90;
+            layoutElement.preferredHeight = 100;
 
             // Button background
             Image buttonBg = buttonObj.AddComponent<Image>();
-            buttonBg.color = color;
+            buttonBg.color = bgColor;
 
-            // Button component with larger touch area
-            Button button = buttonObj.AddComponent<Button>();
-            ColorBlock colors = button.colors;
-            colors.normalColor = color;
-            colors.highlightedColor = color * 1.3f; // More visible highlight
-            colors.pressedColor = color * 0.7f; // More visible press
-            colors.disabledColor = new Color(0.4f, 0.4f, 0.4f, 0.8f);
-            button.colors = colors;
-
-            // Thicker button outline for better visibility on mobile
+            // Colored border for identity
             Outline buttonOutline = buttonObj.AddComponent<Outline>();
-            buttonOutline.effectColor = new Color(0, 0, 0, 0.8f);
+            buttonOutline.effectColor = borderColor;
             buttonOutline.effectDistance = new Vector2(3, -3);
 
-            // Add shadow effect for depth
+            // Drop shadow for depth
             Shadow buttonShadow = buttonObj.AddComponent<Shadow>();
             buttonShadow.effectColor = new Color(0, 0, 0, 0.5f);
-            buttonShadow.effectDistance = new Vector2(4, -4);
+            buttonShadow.effectDistance = new Vector2(3, -3);
 
-            // Button text with larger font for mobile
+            // Button component
+            Button button = buttonObj.AddComponent<Button>();
+            ColorBlock colors = button.colors;
+            colors.normalColor = Color.white;
+            colors.highlightedColor = new Color(1.2f, 1.2f, 1.2f, 1f);
+            colors.pressedColor = new Color(0.7f, 0.7f, 0.7f, 1f);
+            colors.disabledColor = new Color(0.5f, 0.5f, 0.5f, 0.7f);
+            colors.fadeDuration = 0.08f;
+            button.colors = colors;
+
+            // Inner highlight strip (top-half lighter for pseudo-3D)
+            GameObject highlightObj = new GameObject("Highlight");
+            highlightObj.transform.SetParent(buttonObj.transform, false);
+            RectTransform hlRect = highlightObj.AddComponent<RectTransform>();
+            hlRect.anchorMin = new Vector2(0, 0.5f);
+            hlRect.anchorMax = Vector2.one;
+            hlRect.offsetMin = new Vector2(2, 0);
+            hlRect.offsetMax = new Vector2(-2, -2);
+            Image hlImg = highlightObj.AddComponent<Image>();
+            hlImg.color = new Color(1f, 1f, 1f, 0.12f);
+            hlImg.raycastTarget = false;
+
+            // Button text
             GameObject textObj = new GameObject("Text");
             textObj.transform.SetParent(buttonObj.transform, false);
 
             RectTransform textRect = textObj.AddComponent<RectTransform>();
             textRect.anchorMin = Vector2.zero;
             textRect.anchorMax = Vector2.one;
-            textRect.offsetMin = new Vector2(8, 8); // More padding
-            textRect.offsetMax = new Vector2(-8, -8);
+            textRect.offsetMin = new Vector2(6, 6);
+            textRect.offsetMax = new Vector2(-6, -6);
 
-            // Larger font size for mobile readability
-            Text buttonText = CreateText(textObj, text, 20, Color.white); // 16 → 20
+            Text buttonText = CreateText(textObj, text, 20, Color.white);
             buttonText.alignment = TextAnchor.MiddleCenter;
             buttonText.fontStyle = FontStyle.Bold;
-            buttonText.resizeTextForBestFit = true; // Auto-resize for long text
+            buttonText.resizeTextForBestFit = true;
             buttonText.resizeTextMinSize = 14;
             buttonText.resizeTextMaxSize = 20;
 
-            // Thicker text outline for better readability on mobile
             Outline textOutline = textObj.AddComponent<Outline>();
-            textOutline.effectColor = new Color(0, 0, 0, 0.9f);
-            textOutline.effectDistance = new Vector2(2, -2);
+            textOutline.effectColor = new Color(0, 0, 0, 0.8f);
+            textOutline.effectDistance = new Vector2(1, -1);
 
             return buttonObj;
         }
@@ -849,24 +860,46 @@ namespace LottoDefense.Gameplay
             btnRect.anchorMin = new Vector2(marginH, 0);
             btnRect.anchorMax = new Vector2(1f - marginH, 0);
             btnRect.pivot = new Vector2(0.5f, 0);
-            btnRect.anchoredPosition = new Vector2(0, 16); // Anchored to very bottom
+            btnRect.anchoredPosition = new Vector2(0, 16);
             btnRect.sizeDelta = new Vector2(0, GameSceneDesignTokens.SummonButtonHeight);
 
-            // Button background
+            // Vibrant green background
             Image btnImage = btnObj.AddComponent<Image>();
             btnImage.color = GameSceneDesignTokens.SummonButtonBg;
 
-            // Button component with color states
+            // Bright green border glow
+            Outline btnOutline = btnObj.AddComponent<Outline>();
+            btnOutline.effectColor = GameSceneDesignTokens.SummonButtonBorder;
+            btnOutline.effectDistance = new Vector2(3, -3);
+
+            // Drop shadow for depth
+            Shadow btnShadow = btnObj.AddComponent<Shadow>();
+            btnShadow.effectColor = new Color(0f, 0.2f, 0f, 0.5f);
+            btnShadow.effectDistance = new Vector2(0, -4);
+
+            // Button component
             Button button = btnObj.AddComponent<Button>();
             ColorBlock colors = button.colors;
             colors.normalColor = Color.white;
-            colors.highlightedColor = new Color(1.1f, 1.1f, 1.1f, 1f);
-            colors.pressedColor = new Color(0.75f, 0.75f, 0.75f, 1f);
+            colors.highlightedColor = new Color(1.15f, 1.15f, 1.15f, 1f);
+            colors.pressedColor = new Color(0.7f, 0.7f, 0.7f, 1f);
             colors.disabledColor = new Color(0.5f, 0.5f, 0.5f, 0.7f);
-            colors.fadeDuration = 0.1f;
+            colors.fadeDuration = 0.08f;
             button.colors = colors;
 
-            // Inner layout: vertical stack for main text + cost subtext
+            // Inner highlight strip (top portion lighter for 3D depth)
+            GameObject highlightObj = new GameObject("Highlight");
+            highlightObj.transform.SetParent(btnObj.transform, false);
+            RectTransform hlRect = highlightObj.AddComponent<RectTransform>();
+            hlRect.anchorMin = new Vector2(0, 0.5f);
+            hlRect.anchorMax = Vector2.one;
+            hlRect.offsetMin = new Vector2(3, 0);
+            hlRect.offsetMax = new Vector2(-3, -3);
+            Image hlImg = highlightObj.AddComponent<Image>();
+            hlImg.color = new Color(1f, 1f, 1f, 0.15f);
+            hlImg.raycastTarget = false;
+
+            // Inner layout: vertical stack
             VerticalLayoutGroup vl = btnObj.AddComponent<VerticalLayoutGroup>();
             vl.padding = new RectOffset(0, 0, 8, 8);
             vl.spacing = 0;
@@ -876,22 +909,25 @@ namespace LottoDefense.Gameplay
             vl.childControlHeight = true;
             vl.childAlignment = TextAnchor.MiddleCenter;
 
-            // Main text: "소환"
+            // Main text
             GameObject mainTextObj = new GameObject("MainText");
             mainTextObj.transform.SetParent(btnObj.transform, false);
             mainTextObj.AddComponent<RectTransform>();
             Text mainText = CreateText(mainTextObj, "\uC18C\uD658", GameSceneDesignTokens.SummonTextSize, GameSceneDesignTokens.ButtonText);
             mainText.fontStyle = FontStyle.Bold;
             Outline mainOutline = mainTextObj.AddComponent<Outline>();
-            mainOutline.effectColor = new Color(0, 0, 0, 0.4f);
+            mainOutline.effectColor = new Color(0, 0, 0, 0.5f);
             mainOutline.effectDistance = new Vector2(2, -2);
 
-            // Cost subtext: "5 Gold"
+            // Cost subtext
             GameObject costTextObj = new GameObject("CostText");
             costTextObj.transform.SetParent(btnObj.transform, false);
             costTextObj.AddComponent<RectTransform>();
             Text costText = CreateText(costTextObj, "- 5 Gold -", GameSceneDesignTokens.SummonCostSize, GameSceneDesignTokens.ButtonCostText);
             costText.fontStyle = FontStyle.Bold;
+            Outline costOutline = costTextObj.AddComponent<Outline>();
+            costOutline.effectColor = new Color(0, 0, 0, 0.4f);
+            costOutline.effectDistance = new Vector2(1, -1);
 
             button.onClick.AddListener(() => OnSummonButtonClicked(mainText, costText));
         }
@@ -1350,11 +1386,7 @@ namespace LottoDefense.Gameplay
         {
             if (GameplayManager.Instance == null) return;
 
-            if (GameplayManager.Instance.CurrentState != GameState.Preparation)
-            {
-                StartCoroutine(FlashButtonText(mainText, costText, "\uC804\uD22C \uC911!", ""));
-                return;
-            }
+            // Summon allowed in all game states
 
             UnitManager unitMgr = FindFirstObjectByType<UnitManager>();
             if (unitMgr == null)

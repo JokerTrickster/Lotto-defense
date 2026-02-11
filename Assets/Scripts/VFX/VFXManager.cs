@@ -489,78 +489,196 @@ namespace LottoDefense.VFX
 
         #region Boss Effects
         /// <summary>
-        /// Show boss warning effect (screen shake, red overlay).
+        /// Show boss warning: full-screen red flash overlay + large warning text + camera shake.
         /// </summary>
         public void ShowBossWarning()
         {
             StartCoroutine(BossWarningRoutine());
         }
 
-        /// <summary>
-        /// Boss warning visual effect.
-        /// </summary>
         private IEnumerator BossWarningRoutine()
         {
-            Debug.Log("[VFXManager] ⚠️ BOSS WARNING!");
+            Debug.Log("[VFXManager] BOSS WARNING!");
 
-            // Show warning text in center of screen
-            Vector3 screenCenter = new Vector3(Screen.width / 2f, Screen.height / 2f, 0f);
-            Vector3 worldCenter = Camera.main.ScreenToWorldPoint(screenCenter);
-            worldCenter.z = 0f;
-
-            ShowFloatingText(worldCenter, "⚔️ BOSS INCOMING! ⚔️", new Color(1f, 0.2f, 0.2f)); // Red
-
-            // Simple screen shake effect (move camera slightly)
-            Camera mainCamera = Camera.main;
-            if (mainCamera != null)
+            // Create full-screen overlay on GameCanvas
+            Canvas gameCanvas = null;
+            Canvas[] canvases = FindObjectsByType<Canvas>(FindObjectsSortMode.None);
+            foreach (Canvas c in canvases)
             {
-                Vector3 originalPos = mainCamera.transform.position;
-
-                for (int i = 0; i < 10; i++)
+                if (c.gameObject.name == "GameCanvas")
                 {
-                    float offsetX = Random.Range(-0.1f, 0.1f);
-                    float offsetY = Random.Range(-0.1f, 0.1f);
-                    mainCamera.transform.position = originalPos + new Vector3(offsetX, offsetY, 0f);
+                    gameCanvas = c;
+                    break;
+                }
+            }
 
-                    yield return new WaitForSeconds(0.05f);
+            GameObject overlay = null;
+            UnityEngine.UI.Image overlayImg = null;
+            UnityEngine.UI.Text warningText = null;
+
+            if (gameCanvas != null)
+            {
+                // Red flash overlay
+                overlay = new GameObject("BossWarningOverlay");
+                overlay.transform.SetParent(gameCanvas.transform, false);
+                RectTransform overlayRect = overlay.AddComponent<RectTransform>();
+                overlayRect.anchorMin = Vector2.zero;
+                overlayRect.anchorMax = Vector2.one;
+                overlayRect.offsetMin = Vector2.zero;
+                overlayRect.offsetMax = Vector2.zero;
+
+                overlayImg = overlay.AddComponent<UnityEngine.UI.Image>();
+                overlayImg.color = new Color(0.6f, 0f, 0f, 0f);
+                overlayImg.raycastTarget = false;
+
+                // Warning text
+                GameObject textObj = new GameObject("WarningText");
+                textObj.transform.SetParent(overlay.transform, false);
+                RectTransform textRect = textObj.AddComponent<RectTransform>();
+                textRect.anchorMin = new Vector2(0, 0.35f);
+                textRect.anchorMax = new Vector2(1, 0.65f);
+                textRect.offsetMin = Vector2.zero;
+                textRect.offsetMax = Vector2.zero;
+
+                warningText = textObj.AddComponent<UnityEngine.UI.Text>();
+                warningText.text = "BOSS";
+                warningText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+                warningText.fontSize = 120;
+                warningText.fontStyle = FontStyle.Bold;
+                warningText.color = new Color(1f, 0.2f, 0.1f, 0f);
+                warningText.alignment = TextAnchor.MiddleCenter;
+                warningText.horizontalOverflow = HorizontalWrapMode.Overflow;
+                warningText.verticalOverflow = VerticalWrapMode.Overflow;
+                warningText.raycastTarget = false;
+
+                UnityEngine.UI.Outline textOutline = textObj.AddComponent<UnityEngine.UI.Outline>();
+                textOutline.effectColor = new Color(0f, 0f, 0f, 0.8f);
+                textOutline.effectDistance = new Vector2(3, -3);
+            }
+
+            Camera mainCamera = Camera.main;
+            Vector3 originalCamPos = mainCamera != null ? mainCamera.transform.position : Vector3.zero;
+
+            // Phase 1: Red flash in (0.3s) with text fade in
+            float flashDuration = 0.3f;
+            float elapsed = 0f;
+            while (elapsed < flashDuration)
+            {
+                float t = elapsed / flashDuration;
+                if (overlayImg != null) overlayImg.color = new Color(0.6f, 0f, 0f, t * 0.5f);
+                if (warningText != null) warningText.color = new Color(1f, 0.2f, 0.1f, t);
+                elapsed += Time.deltaTime;
+                yield return null;
+            }
+
+            // Phase 2: Hold + pulsing text + camera shake (1.2s)
+            float holdDuration = 1.2f;
+            elapsed = 0f;
+            while (elapsed < holdDuration)
+            {
+                float t = elapsed / holdDuration;
+
+                // Pulsing text scale
+                if (warningText != null)
+                {
+                    float pulse = 1f + Mathf.Sin(elapsed * 8f) * 0.15f;
+                    warningText.transform.localScale = Vector3.one * pulse;
                 }
 
-                mainCamera.transform.position = originalPos;
+                // Camera shake (stronger)
+                if (mainCamera != null)
+                {
+                    float shakeIntensity = 0.15f * (1f - t * 0.5f);
+                    float offsetX = Random.Range(-shakeIntensity, shakeIntensity);
+                    float offsetY = Random.Range(-shakeIntensity, shakeIntensity);
+                    mainCamera.transform.position = originalCamPos + new Vector3(offsetX, offsetY, 0f);
+                }
+
+                // Overlay red pulse
+                if (overlayImg != null)
+                {
+                    float overlayAlpha = 0.5f + Mathf.Sin(elapsed * 6f) * 0.15f;
+                    overlayImg.color = new Color(0.6f, 0f, 0f, overlayAlpha);
+                }
+
+                elapsed += Time.deltaTime;
+                yield return null;
             }
+
+            // Phase 3: Fade out (0.4s)
+            float fadeOutDuration = 0.4f;
+            elapsed = 0f;
+            while (elapsed < fadeOutDuration)
+            {
+                float t = elapsed / fadeOutDuration;
+                if (overlayImg != null) overlayImg.color = new Color(0.6f, 0f, 0f, 0.5f * (1f - t));
+                if (warningText != null) warningText.color = new Color(1f, 0.2f, 0.1f, 1f - t);
+                elapsed += Time.deltaTime;
+                yield return null;
+            }
+
+            // Restore camera and cleanup
+            if (mainCamera != null) mainCamera.transform.position = originalCamPos;
+            if (overlay != null) Destroy(overlay);
         }
 
         /// <summary>
-        /// Show boss spawn effect at position.
+        /// Show boss spawn effect: golden flash + expanding ring at spawn position.
         /// </summary>
         public void ShowBossSpawnEffect(Vector3 worldPosition)
         {
             StartCoroutine(BossSpawnEffectRoutine(worldPosition));
         }
 
-        /// <summary>
-        /// Boss spawn visual effect (expanding circle, particles).
-        /// </summary>
         private IEnumerator BossSpawnEffectRoutine(Vector3 worldPosition)
         {
-            Debug.Log($"[VFXManager] 👑 Boss spawn effect at {worldPosition}");
+            Debug.Log($"[VFXManager] Boss spawn effect at {worldPosition}");
 
-            // Show boss title text
-            ShowFloatingText(worldPosition + Vector3.up * 1.5f, "👑 BOSS 👑", new Color(1f, 0.8f, 0.2f)); // Gold
+            // Create expanding ring using SpriteRenderer
+            GameObject ring = new GameObject("BossSpawnRing");
+            ring.transform.position = worldPosition;
+            SpriteRenderer ringRenderer = ring.AddComponent<SpriteRenderer>();
+            ringRenderer.sortingOrder = 50;
 
-            // Create expanding circle effect (using multiple damage numbers as particles)
-            int particleCount = 20;
-            float radius = 0.5f;
-
-            for (int i = 0; i < particleCount; i++)
+            // Create ring texture (circle outline)
+            Texture2D ringTex = new Texture2D(64, 64);
+            Color[] pixels = new Color[64 * 64];
+            Vector2 center = new Vector2(32, 32);
+            for (int y = 0; y < 64; y++)
             {
-                float angle = (360f / particleCount) * i * Mathf.Deg2Rad;
-                Vector3 offset = new Vector3(Mathf.Cos(angle), Mathf.Sin(angle), 0f) * radius;
-                Vector3 particlePos = worldPosition + offset;
+                for (int x = 0; x < 64; x++)
+                {
+                    float dist = Vector2.Distance(new Vector2(x, y), center);
+                    if (dist > 26f && dist < 31f)
+                        pixels[y * 64 + x] = Color.white;
+                    else
+                        pixels[y * 64 + x] = Color.clear;
+                }
+            }
+            ringTex.SetPixels(pixels);
+            ringTex.Apply();
+            ringTex.filterMode = FilterMode.Bilinear;
 
-                ShowFloatingText(particlePos, "★", new Color(1f, 0.8f, 0.2f)); // Gold stars
+            ringRenderer.sprite = Sprite.Create(ringTex, new Rect(0, 0, 64, 64), new Vector2(0.5f, 0.5f), 64f);
+            ringRenderer.color = new Color(1f, 0.8f, 0.2f, 1f); // Gold
+
+            // Show boss title
+            ShowFloatingText(worldPosition + Vector3.up * 0.8f, "BOSS", new Color(1f, 0.8f, 0.2f));
+
+            // Animate: expand ring and fade out (0.8s)
+            float duration = 0.8f;
+            float elapsed = 0f;
+            while (elapsed < duration)
+            {
+                float t = elapsed / duration;
+                float scale = 0.3f + t * 2f;
+                ring.transform.localScale = Vector3.one * scale;
+                ringRenderer.color = new Color(1f, 0.8f, 0.2f, 1f - t);
+                elapsed += Time.deltaTime;
+                yield return null;
             }
 
-            yield return null;
+            Destroy(ring);
         }
         #endregion
     }

@@ -4,6 +4,7 @@ using System.Collections;
 using LottoDefense.Grid;
 using LottoDefense.Gameplay;
 using LottoDefense.UI;
+using LottoDefense.Utils;
 
 namespace LottoDefense.Units
 {
@@ -156,10 +157,10 @@ namespace LottoDefense.Units
                 return;
             }
 
-            // Validate phase - only allow placement during Preparation
+            // Validate GameplayManager is available
             if (!CanPlaceUnits())
             {
-                string reason = "Can only place units during Preparation phase";
+                string reason = "GameplayManager not available";
                 Debug.LogWarning($"[UnitPlacementManager] {reason}");
                 OnPlacementFailed?.Invoke(reason);
                 return;
@@ -394,9 +395,17 @@ namespace LottoDefense.Units
             }
             else
             {
-                // Generate circle sprite as placeholder
-                sr.sprite = UnitData.CreateCircleSprite(32);
-                sr.color = UnitData.GetRarityColor(data.rarity);
+                Sprite loaded = GameSpriteLoader.LoadUnitSprite(data.unitName);
+                if (loaded != null)
+                {
+                    sr.sprite = loaded;
+                    sr.color = UnitData.GetRarityColor(data.rarity);
+                }
+                else
+                {
+                    sr.sprite = UnitData.CreateCircleSprite(32);
+                    sr.color = UnitData.GetRarityColor(data.rarity);
+                }
             }
             sr.sortingOrder = 10;
 
@@ -468,12 +477,11 @@ namespace LottoDefense.Units
 
         #region Placement Validation
         /// <summary>
-        /// Check if units can currently be placed (must be in Preparation phase).
+        /// Check if units can currently be placed (any active game state).
         /// </summary>
         public bool CanPlaceUnits()
         {
-            return GameplayManager.Instance != null &&
-                   GameplayManager.Instance.CurrentState == GameState.Preparation;
+            return GameplayManager.Instance != null;
         }
 
         /// <summary>
@@ -506,7 +514,7 @@ namespace LottoDefense.Units
         private string GetPlacementFailureReason(Vector2Int gridPos)
         {
             if (!CanPlaceUnits())
-                return "Can only place units during Preparation phase";
+                return "GameplayManager not available";
 
             if (!GridManager.Instance.IsValidPosition(gridPos))
                 return "Position is outside grid bounds";

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System;
 using LottoDefense.VFX;
 using LottoDefense.Gameplay;
+using LottoDefense.Utils;
 
 namespace LottoDefense.Monsters
 {
@@ -142,12 +143,14 @@ namespace LottoDefense.Monsters
                 }
                 else
                 {
-                    // Create default colored sprite if none assigned
-                    spriteRenderer.sprite = CreateDefaultSprite(data.type);
+                    // Try loading sprite from Resources/Sprites/Monsters/
+                    Sprite loaded = GameSpriteLoader.LoadMonsterSprite(data.monsterName);
+                    spriteRenderer.sprite = loaded != null ? loaded : CreateDefaultSprite(data.type);
                 }
 
-                // Ensure monster is visible by setting a reasonable size (half of previous 0.5)
-                transform.localScale = Vector3.one * 0.25f;
+                // Boss monsters are larger
+                float scale = data.type == MonsterType.Boss ? 0.35f : 0.25f;
+                transform.localScale = Vector3.one * scale;
             }
 
             // Position at first waypoint
