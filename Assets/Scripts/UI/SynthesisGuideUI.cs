@@ -233,14 +233,14 @@ namespace LottoDefense.UI
             // Update required count
             if (requiredCountText != null)
             {
-                requiredCountText.text = "3개 필요";
+                requiredCountText.text = "2개 필요";
             }
 
             // Update synthesis info
             if (synthesisInfoText != null)
             {
                 string costText = recipe.synthesisGoldCost > 0 ? $"{recipe.synthesisGoldCost} 골드 소모" : "무료";
-                synthesisInfoText.text = $"같은 유닛 3개를 모아서 합성하세요!\n{costText}";
+                synthesisInfoText.text = $"같은 유닛 2개를 모아서 합성하세요!\n{costText}";
             }
 
             // Update button states
@@ -260,6 +260,7 @@ namespace LottoDefense.UI
         /// </summary>
         private UnitData FindUnitData(string unitName)
         {
+            // Try matching by unitName field first
             UnitData[] allUnits = Resources.LoadAll<UnitData>("Units");
             foreach (var unit in allUnits)
             {
@@ -267,6 +268,13 @@ namespace LottoDefense.UI
                 {
                     return unit;
                 }
+            }
+
+            // Fallback: try loading by Resources path (asset filename)
+            UnitData byPath = Resources.Load<UnitData>($"Units/{unitName}");
+            if (byPath != null)
+            {
+                return byPath;
             }
 
             Debug.LogWarning($"[SynthesisGuideUI] Unit data not found: {unitName}");

@@ -79,7 +79,7 @@ namespace LottoDefense.Units
 
         #region Auto Synthesis
         /// <summary>
-        /// Scan all placed units and automatically synthesize groups of 3 same units.
+        /// Scan all placed units and automatically synthesize groups of 2 same units.
         /// </summary>
         /// <returns>Number of synthesis operations performed</returns>
         public int PerformAutoSynthesis()
@@ -135,8 +135,8 @@ namespace LottoDefense.Units
                 string unitName = group.Key.Split('_')[0];
                 List<Unit> units = group.Value;
 
-                // Need at least 3 units to synthesize
-                while (units.Count >= 3)
+                // Need at least 2 units to synthesize
+                while (units.Count >= 2)
                 {
                     // Check if recipe exists
                     var recipe = balanceConfig.GetSynthesisRecipe(unitName);
@@ -156,15 +156,14 @@ namespace LottoDefense.Units
                         }
                     }
 
-                    // Take first 3 units
+                    // Take first 2 units
                     Unit unit1 = units[0];
                     Unit unit2 = units[1];
-                    Unit unit3 = units[2];
 
                     // Try synthesis using SynthesisManager
                     if (SynthesisManager.Instance != null)
                     {
-                        bool success = SynthesisManager.Instance.TrySynthesize(unit1);
+                        bool success = SynthesisManager.Instance.TrySynthesize(unit1, unit2);
                         if (success)
                         {
                             totalSynthesisCount++;
@@ -173,7 +172,6 @@ namespace LottoDefense.Units
                             // Remove synthesized units from list
                             units.Remove(unit1);
                             units.Remove(unit2);
-                            units.Remove(unit3);
 
                             // Fire event
                             OnAutoSynthesis?.Invoke(unitName, totalSynthesisCount);
@@ -239,7 +237,7 @@ namespace LottoDefense.Units
                 var recipe = balanceConfig.GetSynthesisRecipe(unitName);
                 if (recipe != null)
                 {
-                    totalPossible += count / 3; // Integer division
+                    totalPossible += count / 2; // Integer division
                 }
             }
 

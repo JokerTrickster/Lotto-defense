@@ -19,6 +19,15 @@ MonoBehaviour:
   defense: 5
   attackRange: 1.5
   attackSpeed: 1
+  attackPattern: 0
+  splashRadius: 0
+  maxTargets: 1
+  splashDamageFalloff: 50
+  baseUpgradeCost: 5
+  attackUpgradePercent: 10
+  attackSpeedUpgradePercent: 8
+  maxUpgradeLevel: 10
   icon: {fileID: 0}
   prefab: {fileID: 0}
-  description: A sturdy melee fighter with balanced attack and defense.
+  skills: []
+  description: "\uADFC\uC811 \uC804\uC0AC. \uADE0\uD615 \uC7A1\uD78C \uACF5\uACA9\uB825\uACFC \uBC29\uC5B4\uB825."

@@ -489,7 +489,7 @@ namespace LottoDefense.Gameplay
         [System.Serializable]
         public class SynthesisRecipe
         {
-            [Tooltip("합성할 유닛 이름 (3개 필요)")]
+            [Tooltip("합성할 유닛 이름 (2개 필요)")]
             public string sourceUnitName;
 
             [Tooltip("합성 결과 유닛 이름")]
@@ -500,48 +500,30 @@ namespace LottoDefense.Gameplay
         }
 
         [Header("=== 합성 시스템 ===")]
-        [Tooltip("유닛 합성 레시피 (같은 유닛 3개 → 상위 유닛)")]
+        [Tooltip("유닛 합성 레시피 (같은 유닛 2개 → 상위 유닛)")]
         public List<SynthesisRecipe> synthesisRecipes = new List<SynthesisRecipe>
         {
             // Normal → Rare
             new SynthesisRecipe
             {
-                sourceUnitName = "기본 궁수",
-                resultUnitName = "강화 궁수",
-                synthesisGoldCost = 0
-            },
-            new SynthesisRecipe
-            {
-                sourceUnitName = "검사",
-                resultUnitName = "마법사",
+                sourceUnitName = "Warrior",
+                resultUnitName = "Archer",
                 synthesisGoldCost = 0
             },
 
             // Rare → Epic
             new SynthesisRecipe
             {
-                sourceUnitName = "강화 궁수",
-                resultUnitName = "저격수",
-                synthesisGoldCost = 0
-            },
-            new SynthesisRecipe
-            {
-                sourceUnitName = "마법사",
-                resultUnitName = "대마법사",
+                sourceUnitName = "Archer",
+                resultUnitName = "Mage",
                 synthesisGoldCost = 0
             },
 
             // Epic → Legendary
             new SynthesisRecipe
             {
-                sourceUnitName = "저격수",
-                resultUnitName = "드래곤 아처",
-                synthesisGoldCost = 0
-            },
-            new SynthesisRecipe
-            {
-                sourceUnitName = "대마법사",
-                resultUnitName = "대현자",
+                sourceUnitName = "Mage",
+                resultUnitName = "DragonKnight",
                 synthesisGoldCost = 0
             }
         };

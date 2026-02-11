@@ -6,7 +6,7 @@ using LottoDefense.Grid;
 namespace LottoDefense.Units
 {
     /// <summary>
-    /// Manages unit synthesis: combining 3 same units into 1 upgraded unit.
+    /// Manages unit synthesis: combining 2 same units into 1 upgraded unit.
     /// Uses GameBalanceConfig recipes for synthesis rules.
     /// </summary>
     public class SynthesisManager : MonoBehaviour
@@ -77,16 +77,17 @@ namespace LottoDefense.Units
 
         #region Synthesis Logic
         /// <summary>
-        /// Try to synthesize units based on the selected unit.
-        /// Requires 3 units with the same name to synthesize.
+        /// Try to synthesize units based on two selected units.
+        /// Requires 2 units with the same name to synthesize.
         /// </summary>
-        /// <param name="selectedUnit">The unit that was clicked for synthesis</param>
+        /// <param name="unit1">First unit for synthesis</param>
+        /// <param name="unit2">Second unit for synthesis</param>
         /// <returns>True if synthesis succeeded, false otherwise</returns>
-        public bool TrySynthesize(Unit selectedUnit)
+        public bool TrySynthesize(Unit unit1, Unit unit2)
         {
-            if (selectedUnit == null || selectedUnit.Data == null)
+            if (unit1 == null || unit1.Data == null || unit2 == null || unit2.Data == null)
             {
-                Debug.LogWarning("[SynthesisManager] Cannot synthesize null unit");
+                Debug.LogWarning("[SynthesisManager] Cannot synthesize null units");
                 return false;
             }
 
@@ -96,28 +97,26 @@ namespace LottoDefense.Units
                 return false;
             }
 
-            // Get synthesis recipe
-            var recipe = balanceConfig.GetSynthesisRecipe(selectedUnit.Data.unitName);
-            if (recipe == null)
+            // Both units must be the same type
+            if (unit1.Data.unitName != unit2.Data.unitName)
             {
-                Debug.LogWarning($"[SynthesisManager] No synthesis recipe for {selectedUnit.Data.unitName}");
+                Debug.LogWarning($"[SynthesisManager] Units must be same type: {unit1.Data.unitName} != {unit2.Data.unitName}");
                 return false;
             }
 
-            // Find all units with the same name
-            List<Unit> sameUnits = FindSameUnits(selectedUnit.Data.unitName);
-
-            if (sameUnits.Count < 3)
+            // Get synthesis recipe
+            var recipe = balanceConfig.GetSynthesisRecipe(unit1.Data.unitName);
+            if (recipe == null)
             {
-                Debug.LogWarning($"[SynthesisManager] Not enough units for synthesis: {sameUnits.Count}/3");
+                Debug.LogWarning($"[SynthesisManager] No synthesis recipe for {unit1.Data.unitName}");
                 return false;
             }
 
             // Get result unit data
-            UnitData resultData = Resources.Load<UnitData>($"UnitData/{recipe.resultUnitName}");
+            UnitData resultData = Resources.Load<UnitData>($"Units/{recipe.resultUnitName}");
             if (resultData == null)
             {
-                Debug.LogError($"[SynthesisManager] Result unit data not found: {recipe.resultUnitName}");
+                Debug.LogError($"[SynthesisManager] Result unit data not found: Units/{recipe.resultUnitName}");
                 return false;
             }
 
@@ -135,45 +134,25 @@ namespace LottoDefense.Units
             }
 
             // Perform synthesis
-            PerformSynthesis(sameUnits, resultData);
+            List<Unit> sourceUnits = new List<Unit> { unit1, unit2 };
+            PerformSynthesis(sourceUnits, resultData);
 
-            Debug.Log($"[SynthesisManager] Synthesis successful: {selectedUnit.Data.unitName} × 3 → {recipe.resultUnitName}");
+            Debug.Log($"[SynthesisManager] Synthesis successful: {unit1.Data.unitName} x2 → {recipe.resultUnitName}");
             return true;
         }
 
         /// <summary>
-        /// Find all units with the specified name.
-        /// </summary>
-        private List<Unit> FindSameUnits(string unitName)
-        {
-            if (UnitManager.Instance == null) return new List<Unit>();
-
-            var placedUnits = UnitManager.Instance.GetPlacedUnits();
-            List<Unit> sameUnits = new List<Unit>();
-
-            foreach (var unit in placedUnits)
-            {
-                if (unit != null && unit.Data != null && unit.Data.unitName == unitName)
-                {
-                    sameUnits.Add(unit);
-                }
-            }
-
-            return sameUnits;
-        }
-
-        /// <summary>
-        /// Perform the actual synthesis: remove 3 units, create 1 result unit.
+        /// Perform the actual synthesis: remove 2 units, create 1 result unit.
         /// </summary>
         private void PerformSynthesis(List<Unit> sourceUnits, UnitData resultData)
         {
-            if (sourceUnits.Count < 3) return;
+            if (sourceUnits.Count < 2) return;
 
             // Get position of first unit to place result unit
             Vector2Int resultPosition = sourceUnits[0].GridPosition;
 
-            // Remove all 3 source units
-            for (int i = 0; i < 3; i++)
+            // Remove all source units
+            for (int i = 0; i < sourceUnits.Count; i++)
             {
                 Unit unit = sourceUnits[i];
 

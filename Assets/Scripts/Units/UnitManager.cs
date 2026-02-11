@@ -508,6 +508,13 @@ namespace LottoDefense.Units
                 renderer.sortingOrder = 10;
             }
 
+            // Add collider for click detection (needed for OnMouseDown)
+            if (unitObj.GetComponent<BoxCollider2D>() == null)
+            {
+                BoxCollider2D collider = unitObj.AddComponent<BoxCollider2D>();
+                collider.size = new Vector2(0.8f, 0.8f);
+            }
+
             // Place on grid
             if (!GridManager.Instance.SetUnit(position, unitObj))
             {

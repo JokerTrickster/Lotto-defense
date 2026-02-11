@@ -19,6 +19,15 @@ MonoBehaviour:
   defense: 2
   attackRange: 4
   attackSpeed: 0.8
+  attackPattern: 2
+  splashRadius: 1.5
+  maxTargets: 5
+  splashDamageFalloff: 50
+  baseUpgradeCost: 20
+  attackUpgradePercent: 10
+  attackSpeedUpgradePercent: 8
+  maxUpgradeLevel: 10
   icon: {fileID: 0}
   prefab: {fileID: 0}
-  description: A powerful spellcaster dealing heavy damage from afar.
+  skills: []
+  description: "\uB9C8\uBC95\uC0AC. \uBA40\uB9AC\uC11C \uAD11\uC5ED \uD53C\uD574\uB97C \uC8FC\uB294 \uAC15\uB825\uD55C \uC8FC\uBB38\uC0AC."

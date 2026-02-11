@@ -19,6 +19,15 @@ MonoBehaviour:
   defense: 3
   attackRange: 3
   attackSpeed: 1.2
+  attackPattern: 0
+  splashRadius: 0
+  maxTargets: 1
+  splashDamageFalloff: 50
+  baseUpgradeCost: 10
+  attackUpgradePercent: 10
+  attackSpeedUpgradePercent: 8
+  maxUpgradeLevel: 10
   icon: {fileID: 0}
   prefab: {fileID: 0}
-  description: A skilled ranged attacker with fast arrows and long reach.
+  skills: []
+  description: "\uC6D0\uAC70\uB9AC \uACF5\uACA9\uC218. \uBE60\uB978 \uD654\uC0B4\uACFC \uAE34 \uC0AC\uAC70\uB9AC."
