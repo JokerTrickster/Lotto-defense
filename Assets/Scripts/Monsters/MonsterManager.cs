@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using LottoDefense.Grid;
 using LottoDefense.Gameplay;
 using LottoDefense.UI;
+using LottoDefense.VFX;
 
 namespace LottoDefense.Monsters
 {
