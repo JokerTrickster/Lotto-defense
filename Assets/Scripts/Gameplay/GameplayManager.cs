@@ -54,7 +54,6 @@ namespace LottoDefense.Gameplay
         #region Constants
         private const int INITIAL_ROUND = 1;
         private const int INITIAL_LIFE = 10;
-        private const int INITIAL_GOLD = 100;  // 유닛 소환 테스트를 위해 100으로 시작
         #endregion
 
         #region Properties
@@ -186,14 +185,18 @@ namespace LottoDefense.Gameplay
 
         #region Initialization
         /// <summary>
-        /// Initialize game with starting values.
+        /// Initialize game with starting values from GameBalanceConfig.
         /// </summary>
         public void Initialize()
         {
             CurrentState = GameState.Countdown;
             CurrentRound = INITIAL_ROUND;
             CurrentLife = INITIAL_LIFE;
-            CurrentGold = INITIAL_GOLD;
+
+            // Load starting gold from GameBalanceConfig (single source of truth)
+            GameBalanceConfig balanceConfig = Resources.Load<GameBalanceConfig>("GameBalanceConfig");
+            int startingGold = balanceConfig != null ? balanceConfig.gameRules.startingGold : 30;
+            CurrentGold = startingGold;
 
             Debug.Log($"[GameplayManager] Initialized - Round: {CurrentRound}, Life: {CurrentLife}, Gold: {CurrentGold}");
         }

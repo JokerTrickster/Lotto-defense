@@ -144,6 +144,14 @@ namespace LottoDefense.Gameplay
             float spawnInterval = 1f / balanceConfig.gameRules.spawnRate;
             SetField(manager, "spawnInterval", spawnInterval);
             Debug.Log($"[GameSceneBootstrapper] Set spawn interval to {spawnInterval:F2}s ({balanceConfig.gameRules.spawnRate} monsters/sec)");
+
+            // Load and pass RoundConfig so MonsterManager can use per-round monster configs
+            RoundConfig roundConfig = Resources.Load<RoundConfig>("RoundConfig");
+            if (roundConfig != null)
+            {
+                SetField(manager, "roundConfig", roundConfig);
+                Debug.Log("[GameSceneBootstrapper] Passed RoundConfig to MonsterManager");
+            }
         }
 
         private void EnsureRoundManager()
@@ -159,6 +167,19 @@ namespace LottoDefense.Gameplay
             DifficultyConfig config = CreateDifficultyConfigFromConfig(balanceConfig.difficulty);
             SetField(manager, "difficultyConfig", config);
             Debug.Log("[GameSceneBootstrapper] Created DifficultyConfig from GameBalanceConfig");
+
+            // Pass phase timing from GameBalanceConfig game rules
+            SetField(manager, "preparationDuration", (float)balanceConfig.gameRules.preparationTime);
+            SetField(manager, "combatDuration", (float)balanceConfig.gameRules.combatTime);
+            Debug.Log($"[GameSceneBootstrapper] Set RoundManager timing - Prep: {balanceConfig.gameRules.preparationTime}s, Combat: {balanceConfig.gameRules.combatTime}s");
+
+            // Load and pass RoundConfig so RoundManager can use per-round definitions
+            RoundConfig roundConfig = Resources.Load<RoundConfig>("RoundConfig");
+            if (roundConfig != null)
+            {
+                SetField(manager, "roundConfig", roundConfig);
+                Debug.Log($"[GameSceneBootstrapper] Passed RoundConfig to RoundManager (totalRounds={roundConfig.TotalRounds})");
+            }
         }
 
         private void EnsureUnitManager()

@@ -411,7 +411,7 @@ namespace LottoDefense.Gameplay
         [Header("=== 난이도 밸런스 ===")]
         public DifficultyBalance difficulty = new DifficultyBalance
         {
-            maxRounds = 5
+            maxRounds = 30
         };
         #endregion
 
