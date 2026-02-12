@@ -383,7 +383,7 @@ namespace LottoDefense.Gameplay
             panelRect.anchorMin = Vector2.zero;
             panelRect.anchorMax = Vector2.zero;
             panelRect.pivot = new Vector2(0.5f, 0f);
-            panelRect.sizeDelta = new Vector2(180f, 120f);
+            panelRect.sizeDelta = new Vector2(140f, 90f);
 
             // Dark background with gold border
             Image panelBg = selectionPanelObj.AddComponent<Image>();
@@ -398,8 +398,8 @@ namespace LottoDefense.Gameplay
             panelShadow.effectDistance = new Vector2(3, -3);
 
             VerticalLayoutGroup vlayout = selectionPanelObj.AddComponent<VerticalLayoutGroup>();
-            vlayout.padding = new RectOffset(8, 8, 6, 6);
-            vlayout.spacing = 4;
+            vlayout.padding = new RectOffset(6, 6, 4, 4);
+            vlayout.spacing = 2;
             vlayout.childControlWidth = true;
             vlayout.childControlHeight = true;
             vlayout.childForceExpandWidth = true;
@@ -408,19 +408,19 @@ namespace LottoDefense.Gameplay
             // Unit name text
             GameObject unitNameObj = new GameObject("UnitNameText");
             unitNameObj.transform.SetParent(selectionPanelObj.transform, false);
-            Text unitNameText = CreateText(unitNameObj, "\uC720\uB2DB", 20, GameSceneDesignTokens.GoldColor);
+            Text unitNameText = CreateText(unitNameObj, "\uC720\uB2DB", 16, GameSceneDesignTokens.GoldColor);
             unitNameText.alignment = TextAnchor.MiddleCenter;
             unitNameText.fontStyle = FontStyle.Bold;
             Outline nameOutline = unitNameObj.AddComponent<Outline>();
             nameOutline.effectColor = new Color(0f, 0f, 0f, 0.5f);
             nameOutline.effectDistance = new Vector2(1, -1);
             LayoutElement nameLayout = unitNameObj.AddComponent<LayoutElement>();
-            nameLayout.preferredHeight = 28;
+            nameLayout.preferredHeight = 22;
 
             // Synthesis button (purple)
             GameObject synthesisButtonObj = CreateStyledPanelButton(selectionPanelObj.transform, "SynthesisButton",
                 "\uC870\uD569",
-                GameSceneDesignTokens.SynthFloatBtnBg, GameSceneDesignTokens.SynthFloatBtnBorder, 34);
+                GameSceneDesignTokens.SynthFloatBtnBg, GameSceneDesignTokens.SynthFloatBtnBorder, 26);
             Button synthesisButton = synthesisButtonObj.GetComponent<Button>();
             Text synthesisButtonText = synthesisButtonObj.GetComponentInChildren<Text>();
             synthesisButtonText.color = GameSceneDesignTokens.SynthFloatBtnText;
@@ -428,7 +428,7 @@ namespace LottoDefense.Gameplay
             // Sell button (red)
             GameObject sellButtonObj = CreateStyledPanelButton(selectionPanelObj.transform, "SellButton",
                 "\uD310\uB9E4 (+3G)",
-                GameSceneDesignTokens.SellBtnBg, GameSceneDesignTokens.SellBtnBorder, 34);
+                GameSceneDesignTokens.SellBtnBg, GameSceneDesignTokens.SellBtnBorder, 26);
             Button sellButton = sellButtonObj.GetComponent<Button>();
             Text sellButtonText = sellButtonObj.GetComponentInChildren<Text>();
 
@@ -497,12 +497,12 @@ namespace LottoDefense.Gameplay
             textRect.offsetMin = new Vector2(6, 2);
             textRect.offsetMax = new Vector2(-6, -2);
 
-            Text btnText = CreateText(textObj, text, 18, Color.white);
+            Text btnText = CreateText(textObj, text, 15, Color.white);
             btnText.alignment = TextAnchor.MiddleCenter;
             btnText.fontStyle = FontStyle.Bold;
             btnText.resizeTextForBestFit = true;
-            btnText.resizeTextMinSize = 14;
-            btnText.resizeTextMaxSize = 18;
+            btnText.resizeTextMinSize = 12;
+            btnText.resizeTextMaxSize = 15;
 
             Outline textOutline = textObj.AddComponent<Outline>();
             textOutline.effectColor = new Color(0f, 0f, 0f, 0.7f);
@@ -673,7 +673,7 @@ namespace LottoDefense.Gameplay
 
             Image hudBg = hudObj.AddComponent<Image>();
             hudBg.color = GameSceneDesignTokens.HudBackground;
-            hudBg.raycastTarget = false;
+            hudBg.raycastTarget = true;
 
             VerticalLayoutGroup vlayout = hudObj.AddComponent<VerticalLayoutGroup>();
             int padH = Mathf.RoundToInt(GameSceneDesignTokens.HudPaddingH);
@@ -721,6 +721,50 @@ namespace LottoDefense.Gameplay
             SetField(hud, "goldText", goldText);
             SetField(hud, "unitText", unitText);
             SetField(hud, "lifeText", lifeText);
+
+            // Stat containers for tooltip click detection
+            RectTransform[] statContainers = new RectTransform[]
+            {
+                roundText.transform.parent.GetComponent<RectTransform>(),
+                phaseText.transform.parent.GetComponent<RectTransform>(),
+                timeText.transform.parent.GetComponent<RectTransform>(),
+                lifeText.transform.parent.GetComponent<RectTransform>(),
+                goldText.transform.parent.GetComponent<RectTransform>(),
+                monsterText.transform.parent.GetComponent<RectTransform>(),
+                unitText.transform.parent.GetComponent<RectTransform>()
+            };
+            SetField(hud, "statContainers", statContainers);
+
+            // Tooltip panel (full-width bar below HUD)
+            GameObject tooltipObj = new GameObject("TooltipPanel");
+            tooltipObj.transform.SetParent(mainCanvas.transform, false);
+
+            RectTransform tooltipRect = tooltipObj.AddComponent<RectTransform>();
+            tooltipRect.anchorMin = new Vector2(0, 1);
+            tooltipRect.anchorMax = new Vector2(1, 1);
+            tooltipRect.pivot = new Vector2(0.5f, 1);
+            tooltipRect.anchoredPosition = new Vector2(0, -GameSceneDesignTokens.HudHeight);
+            tooltipRect.sizeDelta = new Vector2(0, 44);
+
+            Image tooltipBg = tooltipObj.AddComponent<Image>();
+            tooltipBg.color = new Color(0.08f, 0.1f, 0.15f, 0.95f);
+            tooltipBg.raycastTarget = true;
+
+            GameObject tooltipTextObj = new GameObject("Text");
+            tooltipTextObj.transform.SetParent(tooltipObj.transform, false);
+            RectTransform textRect = tooltipTextObj.AddComponent<RectTransform>();
+            textRect.anchorMin = Vector2.zero;
+            textRect.anchorMax = Vector2.one;
+            textRect.offsetMin = new Vector2(16, 4);
+            textRect.offsetMax = new Vector2(-16, -4);
+
+            Text tooltipTextComp = CreateText(tooltipTextObj, "", 24, Color.white);
+            tooltipTextComp.alignment = TextAnchor.MiddleCenter;
+
+            tooltipObj.SetActive(false);
+
+            SetField(hud, "tooltipPanel", tooltipObj);
+            SetField(hud, "tooltipText", tooltipTextComp);
         }
 
         /// <summary>

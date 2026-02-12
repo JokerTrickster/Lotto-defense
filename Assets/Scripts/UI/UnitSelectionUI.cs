@@ -179,6 +179,11 @@ namespace LottoDefense.UI
                 bottomUI.SetSelectedUnit(null);
             }
 
+            if (UnitPlacementManager.Instance != null)
+            {
+                UnitPlacementManager.Instance.CancelPlacement();
+            }
+
             selectedUnit = null;
             ClearSynthesisButtons();
         }
@@ -355,7 +360,7 @@ namespace LottoDefense.UI
         {
             if (selectionPanel == null || unit == null) return;
 
-            Vector3 worldPos = unit.transform.position + Vector3.up * 0.7f;
+            Vector3 worldPos = unit.transform.position + Vector3.up * 0.45f;
             Vector3 screenPos = Camera.main.WorldToScreenPoint(worldPos);
 
             RectTransform panelRect = selectionPanel.GetComponent<RectTransform>();

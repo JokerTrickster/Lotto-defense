@@ -166,11 +166,27 @@ namespace LottoDefense.Units
                 Destroy(unit.gameObject);
             }
 
+            // Carry forward highest upgrade levels from source units
+            int maxAttackLevel = 0;
+            int maxSpeedLevel = 0;
+            for (int i = 0; i < sourceUnits.Count; i++)
+            {
+                if (sourceUnits[i].AttackUpgradeLevel > maxAttackLevel)
+                    maxAttackLevel = sourceUnits[i].AttackUpgradeLevel;
+                if (sourceUnits[i].AttackSpeedUpgradeLevel > maxSpeedLevel)
+                    maxSpeedLevel = sourceUnits[i].AttackSpeedUpgradeLevel;
+            }
+
             // Create result unit at the first unit's position
             if (UnitManager.Instance != null)
             {
-                UnitManager.Instance.PlaceUnit(resultData, resultPosition);
-                Debug.Log($"[SynthesisManager] Created {resultData.unitName} at {resultPosition}");
+                Unit resultUnit = UnitManager.Instance.PlaceUnit(resultData, resultPosition);
+                if (resultUnit != null)
+                {
+                    for (int i = 0; i < maxAttackLevel; i++) resultUnit.UpgradeAttack();
+                    for (int i = 0; i < maxSpeedLevel; i++) resultUnit.UpgradeAttackSpeed();
+                }
+                Debug.Log($"[SynthesisManager] Created {resultData.unitName} at {resultPosition} (ATK Lv{maxAttackLevel}, SPD Lv{maxSpeedLevel})");
             }
         }
         #endregion

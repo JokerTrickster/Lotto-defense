@@ -21,6 +21,11 @@ namespace LottoDefense.UI
         [SerializeField] private Text unitText;
         [SerializeField] private Text lifeText;
 
+        [Header("Tooltip")]
+        [SerializeField] private GameObject tooltipPanel;
+        [SerializeField] private Text tooltipText;
+        [SerializeField] private RectTransform[] statContainers;
+
         [Header("Settings")]
         [SerializeField] private string roundFormat = "R{0}";
         [SerializeField] private string phaseFormat = "{0}";
@@ -39,6 +44,18 @@ namespace LottoDefense.UI
         private int currentGold = 0;
         private int currentUnitCount = 0;
         private int currentLife = 0;
+        private int activeTooltipIndex = -1;
+
+        private static readonly string[] StatDescriptions = new string[]
+        {
+            "\uD604\uC7AC \uB77C\uC6B4\uB4DC",
+            "\uD604\uC7AC \uAC8C\uC784 \uB2E8\uACC4",
+            "\uB0A8\uC740 \uC2DC\uAC04",
+            "\uB0A8\uC740 \uC0DD\uBA85 - 0\uC774 \uB418\uBA74 \uD328\uBC30",
+            "\uBCF4\uC720 \uACE8\uB4DC - \uC720\uB2DB \uC18C\uD658\uC5D0 \uC0AC\uC6A9",
+            "\uB0A8\uC740 \uBAAC\uC2A4\uD130 \uC218",
+            "\uBC30\uCE58\uB41C \uC720\uB2DB \uC218"
+        };
         #endregion
 
         #region Unity Lifecycle
@@ -70,12 +87,29 @@ namespace LottoDefense.UI
 
         private void Update()
         {
-            // Update time countdown during Combat state
-            if (GameplayManager.Instance != null &&
-                GameplayManager.Instance.CurrentState == GameState.Combat)
+            if (Input.GetMouseButtonDown(0) && statContainers != null && statContainers.Length > 0)
             {
-                // This will be updated by round manager in the future
-                // For now, just display the current time
+                Vector2 screenPos = Input.mousePosition;
+                bool hitStat = false;
+
+                for (int i = 0; i < statContainers.Length; i++)
+                {
+                    if (statContainers[i] != null &&
+                        RectTransformUtility.RectangleContainsScreenPoint(statContainers[i], screenPos, null))
+                    {
+                        if (activeTooltipIndex == i)
+                            HideTooltip();
+                        else
+                            ShowTooltip(i);
+                        hitStat = true;
+                        break;
+                    }
+                }
+
+                if (!hitStat && activeTooltipIndex >= 0)
+                {
+                    HideTooltip();
+                }
             }
         }
         #endregion
@@ -165,6 +199,27 @@ namespace LottoDefense.UI
                 default:
                     Debug.LogWarning($"[GameHUD] Unknown value type: {valueType}");
                     break;
+            }
+        }
+        #endregion
+
+        #region Tooltip
+        private void ShowTooltip(int index)
+        {
+            if (tooltipPanel == null || tooltipText == null) return;
+            if (index < 0 || index >= StatDescriptions.Length) return;
+
+            activeTooltipIndex = index;
+            tooltipText.text = StatDescriptions[index];
+            tooltipPanel.SetActive(true);
+        }
+
+        private void HideTooltip()
+        {
+            activeTooltipIndex = -1;
+            if (tooltipPanel != null)
+            {
+                tooltipPanel.SetActive(false);
             }
         }
         #endregion

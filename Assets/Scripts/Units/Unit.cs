@@ -97,6 +97,8 @@ namespace LottoDefense.Units
         private float attackCooldown;
         private float currentCooldown;
         private int combatTickCount; // Track combat ticks for logging throttle
+        private float activeDamageBuff = 1f;
+        private float activeSpeedBuff = 1f;
         #endregion
 
         #region Mana & Skill System
@@ -874,35 +876,56 @@ namespace LottoDefense.Units
         }
 
         /// <summary>
-        /// Apply temporary damage buff.
+        /// Apply temporary damage buff using multiplier tracking (safe with upgrades).
         /// </summary>
         private System.Collections.IEnumerator ApplyTemporaryDamageBuff(float multiplier, float duration)
         {
-            int originalAttack = CurrentAttack;
-            CurrentAttack = Mathf.RoundToInt(CurrentAttack * multiplier);
-
-            Debug.Log($"[Unit] Damage buff applied: {originalAttack} → {CurrentAttack} for {duration}s");
+            activeDamageBuff = multiplier;
+            RecalculateStats();
+            Debug.Log($"[Unit] Damage buff applied: x{multiplier} for {duration}s (Attack: {CurrentAttack})");
 
             yield return new WaitForSeconds(duration);
 
-            CurrentAttack = originalAttack;
-            Debug.Log($"[Unit] Damage buff expired: {CurrentAttack}");
+            activeDamageBuff = 1f;
+            RecalculateStats();
+            Debug.Log($"[Unit] Damage buff expired (Attack: {CurrentAttack})");
         }
 
         /// <summary>
-        /// Apply temporary attack speed buff.
+        /// Apply temporary attack speed buff using multiplier tracking (safe with upgrades).
         /// </summary>
         private System.Collections.IEnumerator ApplyTemporaryAttackSpeedBuff(float multiplier, float duration)
         {
-            float originalCooldown = attackCooldown;
-            attackCooldown = originalCooldown / multiplier;
-
-            Debug.Log($"[Unit] Attack speed buff applied: {originalCooldown:F2}s → {attackCooldown:F2}s for {duration}s");
+            activeSpeedBuff = multiplier;
+            RecalculateStats();
+            Debug.Log($"[Unit] Attack speed buff applied: x{multiplier} for {duration}s (Cooldown: {attackCooldown:F2}s)");
 
             yield return new WaitForSeconds(duration);
 
-            attackCooldown = originalCooldown;
-            Debug.Log($"[Unit] Attack speed buff expired: {attackCooldown:F2}s");
+            activeSpeedBuff = 1f;
+            RecalculateStats();
+            Debug.Log($"[Unit] Attack speed buff expired (Cooldown: {attackCooldown:F2}s)");
+        }
+
+        /// <summary>
+        /// Recalculate attack and speed from base stats + upgrades + active buffs.
+        /// </summary>
+        private void RecalculateStats()
+        {
+            if (Data == null) return;
+
+            float attackMultiplier = 1f;
+            float speedMultiplier = 1f;
+
+            if (UnitUpgradeManager.Instance != null)
+            {
+                attackMultiplier = UnitUpgradeManager.Instance.GetAttackMultiplier(AttackUpgradeLevel, Data);
+                speedMultiplier = UnitUpgradeManager.Instance.GetAttackSpeedMultiplier(AttackSpeedUpgradeLevel, Data);
+            }
+
+            CurrentAttack = Mathf.RoundToInt(Data.attack * attackMultiplier * activeDamageBuff);
+            CurrentAttackSpeed = Data.attackSpeed * speedMultiplier * activeSpeedBuff;
+            attackCooldown = 1f / CurrentAttackSpeed;
         }
 
         /// <summary>
@@ -928,14 +951,71 @@ namespace LottoDefense.Units
         #endregion
 
         #region Attack Range Indicator
-        /// <summary>
-        /// Show attack range indicator when unit is selected.
-        /// </summary>
+        private static Texture2D s_circleTexture;
+        private static Sprite s_circleSprite;
+
+        private static Sprite GetOrCreateCircleSprite()
+        {
+            if (s_circleSprite != null) return s_circleSprite;
+
+            const int size = 256;
+            s_circleTexture = new Texture2D(size, size, TextureFormat.RGBA32, false);
+            s_circleTexture.filterMode = FilterMode.Bilinear;
+            s_circleTexture.wrapMode = TextureWrapMode.Clamp;
+
+            float center = size * 0.5f;
+            Color[] pixels = new Color[size * size];
+
+            for (int y = 0; y < size; y++)
+            {
+                for (int x = 0; x < size; x++)
+                {
+                    float dx = x - center + 0.5f;
+                    float dy = y - center + 0.5f;
+                    float dist = Mathf.Sqrt(dx * dx + dy * dy) / center;
+
+                    float alpha = 0f;
+                    if (dist <= 1f)
+                    {
+                        // Soft radial gradient: subtle fill from center to edge
+                        alpha = Mathf.Lerp(0.03f, 0.12f, dist * dist);
+
+                        // Brighter ring near edge (82%-94%)
+                        if (dist > 0.82f && dist <= 0.94f)
+                        {
+                            float edge = (dist - 0.82f) / 0.12f;
+                            alpha = Mathf.Lerp(alpha, 0.4f, Mathf.Sqrt(edge));
+                        }
+
+                        // Soft outer falloff (94%-100%)
+                        if (dist > 0.94f)
+                        {
+                            float falloff = (dist - 0.94f) / 0.06f;
+                            alpha = 0.4f * (1f - falloff * falloff);
+                        }
+                    }
+
+                    pixels[y * size + x] = new Color(1f, 1f, 1f, alpha);
+                }
+            }
+
+            s_circleTexture.SetPixels(pixels);
+            s_circleTexture.Apply();
+
+            s_circleSprite = Sprite.Create(
+                s_circleTexture,
+                new Rect(0, 0, size, size),
+                new Vector2(0.5f, 0.5f),
+                size / 2f
+            );
+
+            return s_circleSprite;
+        }
+
         private void ShowAttackRange()
         {
             if (Data == null) return;
 
-            // Create range indicator if it doesn't exist
             if (rangeIndicator == null)
             {
                 rangeIndicator = new GameObject("RangeIndicator");
@@ -943,41 +1023,55 @@ namespace LottoDefense.Units
                 rangeIndicator.transform.localPosition = Vector3.zero;
                 rangeIndicator.transform.localRotation = Quaternion.identity;
 
-                // Create circle using LineRenderer
-                LineRenderer lineRenderer = rangeIndicator.AddComponent<LineRenderer>();
-                lineRenderer.useWorldSpace = false;
-                lineRenderer.startWidth = 0.05f;
-                lineRenderer.endWidth = 0.05f;
-                lineRenderer.positionCount = 64; // Smooth circle
-                lineRenderer.material = new Material(Shader.Find("Sprites/Default"));
+                // Compensate for parent scale so range matches world-space attack range
+                float parentScale = transform.localScale.x;
+                float compensate = parentScale > 0.001f ? 1f / parentScale : 1f;
+                rangeIndicator.transform.localScale = Vector3.one * compensate;
 
-                // Get color based on rarity
                 Color rangeColor = GetRarityColor(Data.rarity);
-                rangeColor.a = 0.5f; // Semi-transparent
-                lineRenderer.startColor = rangeColor;
-                lineRenderer.endColor = rangeColor;
-
-                // Create circle points
-                float angleStep = 360f / 64f;
                 float radius = Data.attackRange;
+
+                // Filled gradient circle
+                GameObject fillObj = new GameObject("Fill");
+                fillObj.transform.SetParent(rangeIndicator.transform, false);
+                fillObj.transform.localPosition = Vector3.zero;
+                fillObj.transform.localScale = Vector3.one * radius;
+
+                SpriteRenderer fillSR = fillObj.AddComponent<SpriteRenderer>();
+                fillSR.sprite = GetOrCreateCircleSprite();
+                fillSR.color = rangeColor;
+                fillSR.sortingOrder = -1;
+
+                // Border ring
+                LineRenderer border = rangeIndicator.AddComponent<LineRenderer>();
+                border.useWorldSpace = false;
+                border.loop = true;
+                border.startWidth = 0.04f;
+                border.endWidth = 0.04f;
+                border.positionCount = 64;
+                border.material = new Material(Shader.Find("Sprites/Default"));
+                border.sortingOrder = -1;
+
+                Color borderColor = rangeColor;
+                borderColor.a = 0.6f;
+                border.startColor = borderColor;
+                border.endColor = borderColor;
+
+                float step = 360f / 64f;
                 for (int i = 0; i < 64; i++)
                 {
-                    float angle = i * angleStep * Mathf.Deg2Rad;
-                    Vector3 pos = new Vector3(
+                    float angle = i * step * Mathf.Deg2Rad;
+                    border.SetPosition(i, new Vector3(
                         Mathf.Cos(angle) * radius,
                         Mathf.Sin(angle) * radius,
                         0f
-                    );
-                    lineRenderer.SetPosition(i, pos);
+                    ));
                 }
             }
 
             rangeIndicator.SetActive(true);
         }
 
-        /// <summary>
-        /// Hide attack range indicator when unit is deselected.
-        /// </summary>
         private void HideAttackRange()
         {
             if (rangeIndicator != null)
@@ -986,17 +1080,14 @@ namespace LottoDefense.Units
             }
         }
 
-        /// <summary>
-        /// Get color based on unit rarity for attack range indicator.
-        /// </summary>
         private Color GetRarityColor(Rarity rarity)
         {
             switch (rarity)
             {
-                case Rarity.Normal: return new Color(0.7f, 0.7f, 0.7f); // Gray
-                case Rarity.Rare: return new Color(0.3f, 0.6f, 1f); // Blue
-                case Rarity.Epic: return new Color(0.7f, 0.3f, 1f); // Purple
-                case Rarity.Legendary: return new Color(1f, 0.8f, 0.2f); // Gold
+                case Rarity.Normal: return new Color(0.7f, 0.7f, 0.7f);
+                case Rarity.Rare: return new Color(0.3f, 0.6f, 1f);
+                case Rarity.Epic: return new Color(0.7f, 0.3f, 1f);
+                case Rarity.Legendary: return new Color(1f, 0.8f, 0.2f);
                 default: return Color.white;
             }
         }
@@ -1130,14 +1221,7 @@ namespace LottoDefense.Units
         public void UpgradeAttack()
         {
             AttackUpgradeLevel++;
-
-            // Recalculate attack with multiplier from UnitData settings
-            if (UnitUpgradeManager.Instance != null)
-            {
-                float multiplier = UnitUpgradeManager.Instance.GetAttackMultiplier(AttackUpgradeLevel, Data);
-                CurrentAttack = Mathf.RoundToInt(Data.attack * multiplier);
-            }
-
+            RecalculateStats();
             Debug.Log($"[Unit] {Data.GetDisplayName()} attack upgraded to level {AttackUpgradeLevel} (Attack: {CurrentAttack})");
         }
 
@@ -1147,15 +1231,7 @@ namespace LottoDefense.Units
         public void UpgradeAttackSpeed()
         {
             AttackSpeedUpgradeLevel++;
-
-            // Recalculate attack speed and cooldown with multiplier from UnitData settings
-            if (UnitUpgradeManager.Instance != null)
-            {
-                float multiplier = UnitUpgradeManager.Instance.GetAttackSpeedMultiplier(AttackSpeedUpgradeLevel, Data);
-                CurrentAttackSpeed = Data.attackSpeed * multiplier;
-                attackCooldown = 1f / CurrentAttackSpeed;
-            }
-
+            RecalculateStats();
             Debug.Log($"[Unit] {Data.GetDisplayName()} attack speed upgraded to level {AttackSpeedUpgradeLevel} (Speed: {CurrentAttackSpeed:F2})");
         }
         #endregion
