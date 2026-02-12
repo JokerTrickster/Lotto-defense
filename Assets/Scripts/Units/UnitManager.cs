@@ -384,6 +384,9 @@ namespace LottoDefense.Units
 
             foreach (var unit in allUnits)
             {
+                // Assign skills from GameBalanceConfig
+                AssignSkillsFromConfig(unit);
+
                 switch (unit.rarity)
                 {
                     case Rarity.Normal:
@@ -403,6 +406,37 @@ namespace LottoDefense.Units
 
             Debug.Log($"[UnitManager] Loaded {allUnits.Length} units from Resources");
             ValidateUnitPools();
+        }
+
+        /// <summary>
+        /// Assign skills to a UnitData from GameBalanceConfig based on unit name matching.
+        /// Bridges the gap between UnitData assets (no skills) and balance config (has skillIds).
+        /// </summary>
+        private void AssignSkillsFromConfig(UnitData unitData)
+        {
+            if (balanceConfig == null || unitData == null) return;
+
+            // Find matching UnitBalance by name
+            var unitBalance = balanceConfig.units.Find(u => u.unitName == unitData.unitName);
+            if (unitBalance == null)
+            {
+                Debug.LogWarning($"[UnitManager] No balance config found for unit '{unitData.unitName}'");
+                return;
+            }
+
+            // Get skills from balance config
+            var skillBalances = balanceConfig.GetUnitSkills(unitBalance);
+            if (skillBalances == null || skillBalances.Count == 0) return;
+
+            // Convert to UnitSkill array
+            var skills = new UnitSkill[skillBalances.Count];
+            for (int i = 0; i < skillBalances.Count; i++)
+            {
+                skills[i] = UnitSkill.FromBalance(skillBalances[i]);
+            }
+
+            unitData.skills = skills;
+            Debug.Log($"[UnitManager] Assigned {skills.Length} skills to '{unitData.unitName}'");
         }
 
         /// <summary>

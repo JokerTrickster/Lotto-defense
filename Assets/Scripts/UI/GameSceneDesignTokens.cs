@@ -153,10 +153,10 @@ namespace LottoDefense.UI
         public const int PhaseTextSize = 38; // 26 → 38
 
         /// <summary>Summon button main text.</summary>
-        public const int SummonTextSize = 60; // 40 → 60
+        public const int SummonTextSize = 42; // 60 → 42 (smaller for mobile portrait)
 
         /// <summary>Summon button cost subtext.</summary>
-        public const int SummonCostSize = 42; // 28 → 42
+        public const int SummonCostSize = 30; // 42 → 30 (smaller for mobile portrait)
 
         /// <summary>Menu button text.</summary>
         public const int MenuTextSize = 38; // 26 → 38
@@ -178,8 +178,8 @@ namespace LottoDefense.UI
         /// <summary>Stat card corner radius approximation (visual padding).</summary>
         public const float StatCardPadding = 12f; // 8 → 12
 
-        /// <summary>Summon button height (large touch target for mobile).</summary>
-        public const float SummonButtonHeight = 140f; // 110 → 140
+        /// <summary>Summon button height (comfortable touch target for mobile).</summary>
+        public const float SummonButtonHeight = 90f; // 140 → 90 (smaller for mobile portrait)
 
         /// <summary>Menu button height (comfortable touch target).</summary>
         public const float MenuButtonHeight = 52f; // 80 → 52 (compact utility icon)

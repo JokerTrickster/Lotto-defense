@@ -641,6 +641,7 @@ namespace LottoDefense.Units
         private System.Collections.IEnumerator SplashEffectCoroutine(Vector3 start, Vector3 end)
         {
             GameObject lineObj = new GameObject("SplashEffect");
+            lineObj.transform.SetParent(transform);
             LineRenderer lineRenderer = lineObj.AddComponent<LineRenderer>();
 
             lineRenderer.startWidth = 0.03f;
@@ -668,6 +669,7 @@ namespace LottoDefense.Units
         private System.Collections.IEnumerator ChainEffectCoroutine(Vector3 start, Vector3 end)
         {
             GameObject lineObj = new GameObject("ChainEffect");
+            lineObj.transform.SetParent(transform);
             LineRenderer lineRenderer = lineObj.AddComponent<LineRenderer>();
 
             lineRenderer.startWidth = 0.04f;
@@ -697,8 +699,9 @@ namespace LottoDefense.Units
         /// </summary>
         private System.Collections.IEnumerator MissileEffectCoroutine(Vector3 start, Vector3 end)
         {
-            // Create a temporary GameObject for the line
+            // Create a temporary GameObject for the line (parented to unit for auto-cleanup on sell/destroy)
             GameObject lineObj = new GameObject("MissileEffect");
+            lineObj.transform.SetParent(transform);
             LineRenderer lineRenderer = lineObj.AddComponent<LineRenderer>();
 
             // Configure line renderer

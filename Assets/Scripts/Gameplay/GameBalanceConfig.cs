@@ -78,92 +78,52 @@ namespace LottoDefense.Gameplay
         [Header("=== 유닛 밸런스 ===")]
         public List<UnitBalance> units = new List<UnitBalance>
         {
-            // Normal 유닛 (25%)
+            // Normal 유닛 - Warrior (근접 전사)
             new UnitBalance
             {
-                unitName = "기본 궁수",
+                unitName = "Warrior",
                 rarity = Rarity.Normal,
                 attack = 10,
                 attackSpeed = 1.0f,
-                attackRange = 3.0f,
-                upgradeCost = 5,
-                skillIds = new List<string> { "critical_strike" }
-            },
-            new UnitBalance
-            {
-                unitName = "검사",
-                rarity = Rarity.Normal,
-                attack = 15,
-                attackSpeed = 0.8f,
                 attackRange = 1.5f,
                 upgradeCost = 5,
-                skillIds = new List<string> { "battle_frenzy" }
+                skillIds = new List<string> { "battle_frenzy", "critical_strike" }
             },
 
-            // Rare 유닛 (25%)
+            // Rare 유닛 - Archer (원거리 궁수)
             new UnitBalance
             {
-                unitName = "강화 궁수",
+                unitName = "Archer",
                 rarity = Rarity.Rare,
-                attack = 20,
+                attack = 15,
                 attackSpeed = 1.2f,
-                attackRange = 4.0f,
+                attackRange = 3.0f,
                 upgradeCost = 10,
                 skillIds = new List<string> { "double_shot", "sniper" }
             },
-            new UnitBalance
-            {
-                unitName = "마법사",
-                rarity = Rarity.Rare,
-                attack = 30,
-                attackSpeed = 0.6f,
-                attackRange = 5.0f,
-                upgradeCost = 10,
-                skillIds = new List<string> { "chain_lightning" }
-            },
 
-            // Epic 유닛 (25%)
+            // Epic 유닛 - Mage (광역 마법사)
             new UnitBalance
             {
-                unitName = "저격수",
+                unitName = "Mage",
                 rarity = Rarity.Epic,
-                attack = 50,
-                attackSpeed = 0.5f,
-                attackRange = 6.0f,
-                upgradeCost = 20,
-                skillIds = new List<string> { "sniper", "critical_strike" }
-            },
-            new UnitBalance
-            {
-                unitName = "대마법사",
-                rarity = Rarity.Epic,
-                attack = 60,
-                attackSpeed = 0.7f,
-                attackRange = 5.0f,
+                attack = 25,
+                attackSpeed = 0.8f,
+                attackRange = 4.0f,
                 upgradeCost = 20,
                 skillIds = new List<string> { "area_attack", "chain_lightning" }
             },
 
-            // Legendary 유닛 (25%)
+            // Legendary 유닛 - Dragon Knight (전설 기사)
             new UnitBalance
             {
-                unitName = "드래곤 아처",
+                unitName = "Dragon Knight",
                 rarity = Rarity.Legendary,
-                attack = 100,
-                attackSpeed = 1.5f,
-                attackRange = 7.0f,
+                attack = 40,
+                attackSpeed = 0.7f,
+                attackRange = 2.0f,
                 upgradeCost = 50,
-                skillIds = new List<string> { "rapid_fire", "piercing_arrow", "gold_rush" }
-            },
-            new UnitBalance
-            {
-                unitName = "대현자",
-                rarity = Rarity.Legendary,
-                attack = 150,
-                attackSpeed = 1.0f,
-                attackRange = 6.0f,
-                upgradeCost = 50,
-                skillIds = new List<string> { "berserker", "area_attack", "chain_lightning" }
+                skillIds = new List<string> { "berserker", "area_attack", "rapid_fire" }
             }
         };
         #endregion
@@ -523,7 +483,7 @@ namespace LottoDefense.Gameplay
             new SynthesisRecipe
             {
                 sourceUnitName = "Mage",
-                resultUnitName = "DragonKnight",
+                resultUnitName = "Dragon Knight",
                 synthesisGoldCost = 0
             }
         };

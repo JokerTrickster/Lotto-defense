@@ -10,46 +10,46 @@ namespace LottoDefense.Quests
             {
                 // CollectUnits quests
                 new QuestDefinition(
-                    "collect_archer_3",
-                    "궁수의 부대",
-                    "기본 궁수 3마리 배치",
+                    "collect_warrior_3",
+                    "전사의 부대",
+                    "Warrior 3마리 배치",
                     QuestType.CollectUnits,
-                    new QuestCondition[] { new QuestCondition("기본 궁수", 3) },
+                    new QuestCondition[] { new QuestCondition("Warrior", 3) },
                     30
                 ),
                 new QuestDefinition(
-                    "collect_swordsman_3",
-                    "검의 군단",
-                    "검사 3마리 배치",
+                    "collect_archer_3",
+                    "궁수의 군단",
+                    "Archer 3마리 배치",
                     QuestType.CollectUnits,
-                    new QuestCondition[] { new QuestCondition("검사", 3) },
+                    new QuestCondition[] { new QuestCondition("Archer", 3) },
                     30
                 ),
                 new QuestDefinition(
                     "collect_mage_2",
                     "마법의 힘",
-                    "마법사 2마리 배치",
+                    "Mage 2마리 배치",
                     QuestType.CollectUnits,
-                    new QuestCondition[] { new QuestCondition("마법사", 2) },
+                    new QuestCondition[] { new QuestCondition("Mage", 2) },
                     50
                 ),
                 new QuestDefinition(
-                    "collect_sniper_2",
-                    "정밀 사격",
-                    "저격수 2마리 배치",
+                    "collect_dragon_knight_2",
+                    "전설의 기사단",
+                    "Dragon Knight 2마리 배치",
                     QuestType.CollectUnits,
-                    new QuestCondition[] { new QuestCondition("저격수", 2) },
-                    50
+                    new QuestCondition[] { new QuestCondition("Dragon Knight", 2) },
+                    100
                 ),
                 new QuestDefinition(
                     "collect_mixed_army",
                     "다양한 전력",
-                    "기본 궁수 2마리 + 검사 2마리 배치",
+                    "Warrior 2마리 + Archer 2마리 배치",
                     QuestType.CollectUnits,
                     new QuestCondition[]
                     {
-                        new QuestCondition("기본 궁수", 2),
-                        new QuestCondition("검사", 2)
+                        new QuestCondition("Warrior", 2),
+                        new QuestCondition("Archer", 2)
                     },
                     40
                 ),
@@ -58,22 +58,22 @@ namespace LottoDefense.Quests
                 new QuestDefinition(
                     "position_mage_corners",
                     "마법진 배치",
-                    "마법사를 (0,0)과 (7,3)에 배치",
+                    "Mage를 (0,0)과 (7,3)에 배치",
                     QuestType.PositionUnits,
                     new QuestCondition[]
                     {
-                        new QuestCondition("마법사", new Vector2Int[] { new Vector2Int(0, 0), new Vector2Int(7, 3) })
+                        new QuestCondition("Mage", new Vector2Int[] { new Vector2Int(0, 0), new Vector2Int(7, 3) })
                     },
                     80
                 ),
                 new QuestDefinition(
-                    "position_archer_frontline",
-                    "전방 궁수대",
-                    "기본 궁수를 (0,0), (0,1), (0,2)에 배치",
+                    "position_warrior_frontline",
+                    "전방 전사대",
+                    "Warrior를 (0,0), (0,1), (0,2)에 배치",
                     QuestType.PositionUnits,
                     new QuestCondition[]
                     {
-                        new QuestCondition("기본 궁수", new Vector2Int[] { new Vector2Int(0, 0), new Vector2Int(0, 1), new Vector2Int(0, 2) })
+                        new QuestCondition("Warrior", new Vector2Int[] { new Vector2Int(0, 0), new Vector2Int(0, 1), new Vector2Int(0, 2) })
                     },
                     60
                 ),

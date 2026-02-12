@@ -5,6 +5,7 @@ using LottoDefense.Grid;
 using LottoDefense.Gameplay;
 using LottoDefense.UI;
 using LottoDefense.Utils;
+using LottoDefense.VFX;
 
 namespace LottoDefense.Units
 {
@@ -392,6 +393,12 @@ namespace LottoDefense.Units
 
                 // Spawn effect
                 StartCoroutine(PlaySpawnEffect(unitObject.transform.position, SelectedUnitData.rarity));
+
+                // Legendary summon VFX
+                if (SelectedUnitData.rarity == Rarity.Legendary)
+                {
+                    VFXManager.Instance?.ShowLegendarySummonEffect(unitObject.transform.position);
+                }
 
                 Debug.Log($"[UnitPlacementManager] Placed {SelectedUnitData.GetDisplayName()} at {gridPos}");
                 OnUnitPlaced?.Invoke(unitComponent, gridPos);

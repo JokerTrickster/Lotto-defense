@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using LottoDefense.Units;
 using LottoDefense.Monsters;
 using LottoDefense.Gameplay;
+using LottoDefense.Grid;
 
 namespace LottoDefense.VFX
 {
@@ -970,6 +971,301 @@ namespace LottoDefense.VFX
             }
 
             Destroy(overlay);
+        }
+        #endregion
+
+        #region Legendary Summon Effect
+        /// <summary>
+        /// Show legendary unit summon effect: full-screen gold flash + expanding gold rings + "LEGENDARY!" text + camera shake.
+        /// </summary>
+        public void ShowLegendarySummonEffect(Vector3 worldPosition)
+        {
+            StartCoroutine(LegendarySummonEffectRoutine(worldPosition));
+        }
+
+        private IEnumerator LegendarySummonEffectRoutine(Vector3 worldPosition)
+        {
+            Debug.Log($"[VFXManager] Legendary summon effect at {worldPosition}");
+
+            // Find GameCanvas for UI overlay
+            Canvas gameCanvas = null;
+            Canvas[] canvases = FindObjectsByType<Canvas>(FindObjectsSortMode.None);
+            foreach (Canvas c in canvases)
+            {
+                if (c.gameObject.name == "GameCanvas")
+                {
+                    gameCanvas = c;
+                    break;
+                }
+            }
+
+            GameObject overlay = null;
+            Image overlayImg = null;
+            Text legendaryText = null;
+
+            if (gameCanvas != null)
+            {
+                // Gold flash overlay
+                overlay = new GameObject("LegendarySummonOverlay");
+                overlay.transform.SetParent(gameCanvas.transform, false);
+                RectTransform overlayRect = overlay.AddComponent<RectTransform>();
+                overlayRect.anchorMin = Vector2.zero;
+                overlayRect.anchorMax = Vector2.one;
+                overlayRect.offsetMin = Vector2.zero;
+                overlayRect.offsetMax = Vector2.zero;
+
+                overlayImg = overlay.AddComponent<Image>();
+                overlayImg.color = new Color(1f, 0.84f, 0f, 0f);
+                overlayImg.raycastTarget = false;
+
+                // "LEGENDARY!" text
+                GameObject textObj = new GameObject("LegendaryText");
+                textObj.transform.SetParent(overlay.transform, false);
+                RectTransform textRect = textObj.AddComponent<RectTransform>();
+                textRect.anchorMin = new Vector2(0, 0.35f);
+                textRect.anchorMax = new Vector2(1, 0.65f);
+                textRect.offsetMin = Vector2.zero;
+                textRect.offsetMax = Vector2.zero;
+
+                legendaryText = textObj.AddComponent<Text>();
+                legendaryText.text = "LEGENDARY!";
+                legendaryText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+                legendaryText.fontSize = 100;
+                legendaryText.fontStyle = FontStyle.Bold;
+                legendaryText.color = new Color(1f, 0.84f, 0f, 0f);
+                legendaryText.alignment = TextAnchor.MiddleCenter;
+                legendaryText.horizontalOverflow = HorizontalWrapMode.Overflow;
+                legendaryText.verticalOverflow = VerticalWrapMode.Overflow;
+                legendaryText.raycastTarget = false;
+
+                Outline textOutline = textObj.AddComponent<Outline>();
+                textOutline.effectColor = new Color(0.4f, 0.2f, 0f, 0.9f);
+                textOutline.effectDistance = new Vector2(3, -3);
+            }
+
+            // Create 2 expanding gold rings in world space
+            GameObject ring1 = CreateWorldRing(worldPosition, new Color(1f, 0.84f, 0f, 1f));
+            GameObject ring2 = CreateWorldRing(worldPosition, new Color(1f, 0.9f, 0.4f, 0.7f));
+
+            Camera mainCamera = Camera.main;
+            Vector3 originalCamPos = mainCamera != null ? mainCamera.transform.position : Vector3.zero;
+
+            // Phase 1: Gold flash in (0.2s)
+            float flashDuration = 0.2f;
+            float elapsed = 0f;
+            while (elapsed < flashDuration)
+            {
+                float t = elapsed / flashDuration;
+                if (overlayImg != null) overlayImg.color = new Color(1f, 0.84f, 0f, t * 0.5f);
+                if (legendaryText != null) legendaryText.color = new Color(1f, 0.84f, 0f, t);
+                elapsed += Time.deltaTime;
+                yield return null;
+            }
+
+            // Phase 2: Hold + pulse + camera shake + ring expand (1.0s)
+            float holdDuration = 1.0f;
+            elapsed = 0f;
+            while (elapsed < holdDuration)
+            {
+                float t = elapsed / holdDuration;
+
+                // Text pulsing
+                if (legendaryText != null)
+                {
+                    float pulse = 1f + Mathf.Sin(elapsed * 10f) * 0.1f;
+                    legendaryText.transform.localScale = Vector3.one * pulse;
+                }
+
+                // Camera shake
+                if (mainCamera != null)
+                {
+                    float shakeIntensity = 0.12f * (1f - t * 0.5f);
+                    float offsetX = Random.Range(-shakeIntensity, shakeIntensity);
+                    float offsetY = Random.Range(-shakeIntensity, shakeIntensity);
+                    mainCamera.transform.position = originalCamPos + new Vector3(offsetX, offsetY, 0f);
+                }
+
+                // Overlay pulse
+                if (overlayImg != null)
+                {
+                    float overlayAlpha = 0.5f + Mathf.Sin(elapsed * 8f) * 0.15f;
+                    overlayImg.color = new Color(1f, 0.84f, 0f, overlayAlpha);
+                }
+
+                // Ring 1: fast expand
+                if (ring1 != null)
+                {
+                    float scale1 = 0.3f + t * 3f;
+                    ring1.transform.localScale = Vector3.one * scale1;
+                    SpriteRenderer sr1 = ring1.GetComponent<SpriteRenderer>();
+                    if (sr1 != null) sr1.color = new Color(1f, 0.84f, 0f, 1f - t);
+                }
+
+                // Ring 2: slower expand
+                if (ring2 != null)
+                {
+                    float scale2 = 0.2f + t * 2f;
+                    ring2.transform.localScale = Vector3.one * scale2;
+                    SpriteRenderer sr2 = ring2.GetComponent<SpriteRenderer>();
+                    if (sr2 != null) sr2.color = new Color(1f, 0.9f, 0.4f, 0.7f * (1f - t));
+                }
+
+                elapsed += Time.deltaTime;
+                yield return null;
+            }
+
+            // Phase 3: Fade out (0.3s)
+            float fadeOutDuration = 0.3f;
+            elapsed = 0f;
+            while (elapsed < fadeOutDuration)
+            {
+                float t = elapsed / fadeOutDuration;
+                if (overlayImg != null) overlayImg.color = new Color(1f, 0.84f, 0f, 0.5f * (1f - t));
+                if (legendaryText != null) legendaryText.color = new Color(1f, 0.84f, 0f, 1f - t);
+                elapsed += Time.deltaTime;
+                yield return null;
+            }
+
+            // Cleanup
+            if (mainCamera != null) mainCamera.transform.position = originalCamPos;
+            if (overlay != null) Destroy(overlay);
+            if (ring1 != null) Destroy(ring1);
+            if (ring2 != null) Destroy(ring2);
+
+            // Show floating text at unit position
+            ShowFloatingText(worldPosition + Vector3.up * 0.5f, "LEGENDARY!", new Color(1f, 0.84f, 0f));
+        }
+
+        /// <summary>
+        /// Create a world-space ring sprite at position.
+        /// </summary>
+        private GameObject CreateWorldRing(Vector3 position, Color color)
+        {
+            GameObject ring = new GameObject("Ring");
+            ring.transform.position = position;
+            SpriteRenderer ringRenderer = ring.AddComponent<SpriteRenderer>();
+            ringRenderer.sortingOrder = 50;
+
+            Texture2D ringTex = new Texture2D(64, 64);
+            Color[] pixels = new Color[64 * 64];
+            Vector2 center = new Vector2(32, 32);
+            for (int y = 0; y < 64; y++)
+            {
+                for (int x = 0; x < 64; x++)
+                {
+                    float dist = Vector2.Distance(new Vector2(x, y), center);
+                    if (dist > 26f && dist < 31f)
+                        pixels[y * 64 + x] = Color.white;
+                    else
+                        pixels[y * 64 + x] = Color.clear;
+                }
+            }
+            ringTex.SetPixels(pixels);
+            ringTex.Apply();
+            ringTex.filterMode = FilterMode.Bilinear;
+
+            ringRenderer.sprite = Sprite.Create(ringTex, new Rect(0, 0, 64, 64), new Vector2(0.5f, 0.5f), 64f);
+            ringRenderer.color = color;
+            ring.transform.localScale = Vector3.one * 0.3f;
+
+            return ring;
+        }
+        #endregion
+
+        #region Upgrade Effect
+        /// <summary>
+        /// Show upgrade effect: glow on upgraded unit + brief pulse on all same-rarity units.
+        /// </summary>
+        public void ShowUpgradeEffect(Vector3 unitPosition, Rarity rarity)
+        {
+            StartCoroutine(UpgradeEffectRoutine(unitPosition, rarity));
+        }
+
+        private IEnumerator UpgradeEffectRoutine(Vector3 unitPosition, Rarity rarity)
+        {
+            Debug.Log($"[VFXManager] Upgrade effect for {rarity} at {unitPosition}");
+
+            Color rarityColor = UnitData.GetRarityColor(rarity);
+
+            // Show floating text at upgraded unit
+            ShowFloatingText(unitPosition + Vector3.up * 0.5f, "UP!", rarityColor);
+
+            // Create expanding ring at upgraded unit position
+            GameObject ring = CreateWorldRing(unitPosition, rarityColor);
+
+            // Animate ring
+            float duration = 0.5f;
+            float elapsed = 0f;
+            while (elapsed < duration)
+            {
+                float t = elapsed / duration;
+                if (ring != null)
+                {
+                    float scale = 0.3f + t * 2f;
+                    ring.transform.localScale = Vector3.one * scale;
+                    SpriteRenderer sr = ring.GetComponent<SpriteRenderer>();
+                    if (sr != null) sr.color = new Color(rarityColor.r, rarityColor.g, rarityColor.b, 1f - t);
+                }
+                elapsed += Time.deltaTime;
+                yield return null;
+            }
+            if (ring != null) Destroy(ring);
+
+            // Pulse all same-rarity units on grid
+            if (GridManager.Instance != null)
+            {
+                for (int x = 0; x < GridManager.GRID_WIDTH; x++)
+                {
+                    for (int y = 0; y < GridManager.GRID_HEIGHT; y++)
+                    {
+                        Unit unit = GridManager.Instance.GetUnitAt(x, y);
+                        if (unit != null && unit.Data != null && unit.Data.rarity == rarity)
+                        {
+                            StartCoroutine(PulseUnitColor(unit, rarityColor));
+                        }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Brief color pulse effect on a single unit.
+        /// </summary>
+        private IEnumerator PulseUnitColor(Unit unit, Color pulseColor)
+        {
+            if (unit == null) yield break;
+
+            SpriteRenderer sr = unit.GetComponent<SpriteRenderer>();
+            if (sr == null) yield break;
+
+            Color originalColor = sr.color;
+            Color brightColor = Color.Lerp(originalColor, Color.white, 0.7f);
+
+            // Flash bright
+            float flashDuration = 0.15f;
+            float elapsed = 0f;
+            while (elapsed < flashDuration)
+            {
+                if (unit == null || sr == null) yield break;
+                float t = elapsed / flashDuration;
+                sr.color = Color.Lerp(originalColor, brightColor, t);
+                elapsed += Time.deltaTime;
+                yield return null;
+            }
+
+            // Return to original
+            elapsed = 0f;
+            while (elapsed < flashDuration)
+            {
+                if (unit == null || sr == null) yield break;
+                float t = elapsed / flashDuration;
+                sr.color = Color.Lerp(brightColor, originalColor, t);
+                elapsed += Time.deltaTime;
+                yield return null;
+            }
+
+            if (unit != null && sr != null)
+                sr.color = originalColor;
         }
         #endregion
     }
