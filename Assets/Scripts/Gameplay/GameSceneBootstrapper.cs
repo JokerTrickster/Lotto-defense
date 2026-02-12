@@ -7,6 +7,7 @@ using LottoDefense.Units;
 using LottoDefense.UI;
 using LottoDefense.Combat;
 using LottoDefense.VFX;
+using LottoDefense.Quests;
 
 namespace LottoDefense.Gameplay
 {
@@ -60,6 +61,7 @@ namespace LottoDefense.Gameplay
             EnsureGameHUD();
             EnsureSummonButton();
             EnsureSynthesisGuideButton();
+            EnsureQuestButton();
             EnsureGameResultUI();
 
             Debug.Log("[GameSceneBootstrapper] Game scene initialization complete");
@@ -1501,6 +1503,176 @@ namespace LottoDefense.Gameplay
             SetField(config, "baseDefenseMultiplier", 1f);
             SetField(config, "maxRounds", balance.maxRounds);
             return config;
+        }
+        #endregion
+
+        #region Quest System
+        private void EnsureQuestManager()
+        {
+            if (FindFirstObjectByType<QuestManager>() == null)
+                new GameObject("QuestManager").AddComponent<QuestManager>();
+
+            // Initialize quests for this game session
+            QuestManager.Instance?.InitializeQuests();
+        }
+
+        private void EnsureQuestUI()
+        {
+            QuestUI existingUI = FindFirstObjectByType<QuestUI>();
+            if (existingUI != null) return;
+
+            // Full-screen overlay (same pattern as SynthesisGuideUI)
+            GameObject questObj = new GameObject("QuestUI");
+            questObj.transform.SetParent(mainCanvas.transform, false);
+
+            RectTransform rect = questObj.AddComponent<RectTransform>();
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
+            rect.offsetMin = Vector2.zero;
+            rect.offsetMax = Vector2.zero;
+
+            Image bgImage = questObj.AddComponent<Image>();
+            bgImage.color = new Color(0f, 0f, 0f, 0.7f);
+
+            // Main panel (centered)
+            GameObject panelObj = new GameObject("Panel");
+            panelObj.transform.SetParent(questObj.transform, false);
+
+            RectTransform panelRect = panelObj.AddComponent<RectTransform>();
+            panelRect.anchorMin = new Vector2(0.5f, 0.5f);
+            panelRect.anchorMax = new Vector2(0.5f, 0.5f);
+            panelRect.anchoredPosition = Vector2.zero;
+            panelRect.sizeDelta = new Vector2(700, 900);
+
+            Image panelImage = panelObj.AddComponent<Image>();
+            panelImage.color = GameSceneDesignTokens.QuestPanelBg;
+
+            // Close button (top right)
+            GameObject closeBtn = new GameObject("CloseButton");
+            closeBtn.transform.SetParent(panelObj.transform, false);
+            RectTransform closeBtnRect = closeBtn.AddComponent<RectTransform>();
+            closeBtnRect.anchorMin = new Vector2(1f, 1f);
+            closeBtnRect.anchorMax = new Vector2(1f, 1f);
+            closeBtnRect.pivot = new Vector2(1f, 1f);
+            closeBtnRect.anchoredPosition = new Vector2(-20, -20);
+            closeBtnRect.sizeDelta = new Vector2(60, 60);
+
+            Image closeBtnImage = closeBtn.AddComponent<Image>();
+            closeBtnImage.color = new Color(0.8f, 0.2f, 0.2f, 1f);
+
+            Button closeBtnButton = closeBtn.AddComponent<Button>();
+
+            GameObject closeBtnText = new GameObject("Text");
+            closeBtnText.transform.SetParent(closeBtn.transform, false);
+            RectTransform closeBtnTextRect = closeBtnText.AddComponent<RectTransform>();
+            closeBtnTextRect.anchorMin = Vector2.zero;
+            closeBtnTextRect.anchorMax = Vector2.one;
+            closeBtnTextRect.offsetMin = Vector2.zero;
+            closeBtnTextRect.offsetMax = Vector2.zero;
+
+            Text closeBtnTextComponent = CreateText(closeBtnText, "X", 32, Color.white);
+            closeBtnTextComponent.fontStyle = FontStyle.Bold;
+
+            // Title
+            GameObject titleObj = new GameObject("Title");
+            titleObj.transform.SetParent(panelObj.transform, false);
+            RectTransform titleRect = titleObj.AddComponent<RectTransform>();
+            titleRect.anchorMin = new Vector2(0.5f, 1f);
+            titleRect.anchorMax = new Vector2(0.5f, 1f);
+            titleRect.pivot = new Vector2(0.5f, 1f);
+            titleRect.anchoredPosition = new Vector2(0, -30);
+            titleRect.sizeDelta = new Vector2(600, 50);
+
+            Text titleText = CreateText(titleObj, "히든 퀘스트", 40, new Color(1f, 0.85f, 0.3f));
+            titleText.fontStyle = FontStyle.Bold;
+
+            // Scroll content area
+            GameObject contentArea = new GameObject("ContentArea");
+            contentArea.transform.SetParent(panelObj.transform, false);
+            RectTransform contentRect = contentArea.AddComponent<RectTransform>();
+            contentRect.anchorMin = new Vector2(0, 0);
+            contentRect.anchorMax = new Vector2(1, 1);
+            contentRect.offsetMin = new Vector2(20, 20);
+            contentRect.offsetMax = new Vector2(-20, -100);
+
+            // Vertical layout for quest items
+            VerticalLayoutGroup vlg = contentArea.AddComponent<VerticalLayoutGroup>();
+            vlg.spacing = 10;
+            vlg.padding = new RectOffset(10, 10, 10, 10);
+            vlg.childForceExpandWidth = true;
+            vlg.childForceExpandHeight = false;
+            vlg.childControlWidth = true;
+            vlg.childControlHeight = false;
+            vlg.childAlignment = TextAnchor.UpperCenter;
+
+            // Content size fitter for scrolling
+            ContentSizeFitter csf = contentArea.AddComponent<ContentSizeFitter>();
+            csf.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+            // Add QuestUI component and wire references
+            QuestUI questUI = questObj.AddComponent<QuestUI>();
+            SetField(questUI, "questPanel", questObj);
+            SetField(questUI, "closeButton", closeBtnButton);
+            SetField(questUI, "contentParent", contentArea.transform);
+
+            // Start hidden
+            questObj.SetActive(false);
+        }
+
+        private void EnsureQuestButton()
+        {
+            // Ensure quest manager and UI exist first
+            EnsureQuestManager();
+            EnsureQuestUI();
+
+            // Button positioned below SynthesisGuideButton (top-right, below HUD)
+            GameObject btnObj = new GameObject("QuestButton");
+            btnObj.transform.SetParent(mainCanvas.transform, false);
+
+            float btnSize = GameSceneDesignTokens.UtilityButtonSize;
+            RectTransform btnRect = btnObj.AddComponent<RectTransform>();
+            btnRect.anchorMin = new Vector2(1, 1);
+            btnRect.anchorMax = new Vector2(1, 1);
+            btnRect.pivot = new Vector2(1, 1);
+            // Position below the synthesis guide button (guide is at HudHeight+8, this is at HudHeight+8+btnSize+8)
+            btnRect.anchoredPosition = new Vector2(-12, -(GameSceneDesignTokens.HudHeight + 8 + btnSize + 8));
+            btnRect.sizeDelta = new Vector2(btnSize, btnSize);
+
+            Image btnImage = btnObj.AddComponent<Image>();
+            btnImage.color = GameSceneDesignTokens.QuestBtnBg;
+
+            Button button = btnObj.AddComponent<Button>();
+            ColorBlock colors = button.colors;
+            colors.normalColor = Color.white;
+            colors.highlightedColor = new Color(1.1f, 1.1f, 1.1f, 1f);
+            colors.pressedColor = new Color(0.7f, 0.7f, 0.7f, 1f);
+            colors.fadeDuration = 0.1f;
+            button.colors = colors;
+
+            // Click handler - find QuestUI at click time (may be inactive)
+            button.onClick.AddListener(() => {
+                QuestUI questUI = FindFirstObjectByType<QuestUI>(FindObjectsInactive.Include);
+                if (questUI != null)
+                {
+                    questUI.Show();
+                }
+            });
+
+            // Button icon ("Q" for Quest)
+            GameObject textObj = new GameObject("Text");
+            textObj.transform.SetParent(btnObj.transform, false);
+            RectTransform textRect = textObj.AddComponent<RectTransform>();
+            textRect.anchorMin = Vector2.zero;
+            textRect.anchorMax = Vector2.one;
+            textRect.offsetMin = Vector2.zero;
+            textRect.offsetMax = Vector2.zero;
+
+            Text btnText = CreateText(textObj, "Q", 28, GameSceneDesignTokens.ButtonText);
+            btnText.fontStyle = FontStyle.Bold;
+
+            Outline outline = textObj.AddComponent<Outline>();
+            outline.effectColor = new Color(0, 0, 0, 0.5f);
+            outline.effectDistance = new Vector2(2, -2);
         }
         #endregion
 

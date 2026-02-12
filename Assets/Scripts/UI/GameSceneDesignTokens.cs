@@ -203,5 +203,34 @@ namespace LottoDefense.UI
         public const float SynthFloatBtnWidth = 100f;
         public const float SynthFloatBtnHeight = 44f;
         #endregion
+
+        #region Quest UI Colors
+        /// <summary>Quest panel background (dark navy).</summary>
+        public static readonly Color QuestPanelBg = new Color(0.1f, 0.12f, 0.18f, 0.95f);
+
+        /// <summary>Quest item hidden state background.</summary>
+        public static readonly Color QuestHiddenBg = new Color(0.15f, 0.16f, 0.22f, 0.9f);
+
+        /// <summary>Quest item completed state background.</summary>
+        public static readonly Color QuestCompletedBg = new Color(0.12f, 0.25f, 0.15f, 0.9f);
+
+        /// <summary>Quest item rewarded state background.</summary>
+        public static readonly Color QuestRewardedBg = new Color(0.18f, 0.18f, 0.22f, 0.7f);
+
+        /// <summary>Quest hidden text (dimmed).</summary>
+        public static readonly Color QuestHiddenText = new Color(0.55f, 0.55f, 0.6f, 1f);
+
+        /// <summary>Quest completed text (bright green).</summary>
+        public static readonly Color QuestCompletedText = new Color(0.3f, 1f, 0.5f, 1f);
+
+        /// <summary>Quest rewarded text (dimmed white).</summary>
+        public static readonly Color QuestRewardedText = new Color(0.6f, 0.6f, 0.65f, 1f);
+
+        /// <summary>Quest reward button background.</summary>
+        public static readonly Color QuestRewardBtnBg = new Color(0.9f, 0.7f, 0.1f, 1f);
+
+        /// <summary>Quest button background (purple-blue).</summary>
+        public static readonly Color QuestBtnBg = new Color(0.6f, 0.3f, 0.9f, 1f);
+        #endregion
     }
 }
