@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using LottoDefense.Monsters;
 using LottoDefense.UI;
+using LottoDefense.Networking;
 
 namespace LottoDefense.Gameplay
 {
@@ -130,6 +131,7 @@ namespace LottoDefense.Gameplay
         #region Private Fields
         private Coroutine phaseTimerCoroutine;
         private bool isInitialized = false;
+        private bool waitingForWaveSync = false;
         private GameHUD cachedGameHUD;
         private RoundStartUI cachedRoundStartUI;
         #endregion
@@ -162,6 +164,12 @@ namespace LottoDefense.Gameplay
             {
                 MonsterManager.Instance.OnRoundComplete += HandleMonsterRoundComplete;
             }
+
+            // Subscribe to multiplayer wave sync
+            if (MultiplayerManager.Instance != null)
+            {
+                MultiplayerManager.Instance.OnWaveSync += HandleWaveSync;
+            }
         }
 
         private void OnDisable()
@@ -176,6 +184,12 @@ namespace LottoDefense.Gameplay
             if (MonsterManager.Instance != null)
             {
                 MonsterManager.Instance.OnRoundComplete -= HandleMonsterRoundComplete;
+            }
+
+            // Unsubscribe from multiplayer wave sync
+            if (MultiplayerManager.Instance != null)
+            {
+                MultiplayerManager.Instance.OnWaveSync -= HandleWaveSync;
             }
         }
         #endregion
@@ -384,6 +398,15 @@ namespace LottoDefense.Gameplay
         }
 
         /// <summary>
+        /// Called when server sends wave sync signal in multiplayer mode.
+        /// </summary>
+        private void HandleWaveSync(int round)
+        {
+            Debug.Log($"[RoundManager] Wave sync received for round {round}");
+            waitingForWaveSync = false;
+        }
+
+        /// <summary>
         /// Called when MonsterManager reports all monsters are cleared.
         /// </summary>
         private void HandleMonsterRoundComplete()
@@ -447,10 +470,32 @@ namespace LottoDefense.Gameplay
 
         /// <summary>
         /// Brief pause before starting next round preparation.
+        /// In multiplayer mode, waits for server wave_sync signal.
         /// </summary>
         private IEnumerator TransitionToNextRound()
         {
             yield return new WaitForSeconds(2f); // 2 second pause
+
+            // In multiplayer mode, wait for wave sync from server
+            if (MultiplayerManager.Instance != null && MultiplayerManager.Instance.IsMultiplayer)
+            {
+                waitingForWaveSync = true;
+                Debug.Log("[RoundManager] Waiting for server wave sync...");
+
+                float waveSyncTimeout = 30f;
+                float elapsed = 0f;
+                while (waitingForWaveSync && elapsed < waveSyncTimeout)
+                {
+                    elapsed += Time.deltaTime;
+                    yield return null;
+                }
+
+                if (waitingForWaveSync)
+                {
+                    Debug.LogWarning("[RoundManager] Wave sync timeout - proceeding anyway");
+                    waitingForWaveSync = false;
+                }
+            }
 
             if (GameplayManager.Instance != null)
             {

@@ -140,6 +140,10 @@ namespace LottoDefense.Grid
             IsOccupied = true;
             OccupyingUnit = unit;
             SetVisualState(CellState.Occupied);
+
+            // Disable collider so Unit's OnMouseDown wins click detection
+            if (boxCollider != null)
+                boxCollider.enabled = false;
         }
 
         /// <summary>
@@ -150,6 +154,10 @@ namespace LottoDefense.Grid
             IsOccupied = false;
             OccupyingUnit = null;
             SetVisualState(CellState.Normal);
+
+            // Re-enable collider so GridCell receives clicks on empty cells
+            if (boxCollider != null)
+                boxCollider.enabled = true;
         }
         #endregion
     }

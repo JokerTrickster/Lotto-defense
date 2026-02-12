@@ -64,6 +64,11 @@ namespace LottoDefense.Units
         /// The placed unit currently selected for swapping.
         /// </summary>
         public Unit SelectedPlacedUnit { get; private set; }
+
+        /// <summary>
+        /// Empty cell selected as a move destination (tap empty cell first, then tap unit).
+        /// </summary>
+        private Vector2Int? pendingEmptyCell;
         #endregion
 
         #region Events
@@ -220,7 +225,7 @@ namespace LottoDefense.Units
         /// </summary>
         private void OnGridCellClicked(Vector2Int gridPos)
         {
-            // Case 1: Unit selected for movement
+            // Case 1: Unit already selected → move/swap to clicked cell
             if (SelectedPlacedUnit != null && GridManager.Instance != null)
             {
                 Unit occupant = GridManager.Instance.GetUnitAt(gridPos);
@@ -229,23 +234,38 @@ namespace LottoDefense.Units
                     // Move selected unit to empty cell
                     MoveUnitToPosition(SelectedPlacedUnit, gridPos);
                     DeselectPlacedUnit();
+                    ClearPendingEmptyCell();
                     return;
                 }
                 else if (occupant != SelectedPlacedUnit)
                 {
                     // Swap with occupant unit
                     SwapUnits(SelectedPlacedUnit, occupant);
+                    ClearPendingEmptyCell();
                     return;
                 }
                 else
                 {
                     // Clicked same unit's cell - deselect
                     DeselectPlacedUnit();
+                    ClearPendingEmptyCell();
                     return;
                 }
             }
 
-            // Case 2: New unit placement mode
+            // Case 2: Empty cell clicked with no unit selected → remember as pending destination
+            if (GridManager.Instance != null && !GridManager.Instance.IsOccupied(gridPos)
+                && GridManager.Instance.IsPlacementCell(gridPos))
+            {
+                // If not in placement mode, store as pending empty cell
+                if (!IsPlacementMode || SelectedUnitData == null)
+                {
+                    SetPendingEmptyCell(gridPos);
+                    return;
+                }
+            }
+
+            // Case 3: New unit placement mode
             if (!IsPlacementMode || SelectedUnitData == null)
                 return;
 
@@ -291,6 +311,16 @@ namespace LottoDefense.Units
         {
             if (clickedUnit == null)
                 return;
+
+            // If an empty cell was pre-selected, move this unit there immediately
+            if (pendingEmptyCell.HasValue)
+            {
+                Vector2Int target = pendingEmptyCell.Value;
+                ClearPendingEmptyCell();
+                MoveUnitToPosition(clickedUnit, target);
+                DeselectPlacedUnit();
+                return;
+            }
 
             // If another unit is already selected for movement, swap them
             if (SelectedPlacedUnit != null && SelectedPlacedUnit != clickedUnit)
@@ -429,6 +459,38 @@ namespace LottoDefense.Units
             SelectedPlacedUnit = unit;
             unit.Select();
             Debug.Log($"[UnitPlacementManager] Selected {unit.Data.GetDisplayName()} for movement/swapping");
+        }
+
+        /// <summary>
+        /// Store an empty cell as pending move destination and highlight it.
+        /// </summary>
+        private void SetPendingEmptyCell(Vector2Int pos)
+        {
+            ClearPendingEmptyCell();
+            pendingEmptyCell = pos;
+
+            GridCell cell = GridManager.Instance.GetCellAt(pos);
+            if (cell != null)
+            {
+                cell.SetVisualState(CellState.Selected);
+            }
+            Debug.Log($"[UnitPlacementManager] Pending empty cell set: {pos}");
+        }
+
+        /// <summary>
+        /// Clear the pending empty cell selection and reset its highlight.
+        /// </summary>
+        private void ClearPendingEmptyCell()
+        {
+            if (pendingEmptyCell.HasValue && GridManager.Instance != null)
+            {
+                GridCell cell = GridManager.Instance.GetCellAt(pendingEmptyCell.Value);
+                if (cell != null && !cell.IsOccupied)
+                {
+                    cell.SetVisualState(CellState.Normal);
+                }
+            }
+            pendingEmptyCell = null;
         }
 
         /// <summary>
@@ -580,6 +642,7 @@ namespace LottoDefense.Units
             SelectedUnitData = null;
             IsPlacementMode = false;
             DeselectPlacedUnit();
+            ClearPendingEmptyCell();
 
             OnPlacementModeExited?.Invoke();
         }

@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
 using LottoDefense.Quests;
+using LottoDefense.VFX;
 
 namespace LottoDefense.UI
 {
@@ -66,6 +67,8 @@ namespace LottoDefense.UI
         #region Private Methods
         private void OnQuestCompleted(QuestInstance quest)
         {
+            VFXManager.Instance?.ShowQuestCompletedEffect(quest.Definition.hintText);
+
             // If panel is visible, refresh it
             if (questPanel != null && questPanel.activeSelf)
                 RefreshQuestList();
@@ -222,8 +225,22 @@ namespace LottoDefense.UI
         private void OnClaimReward(string questId)
         {
             var questManager = QuestManager.Instance;
-            if (questManager != null && questManager.ClaimReward(questId))
+            if (questManager == null) return;
+
+            // Look up gold reward before claiming (state changes after claim)
+            int goldReward = 0;
+            foreach (var quest in questManager.Quests)
             {
+                if (quest.Definition.questId == questId && quest.State == QuestState.Completed)
+                {
+                    goldReward = quest.Definition.goldReward;
+                    break;
+                }
+            }
+
+            if (questManager.ClaimReward(questId))
+            {
+                VFXManager.Instance?.ShowRewardClaimedEffect(goldReward);
                 RefreshQuestList();
             }
         }

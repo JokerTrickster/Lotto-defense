@@ -8,6 +8,7 @@ using LottoDefense.Monsters;
 using LottoDefense.Units;
 using LottoDefense.VFX;
 using LottoDefense.Quests;
+using LottoDefense.Networking;
 
 namespace LottoDefense.Gameplay
 {
@@ -388,6 +389,7 @@ namespace LottoDefense.Gameplay
             DestroyIfExists<VFXManager>();
             DestroyIfExists<MobileOptimizationManager>();
             DestroyIfExists<QuestManager>();
+            DestroyIfExists<MultiplayerManager>();
             DestroyIfExists<GameSceneBootstrapper>();
 
             // Destroy GameCanvas if it exists (created by bootstrapper with sortingOrder 100)

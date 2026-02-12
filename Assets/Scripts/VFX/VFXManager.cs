@@ -681,5 +681,296 @@ namespace LottoDefense.VFX
             Destroy(ring);
         }
         #endregion
+
+        #region Quest Effects
+        /// <summary>
+        /// Show quest completed banner: slide down from top with gold background, pulse, then slide out.
+        /// </summary>
+        public void ShowQuestCompletedEffect(string hintText)
+        {
+            StartCoroutine(QuestCompletedRoutine(hintText));
+        }
+
+        private IEnumerator QuestCompletedRoutine(string hintText)
+        {
+            Debug.Log($"[VFXManager] Quest completed effect: {hintText}");
+
+            // Find GameCanvas
+            Canvas gameCanvas = null;
+            Canvas[] canvases = FindObjectsByType<Canvas>(FindObjectsSortMode.None);
+            foreach (Canvas c in canvases)
+            {
+                if (c.gameObject.name == "GameCanvas")
+                {
+                    gameCanvas = c;
+                    break;
+                }
+            }
+
+            if (gameCanvas == null) yield break;
+
+            // Banner container
+            GameObject banner = new GameObject("QuestCompletedBanner");
+            banner.transform.SetParent(gameCanvas.transform, false);
+            RectTransform bannerRect = banner.AddComponent<RectTransform>();
+            bannerRect.anchorMin = new Vector2(0, 1);
+            bannerRect.anchorMax = new Vector2(1, 1);
+            bannerRect.pivot = new Vector2(0.5f, 1f);
+            bannerRect.sizeDelta = new Vector2(0, 120);
+            bannerRect.anchoredPosition = new Vector2(0, 120); // Start above screen
+
+            // Gold background
+            Image bannerBg = banner.AddComponent<Image>();
+            bannerBg.color = new Color(1f, 0.84f, 0f, 0.9f);
+            bannerBg.raycastTarget = false;
+
+            // Title text: "퀘스트 달성!"
+            GameObject titleObj = new GameObject("TitleText");
+            titleObj.transform.SetParent(banner.transform, false);
+            RectTransform titleRect = titleObj.AddComponent<RectTransform>();
+            titleRect.anchorMin = new Vector2(0, 0.45f);
+            titleRect.anchorMax = new Vector2(1, 1);
+            titleRect.offsetMin = Vector2.zero;
+            titleRect.offsetMax = Vector2.zero;
+
+            Text titleText = titleObj.AddComponent<Text>();
+            titleText.text = "퀘스트 달성!";
+            titleText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            titleText.fontSize = 42;
+            titleText.fontStyle = FontStyle.Bold;
+            titleText.color = new Color(0.3f, 0.15f, 0f, 1f);
+            titleText.alignment = TextAnchor.MiddleCenter;
+            titleText.horizontalOverflow = HorizontalWrapMode.Overflow;
+            titleText.verticalOverflow = VerticalWrapMode.Overflow;
+            titleText.raycastTarget = false;
+
+            Outline titleOutline = titleObj.AddComponent<Outline>();
+            titleOutline.effectColor = new Color(1f, 1f, 1f, 0.5f);
+            titleOutline.effectDistance = new Vector2(2, -2);
+
+            // Hint text
+            GameObject hintObj = new GameObject("HintText");
+            hintObj.transform.SetParent(banner.transform, false);
+            RectTransform hintRect = hintObj.AddComponent<RectTransform>();
+            hintRect.anchorMin = new Vector2(0, 0);
+            hintRect.anchorMax = new Vector2(1, 0.45f);
+            hintRect.offsetMin = new Vector2(10, 0);
+            hintRect.offsetMax = new Vector2(-10, 0);
+
+            Text hintTextComp = hintObj.AddComponent<Text>();
+            hintTextComp.text = hintText;
+            hintTextComp.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            hintTextComp.fontSize = 26;
+            hintTextComp.color = new Color(0.4f, 0.2f, 0f, 1f);
+            hintTextComp.alignment = TextAnchor.MiddleCenter;
+            hintTextComp.horizontalOverflow = HorizontalWrapMode.Wrap;
+            hintTextComp.verticalOverflow = VerticalWrapMode.Overflow;
+            hintTextComp.raycastTarget = false;
+
+            // Camera shake setup
+            Camera mainCamera = Camera.main;
+            Vector3 originalCamPos = mainCamera != null ? mainCamera.transform.position : Vector3.zero;
+
+            // Phase 1: Slide down (0.3s) + light camera shake
+            float slideDuration = 0.3f;
+            float elapsed = 0f;
+            while (elapsed < slideDuration)
+            {
+                float t = elapsed / slideDuration;
+                float easeOut = 1f - (1f - t) * (1f - t); // ease-out quad
+                bannerRect.anchoredPosition = new Vector2(0, 120f * (1f - easeOut));
+
+                // Light camera shake
+                if (mainCamera != null)
+                {
+                    float shakeIntensity = 0.05f * (1f - t);
+                    float offsetX = Random.Range(-shakeIntensity, shakeIntensity);
+                    float offsetY = Random.Range(-shakeIntensity, shakeIntensity);
+                    mainCamera.transform.position = originalCamPos + new Vector3(offsetX, offsetY, 0f);
+                }
+
+                elapsed += Time.deltaTime;
+                yield return null;
+            }
+            bannerRect.anchoredPosition = Vector2.zero;
+            if (mainCamera != null) mainCamera.transform.position = originalCamPos;
+
+            // Phase 2: Hold + pulse (1.4s)
+            float holdDuration = 1.4f;
+            elapsed = 0f;
+            while (elapsed < holdDuration)
+            {
+                float pulse = 1f + Mathf.Sin(elapsed * 6f) * 0.05f;
+                titleObj.transform.localScale = Vector3.one * pulse;
+                elapsed += Time.deltaTime;
+                yield return null;
+            }
+
+            // Phase 3: Slide up out (0.3s)
+            float slideOutDuration = 0.3f;
+            elapsed = 0f;
+            while (elapsed < slideOutDuration)
+            {
+                float t = elapsed / slideOutDuration;
+                float easeIn = t * t; // ease-in quad
+                bannerRect.anchoredPosition = new Vector2(0, 120f * easeIn);
+                elapsed += Time.deltaTime;
+                yield return null;
+            }
+
+            Destroy(banner);
+        }
+
+        /// <summary>
+        /// Show reward claimed effect: gold flash + large gold text + expanding ring.
+        /// </summary>
+        public void ShowRewardClaimedEffect(int goldAmount)
+        {
+            StartCoroutine(RewardClaimedRoutine(goldAmount));
+        }
+
+        private IEnumerator RewardClaimedRoutine(int goldAmount)
+        {
+            Debug.Log($"[VFXManager] Reward claimed effect: +{goldAmount} gold");
+
+            // Find GameCanvas
+            Canvas gameCanvas = null;
+            Canvas[] canvases = FindObjectsByType<Canvas>(FindObjectsSortMode.None);
+            foreach (Canvas c in canvases)
+            {
+                if (c.gameObject.name == "GameCanvas")
+                {
+                    gameCanvas = c;
+                    break;
+                }
+            }
+
+            if (gameCanvas == null) yield break;
+
+            // Full-screen overlay for gold flash
+            GameObject overlay = new GameObject("RewardFlashOverlay");
+            overlay.transform.SetParent(gameCanvas.transform, false);
+            RectTransform overlayRect = overlay.AddComponent<RectTransform>();
+            overlayRect.anchorMin = Vector2.zero;
+            overlayRect.anchorMax = Vector2.one;
+            overlayRect.offsetMin = Vector2.zero;
+            overlayRect.offsetMax = Vector2.zero;
+
+            Image overlayImg = overlay.AddComponent<Image>();
+            overlayImg.color = new Color(1f, 0.84f, 0f, 0f);
+            overlayImg.raycastTarget = false;
+
+            // Gold text "+N Gold"
+            GameObject textObj = new GameObject("RewardText");
+            textObj.transform.SetParent(overlay.transform, false);
+            RectTransform textRect = textObj.AddComponent<RectTransform>();
+            textRect.anchorMin = new Vector2(0, 0.35f);
+            textRect.anchorMax = new Vector2(1, 0.65f);
+            textRect.offsetMin = Vector2.zero;
+            textRect.offsetMax = Vector2.zero;
+
+            Text rewardText = textObj.AddComponent<Text>();
+            rewardText.text = $"+{goldAmount} Gold";
+            rewardText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            rewardText.fontSize = 80;
+            rewardText.fontStyle = FontStyle.Bold;
+            rewardText.color = new Color(1f, 0.84f, 0f, 0f);
+            rewardText.alignment = TextAnchor.MiddleCenter;
+            rewardText.horizontalOverflow = HorizontalWrapMode.Overflow;
+            rewardText.verticalOverflow = VerticalWrapMode.Overflow;
+            rewardText.raycastTarget = false;
+
+            Outline textOutline = textObj.AddComponent<Outline>();
+            textOutline.effectColor = new Color(0.4f, 0.2f, 0f, 0.9f);
+            textOutline.effectDistance = new Vector2(3, -3);
+
+            // Expanding ring (UI-based)
+            GameObject ringObj = new GameObject("RewardRing");
+            ringObj.transform.SetParent(overlay.transform, false);
+            RectTransform ringRect = ringObj.AddComponent<RectTransform>();
+            ringRect.anchorMin = new Vector2(0.5f, 0.5f);
+            ringRect.anchorMax = new Vector2(0.5f, 0.5f);
+            ringRect.sizeDelta = new Vector2(100, 100);
+
+            Image ringImg = ringObj.AddComponent<Image>();
+            ringImg.raycastTarget = false;
+
+            // Create ring texture
+            Texture2D ringTex = new Texture2D(64, 64);
+            Color[] pixels = new Color[64 * 64];
+            Vector2 center = new Vector2(32, 32);
+            for (int y = 0; y < 64; y++)
+            {
+                for (int x = 0; x < 64; x++)
+                {
+                    float dist = Vector2.Distance(new Vector2(x, y), center);
+                    if (dist > 26f && dist < 31f)
+                        pixels[y * 64 + x] = Color.white;
+                    else
+                        pixels[y * 64 + x] = Color.clear;
+                }
+            }
+            ringTex.SetPixels(pixels);
+            ringTex.Apply();
+            ringTex.filterMode = FilterMode.Bilinear;
+
+            ringImg.sprite = Sprite.Create(ringTex, new Rect(0, 0, 64, 64), new Vector2(0.5f, 0.5f), 64f);
+            ringImg.color = new Color(1f, 0.84f, 0f, 1f);
+
+            // Phase 1: Gold flash in (0.15s) + text scale up + ring start
+            float flashInDuration = 0.15f;
+            float elapsed = 0f;
+            while (elapsed < flashInDuration)
+            {
+                float t = elapsed / flashInDuration;
+                overlayImg.color = new Color(1f, 0.84f, 0f, t * 0.4f);
+                rewardText.color = new Color(1f, 0.84f, 0f, t);
+                float textScale = 0.3f + t * 0.7f;
+                textObj.transform.localScale = Vector3.one * textScale;
+                elapsed += Time.deltaTime;
+                yield return null;
+            }
+
+            // Phase 2: Flash out + text hold + ring expand (0.6s)
+            float mainDuration = 0.6f;
+            elapsed = 0f;
+            Vector2 initialTextPos = textRect.anchoredPosition;
+            while (elapsed < mainDuration)
+            {
+                float t = elapsed / mainDuration;
+
+                // Flash fades out
+                float flashAlpha = 0.4f * (1f - Mathf.Clamp01(t / 0.5f));
+                overlayImg.color = new Color(1f, 0.84f, 0f, flashAlpha);
+
+                // Text moves up slightly and starts fading in second half
+                float moveUp = t * 60f;
+                textRect.anchoredPosition = initialTextPos + new Vector2(0, moveUp);
+                float textAlpha = t < 0.5f ? 1f : 1f - (t - 0.5f) * 2f;
+                rewardText.color = new Color(1f, 0.84f, 0f, textAlpha);
+
+                // Ring expands and fades
+                float ringScale = 1f + t * 4f;
+                ringObj.transform.localScale = Vector3.one * ringScale;
+                ringImg.color = new Color(1f, 0.84f, 0f, 1f - t);
+
+                elapsed += Time.deltaTime;
+                yield return null;
+            }
+
+            // Phase 3: Final fade out (0.15s)
+            float fadeOutDuration = 0.15f;
+            elapsed = 0f;
+            while (elapsed < fadeOutDuration)
+            {
+                float t = elapsed / fadeOutDuration;
+                rewardText.color = new Color(1f, 0.84f, 0f, Mathf.Max(0, (1f - t) * 0.3f));
+                elapsed += Time.deltaTime;
+                yield return null;
+            }
+
+            Destroy(overlay);
+        }
+        #endregion
     }
 }

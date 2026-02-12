@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
 using LottoDefense.Gameplay;
+using LottoDefense.Networking;
 
 namespace LottoDefense.UI
 {
@@ -24,6 +25,7 @@ namespace LottoDefense.UI
 
         #region Private Fields
         private bool isShowing = false;
+        private MatchResultPayload multiplayerResult;
         #endregion
 
         #region Unity Lifecycle
@@ -62,6 +64,12 @@ namespace LottoDefense.UI
             {
                 GameplayManager.Instance.OnStateChanged += HandleStateChanged;
             }
+
+            // Subscribe to multiplayer match results
+            if (MultiplayerManager.Instance != null)
+            {
+                MultiplayerManager.Instance.OnMatchResult += HandleMatchResult;
+            }
         }
 
         private void OnDestroy()
@@ -70,6 +78,12 @@ namespace LottoDefense.UI
             if (GameplayManager.Instance != null)
             {
                 GameplayManager.Instance.OnStateChanged -= HandleStateChanged;
+            }
+
+            // Unsubscribe from multiplayer match results
+            if (MultiplayerManager.Instance != null)
+            {
+                MultiplayerManager.Instance.OnMatchResult -= HandleMatchResult;
             }
         }
         #endregion
@@ -88,6 +102,12 @@ namespace LottoDefense.UI
             {
                 ShowResult(false);
             }
+        }
+
+        private void HandleMatchResult(MatchResultPayload result)
+        {
+            multiplayerResult = result;
+            ShowResult(result.isWinner);
         }
         #endregion
 
@@ -121,7 +141,16 @@ namespace LottoDefense.UI
 
             if (contributionText != null)
             {
-                contributionText.text = $"기여도: {contribution}점";
+                // Show multiplayer comparison if available
+                if (multiplayerResult != null)
+                {
+                    contributionText.text = $"나: R{multiplayerResult.myRound} ({multiplayerResult.myContribution}점)\n" +
+                                            $"상대: R{multiplayerResult.opponentRound} ({multiplayerResult.opponentContribution}점)";
+                }
+                else
+                {
+                    contributionText.text = $"기여도: {contribution}점";
+                }
             }
 
             if (confirmButtonText != null)

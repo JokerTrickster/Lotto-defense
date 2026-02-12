@@ -8,6 +8,7 @@ using LottoDefense.UI;
 using LottoDefense.Combat;
 using LottoDefense.VFX;
 using LottoDefense.Quests;
+using LottoDefense.Networking;
 
 namespace LottoDefense.Gameplay
 {
@@ -63,6 +64,7 @@ namespace LottoDefense.Gameplay
             EnsureSynthesisGuideButton();
             EnsureQuestButton();
             EnsureGameResultUI();
+            EnsureOpponentStatusUI();
 
             Debug.Log("[GameSceneBootstrapper] Game scene initialization complete");
         }
@@ -1673,6 +1675,21 @@ namespace LottoDefense.Gameplay
             Outline outline = textObj.AddComponent<Outline>();
             outline.effectColor = new Color(0, 0, 0, 0.5f);
             outline.effectDistance = new Vector2(2, -2);
+        }
+        #endregion
+
+        #region Opponent Status UI (Multiplayer)
+        private void EnsureOpponentStatusUI()
+        {
+            // Only create in multiplayer mode
+            if (MultiplayerManager.Instance == null || !MultiplayerManager.Instance.IsMultiplayer)
+                return;
+
+            if (FindFirstObjectByType<OpponentStatusUI>() != null)
+                return;
+
+            OpponentStatusUI.CreateOnCanvas(mainCanvas, defaultFont);
+            Debug.Log("[GameSceneBootstrapper] Created OpponentStatusUI for multiplayer");
         }
         #endregion
 

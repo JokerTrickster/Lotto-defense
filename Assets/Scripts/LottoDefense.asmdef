@@ -2,7 +2,8 @@
     "name": "LottoDefense",
     "rootNamespace": "LottoDefense",
     "references": [
-        "Unity.TextMeshPro"
+        "Unity.TextMeshPro",
+        "endel.nativewebsocket"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
