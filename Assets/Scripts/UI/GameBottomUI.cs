@@ -70,6 +70,11 @@ namespace LottoDefense.UI
                 synthesisButton.onClick.AddListener(OnSynthesisButtonClicked);
         }
 
+        private void Start()
+        {
+            EnsureListeners();
+        }
+
         private void OnDestroy()
         {
             if (GameplayManager.Instance != null)
