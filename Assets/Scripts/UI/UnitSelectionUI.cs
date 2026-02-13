@@ -5,6 +5,7 @@ using UnityEngine.EventSystems;
 using LottoDefense.Units;
 using LottoDefense.Gameplay;
 using LottoDefense.Grid;
+using System.Collections;
 
 namespace LottoDefense.UI
 {
@@ -40,23 +41,13 @@ namespace LottoDefense.UI
         private void Update()
         {
             // Dismiss panel when clicking empty space
+            // Use delayed dismiss to avoid Android timing bug where
+            // IsPointerOverGameObject is unreliable on touch-begin frame
             if (Input.GetMouseButtonDown(0) && selectionPanel != null && selectionPanel.activeSelf)
             {
-                // Check if pointer is over any UI element (mobile-safe)
-                if (IsPointerOverUI())
-                    return;
-
-                Vector2 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-                RaycastHit2D hit = Physics2D.Raycast(mousePos, Vector2.zero);
-
-                if (hit.collider != null)
-                {
-                    Unit clickedUnit = hit.collider.GetComponent<Unit>();
-                    if (clickedUnit != null)
-                        return;
-                }
-
-                HideUI();
+                // Capture touch position NOW (might not be available next frame)
+                Vector2 touchPos = Input.touchCount > 0 ? Input.GetTouch(0).position : (Vector2)Input.mousePosition;
+                StartCoroutine(DelayedDismissCheck(touchPos));
             }
 
             // Track selected unit position each frame
@@ -211,21 +202,47 @@ namespace LottoDefense.UI
 
         #region Helper Methods
         /// <summary>
-        /// Mobile-safe check for pointer over UI.
-        /// IsPointerOverGameObject() without fingerId is unreliable on mobile.
+        /// Delayed dismiss check. Waits one frame so EventSystem has processed the touch,
+        /// then checks if the touch was over a UI element or a unit.
+        /// This fixes Android bug where IsPointerOverGameObject is unreliable on touch-begin frame.
         /// </summary>
-        private bool IsPointerOverUI()
+        private IEnumerator DelayedDismissCheck(Vector2 touchScreenPos)
         {
-            if (EventSystem.current == null) return false;
+            // Wait one frame for EventSystem to process the touch
+            yield return null;
 
-            // Mobile touch: use fingerId for reliable detection
-            if (Input.touchCount > 0)
+            // Panel might have been hidden by button handler already
+            if (selectionPanel == null || !selectionPanel.activeSelf)
+                yield break;
+
+            // Check if pointer is over UI using immediate raycast (reliable after 1 frame)
+            if (EventSystem.current != null)
             {
-                return EventSystem.current.IsPointerOverGameObject(Input.GetTouch(0).fingerId);
+                PointerEventData eventData = new PointerEventData(EventSystem.current);
+                eventData.position = touchScreenPos;
+
+                List<RaycastResult> results = new List<RaycastResult>();
+                EventSystem.current.RaycastAll(eventData, results);
+
+                if (results.Count > 0)
+                    yield break; // Touch was on UI, don't dismiss
             }
 
-            // Desktop mouse
-            return EventSystem.current.IsPointerOverGameObject();
+            // Check if a unit was tapped
+            if (Camera.main != null)
+            {
+                Vector2 worldPos = Camera.main.ScreenToWorldPoint(touchScreenPos);
+                RaycastHit2D hit = Physics2D.Raycast(worldPos, Vector2.zero);
+
+                if (hit.collider != null)
+                {
+                    Unit clickedUnit = hit.collider.GetComponent<Unit>();
+                    if (clickedUnit != null)
+                        yield break; // Tapped a unit, don't dismiss
+                }
+            }
+
+            HideUI();
         }
 
         private void PositionPanelNearUnit(Unit unit)

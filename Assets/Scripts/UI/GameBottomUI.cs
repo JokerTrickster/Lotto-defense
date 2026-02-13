@@ -53,21 +53,30 @@ namespace LottoDefense.UI
             }
         }
 
-        private void EnsureListeners()
+        /// <summary>
+        /// Wire button onClick listeners. Can be called externally from bootstrapper.
+        /// </summary>
+        public void EnsureListeners()
         {
             if (listenersInitialized) return;
+
+            // Don't mark as initialized if button references haven't been injected yet
+            if (attackUpgradeButton == null && sellButton == null && autoSynthesisButton == null)
+            {
+                Debug.LogWarning("[GameBottomUI] EnsureListeners called but all button refs are null - skipping");
+                return;
+            }
+
             listenersInitialized = true;
 
-            if (autoSynthesisButton != null)
-                autoSynthesisButton.onClick.AddListener(OnAutoSynthesisClicked);
-            if (attackUpgradeButton != null)
-                attackUpgradeButton.onClick.AddListener(OnAttackUpgradeClicked);
-            if (attackSpeedUpgradeButton != null)
-                attackSpeedUpgradeButton.onClick.AddListener(OnAttackSpeedUpgradeClicked);
-            if (sellButton != null)
-                sellButton.onClick.AddListener(OnSellButtonClicked);
-            if (synthesisButton != null)
-                synthesisButton.onClick.AddListener(OnSynthesisButtonClicked);
+            int count = 0;
+            if (autoSynthesisButton != null) { autoSynthesisButton.onClick.AddListener(OnAutoSynthesisClicked); count++; }
+            if (attackUpgradeButton != null) { attackUpgradeButton.onClick.AddListener(OnAttackUpgradeClicked); count++; }
+            if (attackSpeedUpgradeButton != null) { attackSpeedUpgradeButton.onClick.AddListener(OnAttackSpeedUpgradeClicked); count++; }
+            if (sellButton != null) { sellButton.onClick.AddListener(OnSellButtonClicked); count++; }
+            if (synthesisButton != null) { synthesisButton.onClick.AddListener(OnSynthesisButtonClicked); count++; }
+
+            Debug.Log($"[GameBottomUI] Wired {count} button listeners");
         }
 
         private void Start()
@@ -116,6 +125,7 @@ namespace LottoDefense.UI
         public void SetSelectedUnit(Unit unit)
         {
             selectedUnit = unit;
+            Debug.Log($"[GameBottomUI] SetSelectedUnit: {(unit != null ? unit.Data.GetDisplayName() : "NULL")}");
             UpdateButtonStates();
         }
         #endregion
@@ -146,6 +156,7 @@ namespace LottoDefense.UI
 
         private void OnAttackUpgradeClicked()
         {
+            Debug.Log($"[GameBottomUI] Attack upgrade button clicked! selectedUnit={(selectedUnit != null ? selectedUnit.Data.GetDisplayName() : "NULL")}");
             if (selectedUnit == null) return;
 
             if (UnitUpgradeManager.Instance != null)
@@ -162,6 +173,7 @@ namespace LottoDefense.UI
 
         private void OnAttackSpeedUpgradeClicked()
         {
+            Debug.Log($"[GameBottomUI] Attack speed upgrade button clicked! selectedUnit={(selectedUnit != null ? selectedUnit.Data.GetDisplayName() : "NULL")}");
             if (selectedUnit == null) return;
 
             if (UnitUpgradeManager.Instance != null)
@@ -178,6 +190,7 @@ namespace LottoDefense.UI
 
         private void OnSellButtonClicked()
         {
+            Debug.Log($"[GameBottomUI] Sell button clicked! selectedUnit={(selectedUnit != null ? selectedUnit.Data.GetDisplayName() : "NULL")}");
             if (selectedUnit == null || balanceConfig == null) return;
 
             int sellPrice = balanceConfig.GetSellGold(selectedUnit.Data.rarity);

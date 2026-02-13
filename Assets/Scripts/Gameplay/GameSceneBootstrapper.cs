@@ -559,6 +559,10 @@ namespace LottoDefense.Gameplay
 
             bottomPanelObj.SetActive(true);
 
+            // Explicitly wire button listeners NOW (after all SetField calls)
+            // This ensures listeners are registered even if Start() timing is wrong
+            component.EnsureListeners();
+
             Debug.Log("[GameSceneBootstrapper] Created GameBottomUI with 2-row layout");
         }
 
