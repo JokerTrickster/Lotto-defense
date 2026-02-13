@@ -62,7 +62,6 @@ namespace LottoDefense.Gameplay
             EnsureUnitSelectionUI();
             EnsureGameBottomUI();
             EnsureGameHUD();
-            EnsureSummonButton();
             EnsureSynthesisGuideButton();
             EnsureQuestButton();
             EnsureGameResultUI();
@@ -387,7 +386,7 @@ namespace LottoDefense.Gameplay
             GameObject containerObj = new GameObject("UnitSelectionUIContainer");
             containerObj.transform.SetParent(mainCanvas.transform, false);
 
-            // Simple floating name label panel (sell/synthesis moved to GameBottomUI)
+            // Floating name tag panel above unit
             GameObject selectionPanelObj = new GameObject("UnitSelectionPanel");
             selectionPanelObj.transform.SetParent(mainCanvas.transform, false);
 
@@ -395,7 +394,7 @@ namespace LottoDefense.Gameplay
             panelRect.anchorMin = Vector2.zero;
             panelRect.anchorMax = Vector2.zero;
             panelRect.pivot = new Vector2(0.5f, 0f);
-            panelRect.sizeDelta = new Vector2(220f, 50f);
+            panelRect.sizeDelta = new Vector2(180f, 35f);
 
             // Dark background with gold border
             Image panelBg = selectionPanelObj.AddComponent<Image>();
@@ -405,22 +404,21 @@ namespace LottoDefense.Gameplay
             panelOutline.effectColor = GameSceneDesignTokens.SelectionPanelBorder;
             panelOutline.effectDistance = new Vector2(2, -2);
 
-            // Unit name text
+            // Unit name only (stats moved to bottom panel UnitInfoPanel)
             GameObject unitNameObj = new GameObject("UnitNameText");
             unitNameObj.transform.SetParent(selectionPanelObj.transform, false);
-
             RectTransform nameRect = unitNameObj.AddComponent<RectTransform>();
             nameRect.anchorMin = Vector2.zero;
             nameRect.anchorMax = Vector2.one;
-            nameRect.offsetMin = new Vector2(8, 4);
-            nameRect.offsetMax = new Vector2(-8, -4);
+            nameRect.offsetMin = new Vector2(8, 2);
+            nameRect.offsetMax = new Vector2(-8, -2);
 
-            Text unitNameText = CreateText(unitNameObj, "\uC720\uB2DB", 24, GameSceneDesignTokens.GoldColor);
+            Text unitNameText = CreateText(unitNameObj, "\uC720\uB2DB", 18, GameSceneDesignTokens.GoldColor);
             unitNameText.alignment = TextAnchor.MiddleCenter;
             unitNameText.fontStyle = FontStyle.Bold;
             unitNameText.resizeTextForBestFit = true;
-            unitNameText.resizeTextMinSize = 18;
-            unitNameText.resizeTextMaxSize = 24;
+            unitNameText.resizeTextMinSize = 14;
+            unitNameText.resizeTextMaxSize = 18;
 
             Outline nameOutline = unitNameObj.AddComponent<Outline>();
             nameOutline.effectColor = new Color(0f, 0f, 0f, 0.5f);
@@ -434,7 +432,27 @@ namespace LottoDefense.Gameplay
             // Start panel hidden (container stays active)
             selectionPanelObj.SetActive(false);
 
-            Debug.Log("[GameSceneBootstrapper] Created UnitSelectionUI with name label");
+            Debug.Log("[GameSceneBootstrapper] Created UnitSelectionUI with floating name tag");
+        }
+
+        /// <summary>
+        /// Create a compact stat text for the unit info panel row.
+        /// Returns the Text component for dynamic updates.
+        /// </summary>
+        private Text CreateInfoStatText(Transform parent, string placeholder)
+        {
+            GameObject obj = new GameObject($"Info_{placeholder}");
+            obj.transform.SetParent(parent, false);
+
+            Text t = CreateText(obj, placeholder, GameSceneDesignTokens.UnitInfoDetailSize, Color.white);
+            t.alignment = TextAnchor.MiddleLeft;
+            t.fontStyle = FontStyle.Bold;
+            t.supportRichText = true;
+            t.resizeTextForBestFit = true;
+            t.resizeTextMinSize = 11;
+            t.resizeTextMaxSize = GameSceneDesignTokens.UnitInfoDetailSize;
+
+            return t;
         }
         #endregion
 
@@ -444,7 +462,10 @@ namespace LottoDefense.Gameplay
             GameBottomUI bottomUI = FindFirstObjectByType<GameBottomUI>();
             if (bottomUI != null) return;
 
-            // Bottom panel with 2-row layout: top row (sell/synthesis), bottom row (auto-synth/upgrades)
+            float panelH = GameSceneDesignTokens.CommandPanelHeight;
+            float btnH = GameSceneDesignTokens.CommandButtonHeight;
+
+            // --- Root panel: fixed at bottom, h=200 ---
             GameObject bottomPanelObj = new GameObject("GameBottomUI");
             bottomPanelObj.transform.SetParent(mainCanvas.transform, false);
 
@@ -452,144 +473,351 @@ namespace LottoDefense.Gameplay
             panelRect.anchorMin = new Vector2(0, 0);
             panelRect.anchorMax = new Vector2(1, 0);
             panelRect.pivot = new Vector2(0.5f, 0);
-            panelRect.anchoredPosition = new Vector2(0, 16 + GameSceneDesignTokens.SummonButtonHeight + 12);
-            panelRect.sizeDelta = new Vector2(-20, 0);
+            panelRect.anchoredPosition = Vector2.zero;
+            panelRect.sizeDelta = new Vector2(0, panelH);
 
-            // Dark panel background
             Image panelBg = bottomPanelObj.AddComponent<Image>();
             panelBg.color = new Color(0.04f, 0.05f, 0.08f, 0.94f);
 
-            // Subtle border
             Outline panelOutline = bottomPanelObj.AddComponent<Outline>();
             panelOutline.effectColor = new Color(0.3f, 0.35f, 0.45f, 0.5f);
-            panelOutline.effectDistance = new Vector2(2, -2);
+            panelOutline.effectDistance = new Vector2(0, 2);
 
-            Shadow panelShadow = bottomPanelObj.AddComponent<Shadow>();
-            panelShadow.effectColor = new Color(0f, 0f, 0f, 0.4f);
-            panelShadow.effectDistance = new Vector2(0, -3);
+            // HorizontalLayoutGroup for 2-column split
+            HorizontalLayoutGroup hLayout = bottomPanelObj.AddComponent<HorizontalLayoutGroup>();
+            hLayout.padding = new RectOffset(8, 8, 6, 6);
+            hLayout.spacing = 8;
+            hLayout.childControlWidth = true;
+            hLayout.childControlHeight = true;
+            hLayout.childForceExpandWidth = true;
+            hLayout.childForceExpandHeight = true;
 
-            // Auto-size height based on visible rows
-            ContentSizeFitter csf = bottomPanelObj.AddComponent<ContentSizeFitter>();
-            csf.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+            // ========== LEFT COLUMN (35%): Unit Info ==========
+            GameObject leftCol = new GameObject("LeftColumn");
+            leftCol.transform.SetParent(bottomPanelObj.transform, false);
 
-            // Vertical layout for 2 rows
-            VerticalLayoutGroup vlayout = bottomPanelObj.AddComponent<VerticalLayoutGroup>();
-            vlayout.padding = new RectOffset(12, 12, 8, 8);
-            vlayout.spacing = 8;
-            vlayout.childControlWidth = true;
-            vlayout.childControlHeight = true;
-            vlayout.childForceExpandWidth = true;
-            vlayout.childForceExpandHeight = false;
+            LayoutElement leftLE = leftCol.AddComponent<LayoutElement>();
+            leftLE.flexibleWidth = 0.35f;
 
-            // --- Top row: Sell + Synthesis (hidden until unit selected) ---
-            GameObject topRowObj = new GameObject("TopRow");
-            topRowObj.transform.SetParent(bottomPanelObj.transform, false);
+            // The UnitInfoPanel lives here (always visible, toggles internal state)
+            // Add background for left column
+            Image leftBg = leftCol.AddComponent<Image>();
+            leftBg.color = new Color(0.06f, 0.08f, 0.12f, 0.6f);
+            leftBg.raycastTarget = false;
 
-            LayoutElement topRowLayout = topRowObj.AddComponent<LayoutElement>();
-            topRowLayout.preferredHeight = 80;
+            // --- statsContainer: visible when unit selected ---
+            GameObject statsContainer = new GameObject("StatsContainer");
+            statsContainer.transform.SetParent(leftCol.transform, false);
+            RectTransform statsContainerRect = statsContainer.AddComponent<RectTransform>();
+            statsContainerRect.anchorMin = Vector2.zero;
+            statsContainerRect.anchorMax = Vector2.one;
+            statsContainerRect.offsetMin = new Vector2(6, 4);
+            statsContainerRect.offsetMax = new Vector2(-6, -4);
 
-            HorizontalLayoutGroup topHLayout = topRowObj.AddComponent<HorizontalLayoutGroup>();
-            topHLayout.spacing = 12;
-            topHLayout.childControlWidth = true;
-            topHLayout.childControlHeight = true;
-            topHLayout.childForceExpandWidth = true;
-            topHLayout.childForceExpandHeight = true;
+            HorizontalLayoutGroup statsHLayout = statsContainer.AddComponent<HorizontalLayoutGroup>();
+            statsHLayout.spacing = 8;
+            statsHLayout.padding = new RectOffset(4, 4, 2, 2);
+            statsHLayout.childControlWidth = false;
+            statsHLayout.childControlHeight = true;
+            statsHLayout.childForceExpandWidth = false;
+            statsHLayout.childForceExpandHeight = true;
 
-            // Sell button (red)
-            GameObject sellBtnObj = CreateGameButton(topRowObj.transform, "SellButton",
+            // Portrait
+            GameObject portraitObj = new GameObject("Portrait");
+            portraitObj.transform.SetParent(statsContainer.transform, false);
+            LayoutElement portraitLE = portraitObj.AddComponent<LayoutElement>();
+            portraitLE.preferredWidth = 70;
+            portraitLE.preferredHeight = 70;
+
+            Image portraitBg = portraitObj.AddComponent<Image>();
+            portraitBg.color = new Color(0.12f, 0.14f, 0.2f, 0.85f);
+            portraitBg.raycastTarget = false;
+
+            Outline portraitOutline = portraitObj.AddComponent<Outline>();
+            portraitOutline.effectColor = new Color(0.5f, 0.5f, 0.6f, 0.6f);
+            portraitOutline.effectDistance = new Vector2(1, -1);
+
+            GameObject portraitCircleObj = new GameObject("PortraitCircle");
+            portraitCircleObj.transform.SetParent(portraitObj.transform, false);
+            RectTransform circleRect = portraitCircleObj.AddComponent<RectTransform>();
+            circleRect.anchorMin = new Vector2(0.1f, 0.1f);
+            circleRect.anchorMax = new Vector2(0.9f, 0.9f);
+            circleRect.offsetMin = Vector2.zero;
+            circleRect.offsetMax = Vector2.zero;
+
+            Image portraitImage = portraitCircleObj.AddComponent<Image>();
+            portraitImage.sprite = UnitData.CreateCircleSprite(64);
+            portraitImage.color = Color.white;
+            portraitImage.raycastTarget = false;
+
+            // Stats area (right of portrait)
+            GameObject statsAreaObj = new GameObject("StatsArea");
+            statsAreaObj.transform.SetParent(statsContainer.transform, false);
+            LayoutElement statsLE = statsAreaObj.AddComponent<LayoutElement>();
+            statsLE.flexibleWidth = 1f;
+
+            VerticalLayoutGroup statsVLayout = statsAreaObj.AddComponent<VerticalLayoutGroup>();
+            statsVLayout.spacing = 1f;
+            statsVLayout.childControlWidth = true;
+            statsVLayout.childControlHeight = true;
+            statsVLayout.childForceExpandWidth = true;
+            statsVLayout.childForceExpandHeight = false;
+
+            // Name row
+            GameObject nameRowObj = new GameObject("InfoNameRow");
+            nameRowObj.transform.SetParent(statsAreaObj.transform, false);
+            LayoutElement nameRowLE = nameRowObj.AddComponent<LayoutElement>();
+            nameRowLE.preferredHeight = 24f;
+
+            Text infoNameText = CreateText(nameRowObj, "", GameSceneDesignTokens.UnitInfoNameSize, Color.white);
+            infoNameText.alignment = TextAnchor.MiddleLeft;
+            infoNameText.fontStyle = FontStyle.Bold;
+            infoNameText.resizeTextForBestFit = true;
+            infoNameText.resizeTextMinSize = 12;
+            infoNameText.resizeTextMaxSize = GameSceneDesignTokens.UnitInfoNameSize;
+
+            // ATK | SPD | RNG
+            GameObject statsRow1Obj = new GameObject("StatsRow1");
+            statsRow1Obj.transform.SetParent(statsAreaObj.transform, false);
+            LayoutElement statsRow1LE = statsRow1Obj.AddComponent<LayoutElement>();
+            statsRow1LE.preferredHeight = 20f;
+
+            HorizontalLayoutGroup statsRow1H = statsRow1Obj.AddComponent<HorizontalLayoutGroup>();
+            statsRow1H.spacing = 6f;
+            statsRow1H.childControlWidth = true;
+            statsRow1H.childControlHeight = true;
+            statsRow1H.childForceExpandWidth = true;
+            statsRow1H.childForceExpandHeight = true;
+
+            Text infoAtkText = CreateInfoStatText(statsRow1Obj.transform, "ATK");
+            infoAtkText.color = GameSceneDesignTokens.UnitInfoAttack;
+            Text infoSpdText = CreateInfoStatText(statsRow1Obj.transform, "SPD");
+            infoSpdText.color = GameSceneDesignTokens.UnitInfoSpeed;
+            Text infoRngText = CreateInfoStatText(statsRow1Obj.transform, "RNG");
+            infoRngText.color = GameSceneDesignTokens.UnitInfoRange;
+
+            // TYPE | DEF
+            GameObject statsRow2Obj = new GameObject("StatsRow2");
+            statsRow2Obj.transform.SetParent(statsAreaObj.transform, false);
+            LayoutElement statsRow2LE = statsRow2Obj.AddComponent<LayoutElement>();
+            statsRow2LE.preferredHeight = 20f;
+
+            HorizontalLayoutGroup statsRow2H = statsRow2Obj.AddComponent<HorizontalLayoutGroup>();
+            statsRow2H.spacing = 6f;
+            statsRow2H.childControlWidth = true;
+            statsRow2H.childControlHeight = true;
+            statsRow2H.childForceExpandWidth = true;
+            statsRow2H.childForceExpandHeight = true;
+
+            Text infoPatternText = CreateInfoStatText(statsRow2Obj.transform, "TYPE");
+            infoPatternText.color = GameSceneDesignTokens.UnitInfoPatternColor;
+            Text infoDefText = CreateInfoStatText(statsRow2Obj.transform, "DEF");
+            infoDefText.color = GameSceneDesignTokens.UnitInfoDefense;
+
+            // SKILL + Mana bar
+            GameObject skillRowObj = new GameObject("SkillRow");
+            skillRowObj.transform.SetParent(statsAreaObj.transform, false);
+            LayoutElement skillRowLE = skillRowObj.AddComponent<LayoutElement>();
+            skillRowLE.preferredHeight = 22f;
+
+            HorizontalLayoutGroup skillRowH = skillRowObj.AddComponent<HorizontalLayoutGroup>();
+            skillRowH.spacing = 4f;
+            skillRowH.childControlWidth = false;
+            skillRowH.childControlHeight = true;
+            skillRowH.childForceExpandWidth = false;
+            skillRowH.childForceExpandHeight = true;
+
+            GameObject skillTextObj = new GameObject("SkillText");
+            skillTextObj.transform.SetParent(skillRowObj.transform, false);
+            LayoutElement skillTextLE = skillTextObj.AddComponent<LayoutElement>();
+            skillTextLE.preferredWidth = 120f;
+
+            Text infoSkillText = CreateText(skillTextObj, "", 13, GameSceneDesignTokens.UnitInfoSkillColor);
+            infoSkillText.alignment = TextAnchor.MiddleLeft;
+            infoSkillText.resizeTextForBestFit = true;
+            infoSkillText.resizeTextMinSize = 10;
+            infoSkillText.resizeTextMaxSize = 13;
+            infoSkillText.supportRichText = true;
+
+            GameObject manaContainerObj = new GameObject("ManaBarContainer");
+            manaContainerObj.transform.SetParent(skillRowObj.transform, false);
+            LayoutElement manaContainerLE = manaContainerObj.AddComponent<LayoutElement>();
+            manaContainerLE.preferredWidth = 80f;
+            manaContainerLE.preferredHeight = 14f;
+
+            Image manaBarBgImg = manaContainerObj.AddComponent<Image>();
+            manaBarBgImg.color = GameSceneDesignTokens.ManaBarBg;
+            manaBarBgImg.raycastTarget = false;
+
+            Outline manaBarOutline = manaContainerObj.AddComponent<Outline>();
+            manaBarOutline.effectColor = new Color(0.3f, 0.4f, 0.6f, 0.5f);
+            manaBarOutline.effectDistance = new Vector2(1, -1);
+
+            GameObject manaFillObj = new GameObject("ManaBarFill");
+            manaFillObj.transform.SetParent(manaContainerObj.transform, false);
+            RectTransform manaFillRect = manaFillObj.AddComponent<RectTransform>();
+            manaFillRect.anchorMin = Vector2.zero;
+            manaFillRect.anchorMax = Vector2.one;
+            manaFillRect.offsetMin = new Vector2(2, 2);
+            manaFillRect.offsetMax = new Vector2(-2, -2);
+
+            Image manaFillImg = manaFillObj.AddComponent<Image>();
+            manaFillImg.color = GameSceneDesignTokens.ManaBarFill;
+            manaFillImg.type = Image.Type.Filled;
+            manaFillImg.fillMethod = Image.FillMethod.Horizontal;
+            manaFillImg.fillAmount = 0f;
+            manaFillImg.raycastTarget = false;
+
+            // --- emptyStateText: visible when no unit selected ---
+            GameObject emptyStateObj = new GameObject("EmptyStateText");
+            emptyStateObj.transform.SetParent(leftCol.transform, false);
+            RectTransform emptyRect = emptyStateObj.AddComponent<RectTransform>();
+            emptyRect.anchorMin = Vector2.zero;
+            emptyRect.anchorMax = Vector2.one;
+            emptyRect.offsetMin = Vector2.zero;
+            emptyRect.offsetMax = Vector2.zero;
+
+            Text emptyText = CreateText(emptyStateObj, "\uC720\uB2DB\uC744 \uC120\uD0DD\uD558\uC138\uC694", 16, new Color(0.5f, 0.5f, 0.55f, 0.8f));
+            emptyText.alignment = TextAnchor.MiddleCenter;
+
+            // Add UnitInfoPanel component to leftCol
+            UnitInfoPanel infoPanel = leftCol.AddComponent<UnitInfoPanel>();
+            SetField(infoPanel, "portraitImage", portraitImage);
+            SetField(infoPanel, "unitNameText", infoNameText);
+            SetField(infoPanel, "attackText", infoAtkText);
+            SetField(infoPanel, "speedText", infoSpdText);
+            SetField(infoPanel, "rangeText", infoRngText);
+            SetField(infoPanel, "patternText", infoPatternText);
+            SetField(infoPanel, "defenseText", infoDefText);
+            SetField(infoPanel, "skillText", infoSkillText);
+            SetField(infoPanel, "manaBarFill", manaFillImg);
+            SetField(infoPanel, "manaBarContainer", manaContainerObj);
+            SetField(infoPanel, "statsContainer", statsContainer);
+            SetField(infoPanel, "emptyStateText", emptyText);
+
+            // Start in empty state
+            statsContainer.SetActive(false);
+            emptyStateObj.SetActive(true);
+
+            // ========== RIGHT COLUMN (65%): 3x2 Button Grid ==========
+            GameObject rightCol = new GameObject("RightColumn");
+            rightCol.transform.SetParent(bottomPanelObj.transform, false);
+
+            LayoutElement rightLE = rightCol.AddComponent<LayoutElement>();
+            rightLE.flexibleWidth = 0.65f;
+
+            // 2 rows of 3 buttons each (adapts to screen width)
+            VerticalLayoutGroup rightVLayout = rightCol.AddComponent<VerticalLayoutGroup>();
+            rightVLayout.spacing = 6;
+            rightVLayout.padding = new RectOffset(4, 4, 4, 4);
+            rightVLayout.childControlWidth = true;
+            rightVLayout.childControlHeight = true;
+            rightVLayout.childForceExpandWidth = true;
+            rightVLayout.childForceExpandHeight = true;
+
+            // Row 1: Summon | Auto Synth | Sell
+            GameObject row1 = new GameObject("ButtonRow1");
+            row1.transform.SetParent(rightCol.transform, false);
+            HorizontalLayoutGroup row1H = row1.AddComponent<HorizontalLayoutGroup>();
+            row1H.spacing = 6;
+            row1H.childControlWidth = true;
+            row1H.childControlHeight = true;
+            row1H.childForceExpandWidth = true;
+            row1H.childForceExpandHeight = true;
+
+            GameObject summonBtnObj = CreateCommandButton(row1.transform, "SummonButton",
+                "\uC18C\uD658 5G", GameSceneDesignTokens.SummonButtonBg, GameSceneDesignTokens.SummonButtonBorder);
+            Button summonBtn = summonBtnObj.GetComponent<Button>();
+            Text summonBtnText = summonBtnObj.GetComponentInChildren<Text>();
+            summonBtnText.supportRichText = true;
+
+            GameObject autoSynthBtnObj = CreateCommandButton(row1.transform, "AutoSynthButton",
+                "\uC790\uB3D9\uC870\uD569(0)", GameSceneDesignTokens.AutoSynthBtnBg, GameSceneDesignTokens.AutoSynthBtnBorder);
+            Button autoSynthBtn = autoSynthBtnObj.GetComponent<Button>();
+            Text autoSynthBtnText = autoSynthBtnObj.GetComponentInChildren<Text>();
+
+            GameObject sellBtnObj = CreateCommandButton(row1.transform, "SellButton",
                 "\uD310\uB9E4", GameSceneDesignTokens.SellBtnBg, GameSceneDesignTokens.SellBtnBorder);
             Button sellBtn = sellBtnObj.GetComponent<Button>();
             Text sellBtnText = sellBtnObj.GetComponentInChildren<Text>();
 
-            // Synthesis button (gold)
-            GameObject synthBtnObj = CreateGameButton(topRowObj.transform, "SynthesisButton",
+            // Row 2: Attack UP | Speed UP | Synthesis
+            GameObject row2 = new GameObject("ButtonRow2");
+            row2.transform.SetParent(rightCol.transform, false);
+            HorizontalLayoutGroup row2H = row2.AddComponent<HorizontalLayoutGroup>();
+            row2H.spacing = 6;
+            row2H.childControlWidth = true;
+            row2H.childControlHeight = true;
+            row2H.childForceExpandWidth = true;
+            row2H.childForceExpandHeight = true;
+
+            GameObject atkUpBtnObj = CreateCommandButton(row2.transform, "AttackUpgradeButton",
+                "\uACF5\uACA9\u2191", GameSceneDesignTokens.AttackUpBtnBg, GameSceneDesignTokens.AttackUpBtnBorder);
+            Button atkUpBtn = atkUpBtnObj.GetComponent<Button>();
+            Text atkUpBtnText = atkUpBtnObj.GetComponentInChildren<Text>();
+
+            GameObject spdUpBtnObj = CreateCommandButton(row2.transform, "AttackSpeedUpgradeButton",
+                "\uACF5\uC18D\u2191", GameSceneDesignTokens.SpeedUpBtnBg, GameSceneDesignTokens.SpeedUpBtnBorder);
+            Button spdUpBtn = spdUpBtnObj.GetComponent<Button>();
+            Text spdUpBtnText = spdUpBtnObj.GetComponentInChildren<Text>();
+
+            GameObject synthBtnObj = CreateCommandButton(row2.transform, "SynthesisButton",
                 "\uC870\uD569", GameSceneDesignTokens.SynthFloatBtnBg, GameSceneDesignTokens.SynthFloatBtnBorder);
             Button synthBtn = synthBtnObj.GetComponent<Button>();
             Text synthBtnText = synthBtnObj.GetComponentInChildren<Text>();
             synthBtnText.color = GameSceneDesignTokens.SynthFloatBtnText;
 
-            topRowObj.SetActive(false); // Hidden until unit selected
-
-            // --- Bottom row: Auto Synthesis + Attack UP + Speed UP (always visible) ---
-            GameObject bottomRowObj = new GameObject("BottomRow");
-            bottomRowObj.transform.SetParent(bottomPanelObj.transform, false);
-
-            LayoutElement bottomRowLayout = bottomRowObj.AddComponent<LayoutElement>();
-            bottomRowLayout.preferredHeight = 90;
-
-            HorizontalLayoutGroup bottomHLayout = bottomRowObj.AddComponent<HorizontalLayoutGroup>();
-            bottomHLayout.spacing = 12;
-            bottomHLayout.childControlWidth = true;
-            bottomHLayout.childControlHeight = true;
-            bottomHLayout.childForceExpandWidth = true;
-            bottomHLayout.childForceExpandHeight = true;
-
-            // Auto Synthesis button
-            GameObject autoSynthButtonObj = CreateGameButton(bottomRowObj.transform, "AutoSynthButton",
-                "\uC790\uB3D9 \uC870\uD569", GameSceneDesignTokens.AutoSynthBtnBg, GameSceneDesignTokens.AutoSynthBtnBorder);
-            Button autoSynthButton = autoSynthButtonObj.GetComponent<Button>();
-            Text autoSynthText = autoSynthButtonObj.GetComponentInChildren<Text>();
-
-            // Attack Upgrade button
-            GameObject attackUpButtonObj = CreateGameButton(bottomRowObj.transform, "AttackUpgradeButton",
-                "\uACF5\uACA9\uB825 UP", GameSceneDesignTokens.AttackUpBtnBg, GameSceneDesignTokens.AttackUpBtnBorder);
-            Button attackUpButton = attackUpButtonObj.GetComponent<Button>();
-            Text attackUpText = attackUpButtonObj.GetComponentInChildren<Text>();
-
-            // Attack Speed Upgrade button
-            GameObject speedUpButtonObj = CreateGameButton(bottomRowObj.transform, "AttackSpeedUpgradeButton",
-                "\uACF5\uC18D UP", GameSceneDesignTokens.SpeedUpBtnBg, GameSceneDesignTokens.SpeedUpBtnBorder);
-            Button speedUpButton = speedUpButtonObj.GetComponent<Button>();
-            Text speedUpText = speedUpButtonObj.GetComponentInChildren<Text>();
-
-            // Add GameBottomUI component with all references
+            // ========== Wire GameBottomUI component ==========
             GameBottomUI component = bottomPanelObj.AddComponent<GameBottomUI>();
             SetField(component, "panel", bottomPanelObj);
-            SetField(component, "topRow", topRowObj);
-            SetField(component, "autoSynthesisButton", autoSynthButton);
-            SetField(component, "attackUpgradeButton", attackUpButton);
-            SetField(component, "attackSpeedUpgradeButton", speedUpButton);
+            SetField(component, "summonButton", summonBtn);
+            SetField(component, "autoSynthesisButton", autoSynthBtn);
             SetField(component, "sellButton", sellBtn);
+            SetField(component, "attackUpgradeButton", atkUpBtn);
+            SetField(component, "attackSpeedUpgradeButton", spdUpBtn);
             SetField(component, "synthesisButton", synthBtn);
-            SetField(component, "autoSynthesisButtonText", autoSynthText);
-            SetField(component, "attackUpgradeButtonText", attackUpText);
-            SetField(component, "attackSpeedUpgradeButtonText", speedUpText);
+            SetField(component, "summonButtonText", summonBtnText);
+            SetField(component, "autoSynthesisButtonText", autoSynthBtnText);
             SetField(component, "sellButtonText", sellBtnText);
+            SetField(component, "attackUpgradeButtonText", atkUpBtnText);
+            SetField(component, "attackSpeedUpgradeButtonText", spdUpBtnText);
             SetField(component, "synthesisButtonText", synthBtnText);
 
-            bottomPanelObj.SetActive(true);
+            // Link UnitInfoPanel to GameBottomUI
+            component.SetUnitInfoPanel(infoPanel);
 
-            // Explicitly wire button listeners NOW (after all SetField calls)
-            // This ensures listeners are registered even if Start() timing is wrong
+            bottomPanelObj.SetActive(true);
             component.EnsureListeners();
 
-            Debug.Log("[GameSceneBootstrapper] Created GameBottomUI with 2-row layout");
+            Debug.Log("[GameSceneBootstrapper] Created GameBottomUI with 2-column command panel layout");
         }
 
-        private GameObject CreateGameButton(Transform parent, string name, string text, Color bgColor, Color borderColor)
+        /// <summary>
+        /// Creates a compact command button for the 3x2 grid.
+        /// </summary>
+        private GameObject CreateCommandButton(Transform parent, string name, string text, Color bgColor, Color borderColor)
         {
+            float btnH = GameSceneDesignTokens.CommandButtonHeight;
+            int textSize = GameSceneDesignTokens.CommandButtonTextSize;
+
             GameObject buttonObj = new GameObject(name);
             buttonObj.transform.SetParent(parent, false);
 
             LayoutElement layoutElement = buttonObj.AddComponent<LayoutElement>();
-            layoutElement.minHeight = 90;
-            layoutElement.preferredHeight = 100;
+            layoutElement.minHeight = btnH - 5;
+            layoutElement.preferredHeight = btnH;
 
-            // Button background
             Image buttonBg = buttonObj.AddComponent<Image>();
             buttonBg.color = bgColor;
 
-            // Colored border for identity
             Outline buttonOutline = buttonObj.AddComponent<Outline>();
             buttonOutline.effectColor = borderColor;
-            buttonOutline.effectDistance = new Vector2(3, -3);
+            buttonOutline.effectDistance = new Vector2(2, -2);
 
-            // Drop shadow for depth
             Shadow buttonShadow = buttonObj.AddComponent<Shadow>();
-            buttonShadow.effectColor = new Color(0, 0, 0, 0.5f);
-            buttonShadow.effectDistance = new Vector2(3, -3);
+            buttonShadow.effectColor = new Color(0, 0, 0, 0.4f);
+            buttonShadow.effectDistance = new Vector2(2, -2);
 
-            // Button component
             Button button = buttonObj.AddComponent<Button>();
             ColorBlock colors = button.colors;
             colors.normalColor = Color.white;
@@ -599,7 +827,7 @@ namespace LottoDefense.Gameplay
             colors.fadeDuration = 0.08f;
             button.colors = colors;
 
-            // Inner highlight strip (top-half lighter for pseudo-3D)
+            // Inner highlight strip
             GameObject highlightObj = new GameObject("Highlight");
             highlightObj.transform.SetParent(buttonObj.transform, false);
             RectTransform hlRect = highlightObj.AddComponent<RectTransform>();
@@ -608,7 +836,7 @@ namespace LottoDefense.Gameplay
             hlRect.offsetMin = new Vector2(2, 0);
             hlRect.offsetMax = new Vector2(-2, -2);
             Image hlImg = highlightObj.AddComponent<Image>();
-            hlImg.color = new Color(1f, 1f, 1f, 0.12f);
+            hlImg.color = new Color(1f, 1f, 1f, 0.1f);
             hlImg.raycastTarget = false;
 
             // Button text
@@ -618,18 +846,19 @@ namespace LottoDefense.Gameplay
             RectTransform textRect = textObj.AddComponent<RectTransform>();
             textRect.anchorMin = Vector2.zero;
             textRect.anchorMax = Vector2.one;
-            textRect.offsetMin = new Vector2(6, 6);
-            textRect.offsetMax = new Vector2(-6, -6);
+            textRect.offsetMin = new Vector2(4, 3);
+            textRect.offsetMax = new Vector2(-4, -3);
 
-            Text buttonText = CreateText(textObj, text, 20, Color.white);
+            Text buttonText = CreateText(textObj, text, textSize, Color.white);
             buttonText.alignment = TextAnchor.MiddleCenter;
             buttonText.fontStyle = FontStyle.Bold;
             buttonText.resizeTextForBestFit = true;
-            buttonText.resizeTextMinSize = 14;
-            buttonText.resizeTextMaxSize = 20;
+            buttonText.resizeTextMinSize = 11;
+            buttonText.resizeTextMaxSize = textSize;
+            buttonText.supportRichText = true;
 
             Outline textOutline = textObj.AddComponent<Outline>();
-            textOutline.effectColor = new Color(0, 0, 0, 0.8f);
+            textOutline.effectColor = new Color(0, 0, 0, 0.7f);
             textOutline.effectDistance = new Vector2(1, -1);
 
             return buttonObj;
@@ -879,88 +1108,6 @@ namespace LottoDefense.Gameplay
         #endregion
 
         #region Buttons
-        private void EnsureSummonButton()
-        {
-            GameObject btnObj = new GameObject("SummonButton");
-            btnObj.transform.SetParent(mainCanvas.transform, false);
-
-            float marginH = GameSceneDesignTokens.ButtonMarginH;
-            RectTransform btnRect = btnObj.AddComponent<RectTransform>();
-            btnRect.anchorMin = new Vector2(marginH, 0);
-            btnRect.anchorMax = new Vector2(1f - marginH, 0);
-            btnRect.pivot = new Vector2(0.5f, 0);
-            btnRect.anchoredPosition = new Vector2(0, 16);
-            btnRect.sizeDelta = new Vector2(0, GameSceneDesignTokens.SummonButtonHeight);
-
-            // Vibrant green background
-            Image btnImage = btnObj.AddComponent<Image>();
-            btnImage.color = GameSceneDesignTokens.SummonButtonBg;
-
-            // Bright green border glow
-            Outline btnOutline = btnObj.AddComponent<Outline>();
-            btnOutline.effectColor = GameSceneDesignTokens.SummonButtonBorder;
-            btnOutline.effectDistance = new Vector2(3, -3);
-
-            // Drop shadow for depth
-            Shadow btnShadow = btnObj.AddComponent<Shadow>();
-            btnShadow.effectColor = new Color(0f, 0.2f, 0f, 0.5f);
-            btnShadow.effectDistance = new Vector2(0, -4);
-
-            // Button component
-            Button button = btnObj.AddComponent<Button>();
-            ColorBlock colors = button.colors;
-            colors.normalColor = Color.white;
-            colors.highlightedColor = new Color(1.15f, 1.15f, 1.15f, 1f);
-            colors.pressedColor = new Color(0.7f, 0.7f, 0.7f, 1f);
-            colors.disabledColor = new Color(0.5f, 0.5f, 0.5f, 0.7f);
-            colors.fadeDuration = 0.08f;
-            button.colors = colors;
-
-            // Inner highlight strip (top portion lighter for 3D depth)
-            GameObject highlightObj = new GameObject("Highlight");
-            highlightObj.transform.SetParent(btnObj.transform, false);
-            RectTransform hlRect = highlightObj.AddComponent<RectTransform>();
-            hlRect.anchorMin = new Vector2(0, 0.5f);
-            hlRect.anchorMax = Vector2.one;
-            hlRect.offsetMin = new Vector2(3, 0);
-            hlRect.offsetMax = new Vector2(-3, -3);
-            Image hlImg = highlightObj.AddComponent<Image>();
-            hlImg.color = new Color(1f, 1f, 1f, 0.15f);
-            hlImg.raycastTarget = false;
-
-            // Inner layout: vertical stack
-            VerticalLayoutGroup vl = btnObj.AddComponent<VerticalLayoutGroup>();
-            vl.padding = new RectOffset(0, 0, 8, 8);
-            vl.spacing = 0;
-            vl.childForceExpandWidth = true;
-            vl.childForceExpandHeight = true;
-            vl.childControlWidth = true;
-            vl.childControlHeight = true;
-            vl.childAlignment = TextAnchor.MiddleCenter;
-
-            // Main text
-            GameObject mainTextObj = new GameObject("MainText");
-            mainTextObj.transform.SetParent(btnObj.transform, false);
-            mainTextObj.AddComponent<RectTransform>();
-            Text mainText = CreateText(mainTextObj, "\uC18C\uD658", GameSceneDesignTokens.SummonTextSize, GameSceneDesignTokens.ButtonText);
-            mainText.fontStyle = FontStyle.Bold;
-            Outline mainOutline = mainTextObj.AddComponent<Outline>();
-            mainOutline.effectColor = new Color(0, 0, 0, 0.5f);
-            mainOutline.effectDistance = new Vector2(2, -2);
-
-            // Cost subtext
-            GameObject costTextObj = new GameObject("CostText");
-            costTextObj.transform.SetParent(btnObj.transform, false);
-            costTextObj.AddComponent<RectTransform>();
-            Text costText = CreateText(costTextObj, "- 5 Gold -", GameSceneDesignTokens.SummonCostSize, GameSceneDesignTokens.ButtonCostText);
-            costText.fontStyle = FontStyle.Bold;
-            Outline costOutline = costTextObj.AddComponent<Outline>();
-            costOutline.effectColor = new Color(0, 0, 0, 0.4f);
-            costOutline.effectDistance = new Vector2(1, -1);
-
-            button.onClick.AddListener(() => OnSummonButtonClicked(mainText, costText));
-        }
-
         private void EnsureSynthesisGuideButton()
         {
             // Top-right corner icon button (52x52) positioned below HUD
@@ -1360,6 +1507,18 @@ namespace LottoDefense.Gameplay
 
             Text contribText = CreateText(contribObj, "기여도: 0점", 36, new Color(1f, 0.8f, 0.2f));
 
+            // Reward text
+            GameObject rewardObj = new GameObject("RewardText");
+            rewardObj.transform.SetParent(panelObj.transform, false);
+
+            RectTransform rewardRect = rewardObj.AddComponent<RectTransform>();
+            rewardRect.anchorMin = new Vector2(0.5f, 0.5f);
+            rewardRect.anchorMax = new Vector2(0.5f, 0.5f);
+            rewardRect.anchoredPosition = new Vector2(0, -100);
+            rewardRect.sizeDelta = new Vector2(500, 50);
+
+            Text rewardText = CreateText(rewardObj, "", 32, new Color(0.3f, 1f, 0.4f));
+
             // Confirm button
             GameObject btnObj = new GameObject("ConfirmButton");
             btnObj.transform.SetParent(panelObj.transform, false);
@@ -1405,62 +1564,9 @@ namespace LottoDefense.Gameplay
             SetField(resultUIComponent, "contributionText", contribText);
             SetField(resultUIComponent, "confirmButton", button);
             SetField(resultUIComponent, "confirmButtonText", btnText);
+            SetField(resultUIComponent, "rewardText", rewardText);
 
             Debug.Log("[GameSceneBootstrapper] Created GameResultUI");
-        }
-        #endregion
-
-        #region Button Logic
-        private void OnSummonButtonClicked(Text mainText, Text costText)
-        {
-            if (GameplayManager.Instance == null) return;
-
-            // Summon allowed in all game states
-
-            UnitManager unitMgr = FindFirstObjectByType<UnitManager>();
-            if (unitMgr == null)
-            {
-                Debug.LogError("[GameSceneBootstrapper] UnitManager not found");
-                return;
-            }
-
-            if (!unitMgr.CanDraw())
-            {
-                StartCoroutine(FlashButtonText(mainText, costText, "\uBD80\uC871!", "\uACE8\uB4DC\uAC00 \uBD80\uC871\uD569\uB2C8\uB2E4"));
-                return;
-            }
-
-            UnitData drawnUnit = unitMgr.DrawUnit();
-            if (drawnUnit != null)
-            {
-                UnitPlacementManager placementMgr = FindFirstObjectByType<UnitPlacementManager>();
-                if (placementMgr != null)
-                {
-                    placementMgr.SelectUnitForPlacement(drawnUnit);
-                    StartCoroutine(FlashButtonText(mainText, costText,
-                        drawnUnit.unitName, "\uBC30\uCE58\uD560 \uC704\uCE58\uB97C \uD130\uCE58\uD558\uC138\uC694!"));
-                }
-            }
-        }
-
-        private System.Collections.IEnumerator FlashButtonText(Text mainText, Text costText, string mainMsg, string costMsg)
-        {
-            string origMain = "\uC18C\uD658";
-            string origCost = "- 5 Gold -";
-            Color origMainColor = GameSceneDesignTokens.ButtonText;
-            Color origCostColor = GameSceneDesignTokens.ButtonCostText;
-
-            mainText.text = mainMsg;
-            mainText.color = Color.white;
-            costText.text = costMsg;
-            costText.color = new Color(1f, 1f, 1f, 0.8f);
-
-            yield return new WaitForSeconds(1.5f);
-
-            mainText.text = origMain;
-            mainText.color = origMainColor;
-            costText.text = origCost;
-            costText.color = origCostColor;
         }
         #endregion
 

@@ -330,6 +330,23 @@ namespace LottoDefense.Units
                 return;
             }
 
+            // Toggle: clicking the same unit again deselects it
+            if (SelectedPlacedUnit == clickedUnit)
+            {
+                DeselectPlacedUnit();
+
+                UnitSelectionUI selectionUI2 = FindFirstObjectByType<UnitSelectionUI>();
+                if (selectionUI2 != null)
+                    selectionUI2.HideUI();
+
+                GameBottomUI bottomUI2 = FindFirstObjectByType<GameBottomUI>();
+                if (bottomUI2 != null)
+                    bottomUI2.SetSelectedUnit(null);
+
+                Debug.Log($"[UnitPlacementManager] Toggled deselect {clickedUnit.Data.GetDisplayName()}");
+                return;
+            }
+
             // Select unit for movement (clicking empty cell will move it)
             SelectPlacedUnit(clickedUnit);
 
@@ -384,6 +401,12 @@ namespace LottoDefense.Units
 
             // Initialize unit
             unitComponent.Initialize(SelectedUnitData, gridPos);
+
+            // Apply existing rarity-wide upgrades to new unit
+            if (UnitUpgradeManager.Instance != null)
+            {
+                UnitUpgradeManager.Instance.ApplyRarityUpgrades(unitComponent);
+            }
 
             // Place on grid
             if (GridManager.Instance.SetUnit(gridPos, unitObject))

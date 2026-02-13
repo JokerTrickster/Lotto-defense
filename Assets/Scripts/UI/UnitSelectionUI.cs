@@ -50,7 +50,7 @@ namespace LottoDefense.UI
                 StartCoroutine(DelayedDismissCheck(touchPos));
             }
 
-            // Track selected unit position each frame
+            // Track selected unit position
             if (selectedUnit != null && selectionPanel != null && selectionPanel.activeSelf)
             {
                 PositionPanelNearUnit(selectedUnit);
@@ -80,7 +80,8 @@ namespace LottoDefense.UI
             if (selectionPanel != null)
                 selectionPanel.SetActive(true);
 
-            // Notify bottom UI
+            // Notify bottom UI (also manages UnitInfoPanel)
+
             GameBottomUI bottomUI = FindFirstObjectByType<GameBottomUI>();
             if (bottomUI != null)
             {
@@ -106,6 +107,7 @@ namespace LottoDefense.UI
             if (selectionPanel != null)
                 selectionPanel.SetActive(false);
 
+            // Notify bottom UI (also manages UnitInfoPanel)
             GameBottomUI bottomUI = FindFirstObjectByType<GameBottomUI>();
             if (bottomUI != null)
             {

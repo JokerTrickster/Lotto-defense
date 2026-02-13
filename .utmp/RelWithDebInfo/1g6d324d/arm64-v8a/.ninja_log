@@ -1,0 +1,12 @@
+# ninja log v5
+13	1128	1770883447707679977	FramePacing/CMakeFiles/swappywrapper.dir/UnitySwappyWrapper.cpp.o	f5767f3868983c68
+1129	1411	1770883447989555158	/Users/luxrobo/project/Lotto-defense/Library/Bee/Android/Prj/IL2CPP/Gradle/unityLibrary/build/intermediates/cxx/RelWithDebInfo/1g6d324d/obj/arm64-v8a/libswappywrapper.so	78a30a0c0aff931a
+8	7872	1770883454438001121	GameActivity/CMakeFiles/game.dir/UGAInputKeyEvent.cpp.o	6a733ded638c7255
+5	8047	1770883454591995144	GameActivity/CMakeFiles/game.dir/UGAEntry.cpp.o	32f52f203346863a
+10	8312	1770883454867723648	GameActivity/CMakeFiles/game.dir/UGAInputMotionEvent.cpp.o	f3228a4aab402e79
+2	8316	1770883454868393077	GameActivity/CMakeFiles/game.dir/UGAConfiguration.cpp.o	d9b07be89025fa88
+4	8664	1770883455214345602	GameActivity/CMakeFiles/game.dir/UGADebug.cpp.o	7dee45981d160e77
+11	9235	1770883455792800794	GameActivity/CMakeFiles/game.dir/UGASoftKeyboard.cpp.o	a6c1a1fa1811c8
+7	10003	1770883456563674512	GameActivity/CMakeFiles/game.dir/UGAInput.cpp.o	7db813a4fc343b54
+0	10707	1770883457267502906	GameActivity/CMakeFiles/game.dir/UGAApplication.cpp.o	eae5460a086ef88e
+10708	11016	1770883457587950454	/Users/luxrobo/project/Lotto-defense/Library/Bee/Android/Prj/IL2CPP/Gradle/unityLibrary/build/intermediates/cxx/RelWithDebInfo/1g6d324d/obj/arm64-v8a/libgame.so	9432369348be879a

@@ -502,6 +502,78 @@ namespace LottoDefense.Gameplay
         public int sellGoldLegendary = 50;
         #endregion
 
+        #region Unit Shop Prices
+        [System.Serializable]
+        public class UnitShopPrice
+        {
+            public string unitName;
+            public int goldCost;
+        }
+
+        [Header("=== 유닛 상점 가격 ===")]
+        public List<UnitShopPrice> unitShopPrices = new List<UnitShopPrice>
+        {
+            new UnitShopPrice { unitName = "Warrior", goldCost = 0 },
+            new UnitShopPrice { unitName = "Archer", goldCost = 100 },
+            new UnitShopPrice { unitName = "Mage", goldCost = 500 },
+            new UnitShopPrice { unitName = "Dragon Knight", goldCost = 2000 }
+        };
+
+        public int GetUnitUnlockCost(string unitName)
+        {
+            var price = unitShopPrices.Find(p => p.unitName == unitName);
+            return price != null ? price.goldCost : 0;
+        }
+        #endregion
+
+        #region Daily Reward Stages
+        [System.Serializable]
+        public class DailyRewardStage
+        {
+            public int requiredClears;
+            public int goldReward;
+            public int ticketReward;
+        }
+
+        [Header("=== 일일 보상 단계 ===")]
+        public List<DailyRewardStage> dailyRewardStages = new List<DailyRewardStage>
+        {
+            new DailyRewardStage { requiredClears = 1, goldReward = 50, ticketReward = 0 },
+            new DailyRewardStage { requiredClears = 3, goldReward = 0, ticketReward = 1 },
+            new DailyRewardStage { requiredClears = 5, goldReward = 150, ticketReward = 0 },
+            new DailyRewardStage { requiredClears = 10, goldReward = 200, ticketReward = 2 }
+        };
+        #endregion
+
+        #region Game Result Rewards
+        [System.Serializable]
+        public class GameResultReward
+        {
+            public int minRound;
+            public int maxRound;
+            public int goldReward;
+        }
+
+        [Header("=== 게임 결과 보상 ===")]
+        public List<GameResultReward> gameResultRewards = new List<GameResultReward>
+        {
+            new GameResultReward { minRound = 0, maxRound = 9, goldReward = 10 },
+            new GameResultReward { minRound = 10, maxRound = 19, goldReward = 30 },
+            new GameResultReward { minRound = 20, maxRound = 29, goldReward = 60 },
+            new GameResultReward { minRound = 30, maxRound = 999, goldReward = 100 }
+        };
+
+        public int GetGameResultGold(int roundReached)
+        {
+            for (int i = gameResultRewards.Count - 1; i >= 0; i--)
+            {
+                if (roundReached >= gameResultRewards[i].minRound)
+                    return gameResultRewards[i].goldReward;
+            }
+            return 10;
+        }
+        #endregion
+
         #region Helper Methods
         /// <summary>
         /// 등급별 판매 골드 반환.

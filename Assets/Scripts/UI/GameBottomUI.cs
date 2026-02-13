@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using System.Collections;
 using LottoDefense.Units;
 using LottoDefense.Gameplay;
 using LottoDefense.Grid;
@@ -8,31 +9,31 @@ using LottoDefense.VFX;
 namespace LottoDefense.UI
 {
     /// <summary>
-    /// Bottom UI panel with 2-row layout:
-    /// Top row (visible on unit select): Sell + Synthesis
-    /// Bottom row (always visible): Auto Synthesis, Attack Upgrade, Attack Speed Upgrade.
+    /// StarCraft-style fixed bottom command panel.
+    /// Left column: UnitInfoPanel (always visible, shows empty state when no unit selected).
+    /// Right column: 3x2 button grid (summon, auto-synth, sell, atk up, spd up, synthesis).
+    /// Panel is always visible - buttons are dimmed when not applicable.
     /// </summary>
     public class GameBottomUI : MonoBehaviour
     {
         #region Serialized Fields
         [Header("UI References")]
         [SerializeField] private GameObject panel;
-        [SerializeField] private GameObject topRow;
 
-        [Header("Bottom Row Buttons")]
+        [Header("Button Grid")]
+        [SerializeField] private Button summonButton;
         [SerializeField] private Button autoSynthesisButton;
+        [SerializeField] private Button sellButton;
         [SerializeField] private Button attackUpgradeButton;
         [SerializeField] private Button attackSpeedUpgradeButton;
-
-        [Header("Top Row Buttons")]
-        [SerializeField] private Button sellButton;
         [SerializeField] private Button synthesisButton;
 
         [Header("Text References")]
+        [SerializeField] private Text summonButtonText;
         [SerializeField] private Text autoSynthesisButtonText;
+        [SerializeField] private Text sellButtonText;
         [SerializeField] private Text attackUpgradeButtonText;
         [SerializeField] private Text attackSpeedUpgradeButtonText;
-        [SerializeField] private Text sellButtonText;
         [SerializeField] private Text synthesisButtonText;
         #endregion
 
@@ -40,6 +41,7 @@ namespace LottoDefense.UI
         private Unit selectedUnit;
         private bool listenersInitialized;
         private GameBalanceConfig balanceConfig;
+        private UnitInfoPanel unitInfoPanel;
         #endregion
 
         #region Unity Lifecycle
@@ -60,8 +62,7 @@ namespace LottoDefense.UI
         {
             if (listenersInitialized) return;
 
-            // Don't mark as initialized if button references haven't been injected yet
-            if (attackUpgradeButton == null && sellButton == null && autoSynthesisButton == null)
+            if (summonButton == null && attackUpgradeButton == null && sellButton == null && autoSynthesisButton == null)
             {
                 Debug.LogWarning("[GameBottomUI] EnsureListeners called but all button refs are null - skipping");
                 return;
@@ -70,10 +71,11 @@ namespace LottoDefense.UI
             listenersInitialized = true;
 
             int count = 0;
+            if (summonButton != null) { summonButton.onClick.AddListener(OnSummonClicked); count++; }
             if (autoSynthesisButton != null) { autoSynthesisButton.onClick.AddListener(OnAutoSynthesisClicked); count++; }
+            if (sellButton != null) { sellButton.onClick.AddListener(OnSellButtonClicked); count++; }
             if (attackUpgradeButton != null) { attackUpgradeButton.onClick.AddListener(OnAttackUpgradeClicked); count++; }
             if (attackSpeedUpgradeButton != null) { attackSpeedUpgradeButton.onClick.AddListener(OnAttackSpeedUpgradeClicked); count++; }
-            if (sellButton != null) { sellButton.onClick.AddListener(OnSellButtonClicked); count++; }
             if (synthesisButton != null) { synthesisButton.onClick.AddListener(OnSynthesisButtonClicked); count++; }
 
             Debug.Log($"[GameBottomUI] Wired {count} button listeners");
@@ -122,10 +124,24 @@ namespace LottoDefense.UI
             selectedUnit = null;
         }
 
+        public void SetUnitInfoPanel(UnitInfoPanel infoPanel)
+        {
+            unitInfoPanel = infoPanel;
+        }
+
         public void SetSelectedUnit(Unit unit)
         {
             selectedUnit = unit;
             Debug.Log($"[GameBottomUI] SetSelectedUnit: {(unit != null ? unit.Data.GetDisplayName() : "NULL")}");
+
+            if (unitInfoPanel != null)
+            {
+                if (unit != null)
+                    unitInfoPanel.Show(unit);
+                else
+                    unitInfoPanel.Hide();
+            }
+
             UpdateButtonStates();
         }
         #endregion
@@ -138,6 +154,45 @@ namespace LottoDefense.UI
         #endregion
 
         #region Button Handlers
+        private void OnSummonClicked()
+        {
+            if (GameplayManager.Instance == null) return;
+
+            if (UnitManager.Instance == null)
+            {
+                Debug.LogError("[GameBottomUI] UnitManager not found");
+                return;
+            }
+
+            if (!UnitManager.Instance.CanDraw())
+            {
+                StartCoroutine(FlashSummonText("\uBD80\uC871!", "\uACE8\uB4DC \uBD80\uC871"));
+                return;
+            }
+
+            UnitData drawnUnit = UnitManager.Instance.DrawUnit();
+            if (drawnUnit != null)
+            {
+                if (UnitPlacementManager.Instance != null)
+                {
+                    UnitPlacementManager.Instance.SelectUnitForPlacement(drawnUnit);
+                    StartCoroutine(FlashSummonText(drawnUnit.unitName, "\uBC30\uCE58\uD560 \uC704\uCE58\uB97C \uD130\uCE58!"));
+                }
+            }
+        }
+
+        private IEnumerator FlashSummonText(string mainMsg, string subMsg)
+        {
+            if (summonButtonText == null) yield break;
+
+            string origText = GetSummonButtonLabel();
+            summonButtonText.text = $"{mainMsg}\n<size=11>{subMsg}</size>";
+
+            yield return new WaitForSeconds(1.5f);
+
+            summonButtonText.text = origText;
+        }
+
         private void OnAutoSynthesisClicked()
         {
             if (AutoSynthesisManager.Instance != null)
@@ -258,42 +313,21 @@ namespace LottoDefense.UI
             bool canManage = CanManageUnits();
             bool hasUnit = selectedUnit != null;
 
-            // Top row: visible only when unit is selected
-            if (topRow != null)
+            // Summon button - always enabled if we can manage and have gold
+            if (summonButton != null)
             {
-                topRow.SetActive(hasUnit);
-            }
+                bool canSummon = canManage && UnitManager.Instance != null && UnitManager.Instance.CanDraw();
+                summonButton.interactable = canSummon;
 
-            // Sell button
-            if (sellButton != null && hasUnit && balanceConfig != null)
-            {
-                sellButton.interactable = canManage;
-                int sellPrice = balanceConfig.GetSellGold(selectedUnit.Data.rarity);
-                if (sellButtonText != null)
+                if (summonButtonText != null)
                 {
-                    sellButtonText.text = $"\uD310\uB9E4 (+{sellPrice}G)";
+                    summonButtonText.text = GetSummonButtonLabel();
                 }
-                UpdateButtonColor(sellButton, sellButton.interactable);
+
+                UpdateButtonColor(summonButton, summonButton.interactable);
             }
 
-            // Synthesis button
-            if (synthesisButton != null)
-            {
-                if (hasUnit && balanceConfig != null)
-                {
-                    var recipe = balanceConfig.GetSynthesisRecipe(selectedUnit.Data.unitName);
-                    bool hasRecipe = recipe != null;
-                    synthesisButton.gameObject.SetActive(hasRecipe);
-                    synthesisButton.interactable = canManage && hasRecipe;
-                    if (synthesisButtonText != null)
-                    {
-                        synthesisButtonText.text = "\uC870\uD569";
-                    }
-                    UpdateButtonColor(synthesisButton, synthesisButton.interactable);
-                }
-            }
-
-            // Auto Synthesis button
+            // Auto Synthesis button - always enabled if possible
             if (autoSynthesisButton != null)
             {
                 int possibleSynthesis = AutoSynthesisManager.Instance != null ?
@@ -304,18 +338,40 @@ namespace LottoDefense.UI
                 if (autoSynthesisButtonText != null)
                 {
                     autoSynthesisButtonText.text = possibleSynthesis > 0
-                        ? $"\uC790\uB3D9 \uC870\uD569 ({possibleSynthesis})"
-                        : "\uC790\uB3D9 \uC870\uD569 (0)";
+                        ? $"\uC790\uB3D9\uC870\uD569({possibleSynthesis})"
+                        : "\uC790\uB3D9\uC870\uD569(0)";
                 }
 
                 UpdateButtonColor(autoSynthesisButton, autoSynthesisButton.interactable);
             }
 
-            // Attack Upgrade button
+            // Sell button - requires unit selected
+            if (sellButton != null)
+            {
+                sellButton.interactable = canManage && hasUnit;
+                if (sellButtonText != null)
+                {
+                    if (hasUnit && balanceConfig != null)
+                    {
+                        int sellPrice = balanceConfig.GetSellGold(selectedUnit.Data.rarity);
+                        sellButtonText.text = $"\uD310\uB9E4+{sellPrice}G";
+                    }
+                    else
+                    {
+                        sellButtonText.text = "\uD310\uB9E4";
+                    }
+                }
+                UpdateButtonColor(sellButton, sellButton.interactable);
+            }
+
+            // Attack Upgrade button - requires unit selected
             if (attackUpgradeButton != null)
             {
-                bool canUpgradeAttack = canManage && hasUnit &&
-                    selectedUnit.AttackUpgradeLevel < 10;
+                int atkLevel = 0;
+                if (hasUnit && UnitUpgradeManager.Instance != null)
+                    atkLevel = UnitUpgradeManager.Instance.GetRarityAttackLevel(selectedUnit.Data.rarity);
+
+                bool canUpgradeAttack = canManage && hasUnit && atkLevel < 10;
 
                 int cost = 0;
                 if (hasUnit && UnitUpgradeManager.Instance != null)
@@ -330,26 +386,29 @@ namespace LottoDefense.UI
                 {
                     if (!hasUnit)
                     {
-                        attackUpgradeButtonText.text = "\uACF5\uACA9\uB825 UP";
+                        attackUpgradeButtonText.text = "\uACF5\uACA9\u2191";
                     }
-                    else if (selectedUnit.AttackUpgradeLevel >= 10)
+                    else if (atkLevel >= 10)
                     {
-                        attackUpgradeButtonText.text = "\uACF5\uACA9\uB825 MAX";
+                        attackUpgradeButtonText.text = "\uACF5\uACA9 MAX";
                     }
                     else
                     {
-                        attackUpgradeButtonText.text = $"\uACF5\uACA9\uB825 UP ({cost}G) Lv.{selectedUnit.AttackUpgradeLevel}";
+                        attackUpgradeButtonText.text = $"\uACF5\uACA9\u2191 Lv{atkLevel}\n{cost}G";
                     }
                 }
 
                 UpdateButtonColor(attackUpgradeButton, attackUpgradeButton.interactable);
             }
 
-            // Attack Speed Upgrade button
+            // Attack Speed Upgrade button - requires unit selected
             if (attackSpeedUpgradeButton != null)
             {
-                bool canUpgradeSpeed = canManage && hasUnit &&
-                    selectedUnit.AttackSpeedUpgradeLevel < 10;
+                int spdLevel = 0;
+                if (hasUnit && UnitUpgradeManager.Instance != null)
+                    spdLevel = UnitUpgradeManager.Instance.GetRaritySpeedLevel(selectedUnit.Data.rarity);
+
+                bool canUpgradeSpeed = canManage && hasUnit && spdLevel < 10;
 
                 int cost = 0;
                 if (hasUnit && UnitUpgradeManager.Instance != null)
@@ -364,20 +423,45 @@ namespace LottoDefense.UI
                 {
                     if (!hasUnit)
                     {
-                        attackSpeedUpgradeButtonText.text = "\uACF5\uC18D UP";
+                        attackSpeedUpgradeButtonText.text = "\uACF5\uC18D\u2191";
                     }
-                    else if (selectedUnit.AttackSpeedUpgradeLevel >= 10)
+                    else if (spdLevel >= 10)
                     {
                         attackSpeedUpgradeButtonText.text = "\uACF5\uC18D MAX";
                     }
                     else
                     {
-                        attackSpeedUpgradeButtonText.text = $"\uACF5\uC18D UP ({cost}G) Lv.{selectedUnit.AttackSpeedUpgradeLevel}";
+                        attackSpeedUpgradeButtonText.text = $"\uACF5\uC18D\u2191 Lv{spdLevel}\n{cost}G";
                     }
                 }
 
                 UpdateButtonColor(attackSpeedUpgradeButton, attackSpeedUpgradeButton.interactable);
             }
+
+            // Synthesis button - requires unit selected + recipe exists
+            if (synthesisButton != null)
+            {
+                bool canSynth = false;
+                if (hasUnit && balanceConfig != null)
+                {
+                    var recipe = balanceConfig.GetSynthesisRecipe(selectedUnit.Data.unitName);
+                    canSynth = canManage && recipe != null;
+                }
+                synthesisButton.interactable = canSynth;
+
+                if (synthesisButtonText != null)
+                {
+                    synthesisButtonText.text = "\uC870\uD569";
+                }
+
+                UpdateButtonColor(synthesisButton, synthesisButton.interactable);
+            }
+        }
+
+        private string GetSummonButtonLabel()
+        {
+            int cost = balanceConfig != null ? balanceConfig.gameRules.summonCost : 5;
+            return $"\uC18C\uD658 {cost}G";
         }
 
         private void UpdateButtonColor(Button button, bool isInteractable)

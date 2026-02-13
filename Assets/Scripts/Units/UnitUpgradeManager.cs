@@ -1,5 +1,7 @@
 using UnityEngine;
+using System.Collections.Generic;
 using LottoDefense.Gameplay;
+using LottoDefense.Grid;
 
 namespace LottoDefense.Units
 {
@@ -38,6 +40,16 @@ namespace LottoDefense.Units
         // Now uses UnitData.maxUpgradeLevel, attackUpgradePercent, attackSpeedUpgradePercent
         #endregion
 
+        #region Rarity-Wide Upgrade Storage
+        private readonly Dictionary<Rarity, int> rarityAttackLevels = new Dictionary<Rarity, int>();
+        private readonly Dictionary<Rarity, int> raritySpeedLevels = new Dictionary<Rarity, int>();
+        #endregion
+
+        #region Session Tracking
+        private int sessionUpgradeCount;
+        public int SessionUpgradeCount => sessionUpgradeCount;
+        #endregion
+
         #region Events
         /// <summary>
         /// Fired when a unit is upgraded.
@@ -64,7 +76,8 @@ namespace LottoDefense.Units
 
         #region Upgrade Logic
         /// <summary>
-        /// Upgrade unit's attack level.
+        /// Upgrade attack level for ALL units of the same rarity.
+        /// Cost is based on the selected unit's current rarity-wide level.
         /// </summary>
         public bool UpgradeAttack(Unit unit)
         {
@@ -74,25 +87,25 @@ namespace LottoDefense.Units
                 return false;
             }
 
-            // Check max level (from UnitData)
+            Rarity rarity = unit.Data.rarity;
+            int currentLevel = GetRarityAttackLevel(rarity);
+
+            // Check max level
             int maxLevel = unit.Data != null ? unit.Data.maxUpgradeLevel : 10;
-            if (unit.AttackUpgradeLevel >= maxLevel)
+            if (currentLevel >= maxLevel)
             {
-                Debug.LogWarning($"[UnitUpgradeManager] {unit.Data.GetDisplayName()} attack already at max level {maxLevel}");
+                Debug.LogWarning($"[UnitUpgradeManager] {rarity} attack already at max level {maxLevel}");
                 return false;
             }
 
-            // Check if GameplayManager is available
             if (!CanUpgrade())
             {
                 Debug.LogWarning("[UnitUpgradeManager] GameplayManager not available for upgrade");
                 return false;
             }
 
-            // Calculate cost
             int cost = GetUpgradeCost(unit, UpgradeType.Attack);
 
-            // Check gold
             if (GameplayManager.Instance == null || GameplayManager.Instance.CurrentGold < cost)
             {
                 Debug.LogWarning($"[UnitUpgradeManager] Not enough gold for attack upgrade (need {cost})");
@@ -102,19 +115,23 @@ namespace LottoDefense.Units
             // Deduct gold
             GameplayManager.Instance.ModifyGold(-cost);
 
-            // Upgrade
-            unit.UpgradeAttack();
+            // Increment rarity-wide level
+            int newLevel = currentLevel + 1;
+            rarityAttackLevels[rarity] = newLevel;
 
-            Debug.Log($"[UnitUpgradeManager] Upgraded {unit.Data.GetDisplayName()} attack to level {unit.AttackUpgradeLevel}");
+            // Apply to ALL units of this rarity on the grid
+            ApplyAttackLevelToAllUnits(rarity, newLevel);
 
-            // Fire event
-            OnUnitUpgraded?.Invoke(unit, UpgradeType.Attack, unit.AttackUpgradeLevel);
+            sessionUpgradeCount++;
+            Debug.Log($"[UnitUpgradeManager] Upgraded ALL {rarity} units attack to level {newLevel} (session total: {sessionUpgradeCount})");
+
+            OnUnitUpgraded?.Invoke(unit, UpgradeType.Attack, newLevel);
 
             return true;
         }
 
         /// <summary>
-        /// Upgrade unit's attack speed level.
+        /// Upgrade attack speed level for ALL units of the same rarity.
         /// </summary>
         public bool UpgradeAttackSpeed(Unit unit)
         {
@@ -124,25 +141,24 @@ namespace LottoDefense.Units
                 return false;
             }
 
-            // Check max level (from UnitData)
+            Rarity rarity = unit.Data.rarity;
+            int currentLevel = GetRaritySpeedLevel(rarity);
+
             int maxLevel = unit.Data != null ? unit.Data.maxUpgradeLevel : 10;
-            if (unit.AttackSpeedUpgradeLevel >= maxLevel)
+            if (currentLevel >= maxLevel)
             {
-                Debug.LogWarning($"[UnitUpgradeManager] {unit.Data.GetDisplayName()} attack speed already at max level {maxLevel}");
+                Debug.LogWarning($"[UnitUpgradeManager] {rarity} attack speed already at max level {maxLevel}");
                 return false;
             }
 
-            // Check if GameplayManager is available
             if (!CanUpgrade())
             {
                 Debug.LogWarning("[UnitUpgradeManager] GameplayManager not available for upgrade");
                 return false;
             }
 
-            // Calculate cost
             int cost = GetUpgradeCost(unit, UpgradeType.AttackSpeed);
 
-            // Check gold
             if (GameplayManager.Instance == null || GameplayManager.Instance.CurrentGold < cost)
             {
                 Debug.LogWarning($"[UnitUpgradeManager] Not enough gold for attack speed upgrade (need {cost})");
@@ -152,13 +168,17 @@ namespace LottoDefense.Units
             // Deduct gold
             GameplayManager.Instance.ModifyGold(-cost);
 
-            // Upgrade
-            unit.UpgradeAttackSpeed();
+            // Increment rarity-wide level
+            int newLevel = currentLevel + 1;
+            raritySpeedLevels[rarity] = newLevel;
 
-            Debug.Log($"[UnitUpgradeManager] Upgraded {unit.Data.GetDisplayName()} attack speed to level {unit.AttackSpeedUpgradeLevel}");
+            // Apply to ALL units of this rarity on the grid
+            ApplySpeedLevelToAllUnits(rarity, newLevel);
 
-            // Fire event
-            OnUnitUpgraded?.Invoke(unit, UpgradeType.AttackSpeed, unit.AttackSpeedUpgradeLevel);
+            sessionUpgradeCount++;
+            Debug.Log($"[UnitUpgradeManager] Upgraded ALL {rarity} units attack speed to level {newLevel} (session total: {sessionUpgradeCount})");
+
+            OnUnitUpgraded?.Invoke(unit, UpgradeType.AttackSpeed, newLevel);
 
             return true;
         }
@@ -166,16 +186,18 @@ namespace LottoDefense.Units
 
         #region Cost Calculation
         /// <summary>
-        /// Calculate upgrade cost based on UnitData settings and current level.
+        /// Calculate upgrade cost based on rarity-wide level.
         /// Uses UnitData.baseUpgradeCost as base cost.
         /// </summary>
         public int GetUpgradeCost(Unit unit, UpgradeType upgradeType)
         {
             if (unit == null || unit.Data == null) return 999999;
 
-            int currentLevel = upgradeType == UpgradeType.Attack ? unit.AttackUpgradeLevel : unit.AttackSpeedUpgradeLevel;
+            Rarity rarity = unit.Data.rarity;
+            int currentLevel = upgradeType == UpgradeType.Attack
+                ? GetRarityAttackLevel(rarity)
+                : GetRaritySpeedLevel(rarity);
 
-            // Use base cost from UnitData
             int baseCost = unit.Data.baseUpgradeCost;
 
             // Cost increases with level: baseCost * (1 + level * 0.5)
@@ -205,10 +227,85 @@ namespace LottoDefense.Units
         }
         #endregion
 
-        #region Helper Methods
+        #region Rarity Level Access
         /// <summary>
-        /// Check if upgrades are allowed (any active game state).
+        /// Get current attack upgrade level for a rarity.
         /// </summary>
+        public int GetRarityAttackLevel(Rarity rarity)
+        {
+            return rarityAttackLevels.TryGetValue(rarity, out int level) ? level : 0;
+        }
+
+        /// <summary>
+        /// Get current attack speed upgrade level for a rarity.
+        /// </summary>
+        public int GetRaritySpeedLevel(Rarity rarity)
+        {
+            return raritySpeedLevels.TryGetValue(rarity, out int level) ? level : 0;
+        }
+
+        /// <summary>
+        /// Apply existing rarity upgrades to a newly placed unit.
+        /// Call this after unit.Initialize().
+        /// </summary>
+        public void ApplyRarityUpgrades(Unit unit)
+        {
+            if (unit == null || unit.Data == null) return;
+
+            Rarity rarity = unit.Data.rarity;
+            int atkLevel = GetRarityAttackLevel(rarity);
+            int spdLevel = GetRaritySpeedLevel(rarity);
+
+            if (atkLevel > 0)
+            {
+                unit.SetAttackUpgradeLevel(atkLevel);
+                Debug.Log($"[UnitUpgradeManager] Applied rarity attack level {atkLevel} to new {unit.Data.GetDisplayName()}");
+            }
+            if (spdLevel > 0)
+            {
+                unit.SetAttackSpeedUpgradeLevel(spdLevel);
+                Debug.Log($"[UnitUpgradeManager] Applied rarity speed level {spdLevel} to new {unit.Data.GetDisplayName()}");
+            }
+        }
+        #endregion
+
+        #region Apply to All Units
+        private void ApplyAttackLevelToAllUnits(Rarity rarity, int level)
+        {
+            if (GridManager.Instance == null) return;
+
+            for (int x = 0; x < GridManager.GRID_WIDTH; x++)
+            {
+                for (int y = 0; y < GridManager.GRID_HEIGHT; y++)
+                {
+                    Unit unit = GridManager.Instance.GetUnitAt(x, y);
+                    if (unit != null && unit.Data != null && unit.Data.rarity == rarity)
+                    {
+                        unit.SetAttackUpgradeLevel(level);
+                    }
+                }
+            }
+        }
+
+        private void ApplySpeedLevelToAllUnits(Rarity rarity, int level)
+        {
+            if (GridManager.Instance == null) return;
+
+            for (int x = 0; x < GridManager.GRID_WIDTH; x++)
+            {
+                for (int y = 0; y < GridManager.GRID_HEIGHT; y++)
+                {
+                    Unit unit = GridManager.Instance.GetUnitAt(x, y);
+                    if (unit != null && unit.Data != null && unit.Data.rarity == rarity)
+                    {
+                        unit.SetAttackSpeedUpgradeLevel(level);
+                    }
+                }
+            }
+        }
+        #endregion
+
+        #region Helper Methods
         private bool CanUpgrade()
         {
             return GameplayManager.Instance != null;

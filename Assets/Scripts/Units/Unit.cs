@@ -1219,24 +1219,23 @@ namespace LottoDefense.Units
 
         #region Upgrade System
         /// <summary>
-        /// Upgrade attack level (increases attack damage by percentage from UnitData).
+        /// Set attack upgrade level directly (for rarity-wide upgrades).
         /// </summary>
-        public void UpgradeAttack()
+        public void SetAttackUpgradeLevel(int level)
         {
-            AttackUpgradeLevel++;
+            AttackUpgradeLevel = level;
             RecalculateStats();
-            Debug.Log($"[Unit] {Data.GetDisplayName()} attack upgraded to level {AttackUpgradeLevel} (Attack: {CurrentAttack})");
         }
 
         /// <summary>
-        /// Upgrade attack speed level (increases attack speed by percentage from UnitData).
+        /// Set attack speed upgrade level directly (for rarity-wide upgrades).
         /// </summary>
-        public void UpgradeAttackSpeed()
+        public void SetAttackSpeedUpgradeLevel(int level)
         {
-            AttackSpeedUpgradeLevel++;
+            AttackSpeedUpgradeLevel = level;
             RecalculateStats();
-            Debug.Log($"[Unit] {Data.GetDisplayName()} attack speed upgraded to level {AttackSpeedUpgradeLevel} (Speed: {CurrentAttackSpeed:F2})");
         }
+
         #endregion
     }
 }

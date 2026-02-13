@@ -111,6 +111,42 @@ namespace LottoDefense.UI
 
         #endregion
 
+        #region Unit Info Panel Colors
+        /// <summary>Attack stat accent (red-orange).</summary>
+        public static readonly Color UnitInfoAttack = new Color(1f, 0.45f, 0.3f, 1f);
+
+        /// <summary>Attack speed stat accent (green).</summary>
+        public static readonly Color UnitInfoSpeed = new Color(0.3f, 0.9f, 0.5f, 1f);
+
+        /// <summary>Range stat accent (sky blue).</summary>
+        public static readonly Color UnitInfoRange = new Color(0.4f, 0.75f, 1f, 1f);
+
+        /// <summary>Attack pattern type accent (amber).</summary>
+        public static readonly Color UnitInfoPatternColor = new Color(1f, 0.75f, 0.3f, 1f);
+
+        /// <summary>Skill name accent (cyan).</summary>
+        public static readonly Color UnitInfoSkillColor = new Color(0.3f, 0.9f, 0.95f, 1f);
+
+        /// <summary>Mana bar background (dark).</summary>
+        public static readonly Color ManaBarBg = new Color(0.15f, 0.15f, 0.2f, 0.9f);
+
+        /// <summary>Mana bar fill (bright blue).</summary>
+        public static readonly Color ManaBarFill = new Color(0.3f, 0.5f, 1f, 1f);
+
+        /// <summary>Defense stat accent (warm gray).</summary>
+        public static readonly Color UnitInfoDefense = new Color(0.75f, 0.7f, 0.6f, 1f);
+
+        /// <summary>Unit info panel height.</summary>
+        public const float UnitInfoPanelHeight = 130f;
+
+        /// <summary>Unit info name font size.</summary>
+        public const int UnitInfoNameSize = 20;
+
+        /// <summary>Unit info detail font size.</summary>
+        public const int UnitInfoDetailSize = 16;
+
+        #endregion
+
         #region Synthesis Floating Button Colors
         /// <summary>Floating synthesis button background (bright amber-gold).</summary>
         public static readonly Color SynthFloatBtnBg = new Color(1f, 0.78f, 0.1f, 1f);
@@ -198,6 +234,15 @@ namespace LottoDefense.UI
 
         /// <summary>Bottom action panel height.</summary>
         public const float BottomPanelHeight = 130f;
+
+        /// <summary>Fixed bottom command panel height (StarCraft-style).</summary>
+        public const float CommandPanelHeight = 200f;
+
+        /// <summary>Compact command button height (3x2 grid).</summary>
+        public const float CommandButtonHeight = 55f;
+
+        /// <summary>Compact command button text size.</summary>
+        public const int CommandButtonTextSize = 15;
 
         /// <summary>Floating synthesis button size.</summary>
         public const float SynthFloatBtnWidth = 100f;

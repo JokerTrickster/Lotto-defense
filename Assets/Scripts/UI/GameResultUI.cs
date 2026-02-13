@@ -3,6 +3,8 @@ using UnityEngine.UI;
 using System.Collections;
 using LottoDefense.Gameplay;
 using LottoDefense.Networking;
+using LottoDefense.Lobby;
+using LottoDefense.Units;
 
 namespace LottoDefense.UI
 {
@@ -21,6 +23,7 @@ namespace LottoDefense.UI
         [SerializeField] private Text contributionText;
         [SerializeField] private Button confirmButton;
         [SerializeField] private Text confirmButtonText;
+        [SerializeField] private Text rewardText;
         #endregion
 
         #region Private Fields
@@ -156,6 +159,17 @@ namespace LottoDefense.UI
             if (confirmButtonText != null)
             {
                 confirmButtonText.text = "확인";
+            }
+
+            // Grant lobby rewards (before cleanup destroys everything)
+            int synthesisCount = SynthesisManager.Instance != null ? SynthesisManager.Instance.SessionSynthesisCount : 0;
+            int upgradeCount = UnitUpgradeManager.Instance != null ? UnitUpgradeManager.Instance.SessionUpgradeCount : 0;
+            int goldReward = LobbyDataManager.GetGameResultGold(roundReached);
+            LobbyDataManager.GrantGameRewards(roundReached, synthesisCount, upgradeCount);
+
+            if (rewardText != null)
+            {
+                rewardText.text = $"보상: +{goldReward} 골드";
             }
 
             // Show panel with fade in

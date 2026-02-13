@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using LottoDefense.Gameplay;
 using LottoDefense.Grid;
+using LottoDefense.Lobby;
 using LottoDefense.Utils;
 
 namespace LottoDefense.Units
@@ -223,43 +224,74 @@ namespace LottoDefense.Units
         }
 
         /// <summary>
+        /// Filter a unit pool to only include unlocked units.
+        /// </summary>
+        private List<UnitData> FilterByUnlocked(List<UnitData> pool)
+        {
+            List<string> unlockedNames = LobbyDataManager.GetUnlockedUnitsStatic();
+            return pool.Where(u => unlockedNames.Contains(u.unitName)).ToList();
+        }
+
+        /// <summary>
         /// Performs weighted random selection based on rarity drop rates from GameBalanceConfig.
         /// Returns a random unit from the selected rarity pool.
+        /// Only includes unlocked units in each pool.
         /// </summary>
         private UnitData PerformWeightedDraw()
         {
+            // Filter pools by unlocked units
+            List<UnitData> filteredNormal = FilterByUnlocked(normalUnits);
+            List<UnitData> filteredRare = FilterByUnlocked(rareUnits);
+            List<UnitData> filteredEpic = FilterByUnlocked(epicUnits);
+            List<UnitData> filteredLegendary = FilterByUnlocked(legendaryUnits);
+
+            // Get spawn rates from balance config
+            float legendaryRate = filteredLegendary.Count > 0 ? balanceConfig.spawnRates.legendaryRate : 0f;
+            float epicRate = filteredEpic.Count > 0 ? balanceConfig.spawnRates.epicRate : 0f;
+            float rareRate = filteredRare.Count > 0 ? balanceConfig.spawnRates.rareRate : 0f;
+            float normalRate = filteredNormal.Count > 0 ? balanceConfig.spawnRates.normalRate : 0f;
+
+            // Redistribute empty pool weights to remaining pools
+            float totalRate = normalRate + rareRate + epicRate + legendaryRate;
+            if (totalRate <= 0f)
+            {
+                Debug.LogError("[UnitManager] No unlocked units available for gacha!");
+                return null;
+            }
+
+            // Normalize rates to 100%
+            float scale = 100f / totalRate;
+            normalRate *= scale;
+            rareRate *= scale;
+            epicRate *= scale;
+            legendaryRate *= scale;
+
             // Generate random value between 0 and 100
             float roll = UnityEngine.Random.Range(0f, 100f);
 
             Rarity selectedRarity;
             List<UnitData> selectedPool;
 
-            // Get spawn rates from balance config
-            float legendaryRate = balanceConfig.spawnRates.legendaryRate;
-            float epicRate = balanceConfig.spawnRates.epicRate;
-            float rareRate = balanceConfig.spawnRates.rareRate;
-            float normalRate = balanceConfig.spawnRates.normalRate;
-
             // Determine rarity based on cumulative probabilities
-            if (roll < legendaryRate) // Legendary
+            if (roll < legendaryRate)
             {
                 selectedRarity = Rarity.Legendary;
-                selectedPool = legendaryUnits;
+                selectedPool = filteredLegendary;
             }
-            else if (roll < legendaryRate + epicRate) // Epic
+            else if (roll < legendaryRate + epicRate)
             {
                 selectedRarity = Rarity.Epic;
-                selectedPool = epicUnits;
+                selectedPool = filteredEpic;
             }
-            else if (roll < legendaryRate + epicRate + rareRate) // Rare
+            else if (roll < legendaryRate + epicRate + rareRate)
             {
                 selectedRarity = Rarity.Rare;
-                selectedPool = rareUnits;
+                selectedPool = filteredRare;
             }
-            else // Normal
+            else
             {
                 selectedRarity = Rarity.Normal;
-                selectedPool = normalUnits;
+                selectedPool = filteredNormal;
             }
 
             // Select random unit from the chosen pool
@@ -525,6 +557,12 @@ namespace LottoDefense.Units
             GameObject unitObj = new GameObject($"Unit_{unitData.unitName}");
             Unit unit = unitObj.AddComponent<Unit>();
             unit.Initialize(unitData, position);
+
+            // Apply existing rarity-wide upgrades to new unit
+            if (UnitUpgradeManager.Instance != null)
+            {
+                UnitUpgradeManager.Instance.ApplyRarityUpgrades(unit);
+            }
 
             // Add visual representation (SpriteRenderer is added by RequireComponent on Unit)
             SpriteRenderer renderer = unitObj.GetComponent<SpriteRenderer>();
