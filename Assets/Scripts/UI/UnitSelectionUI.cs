@@ -42,7 +42,8 @@ namespace LottoDefense.UI
             // Dismiss panel when clicking empty space
             if (Input.GetMouseButtonDown(0) && selectionPanel != null && selectionPanel.activeSelf)
             {
-                if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
+                // Check if pointer is over any UI element (mobile-safe)
+                if (IsPointerOverUI())
                     return;
 
                 Vector2 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
@@ -209,6 +210,24 @@ namespace LottoDefense.UI
         #endregion
 
         #region Helper Methods
+        /// <summary>
+        /// Mobile-safe check for pointer over UI.
+        /// IsPointerOverGameObject() without fingerId is unreliable on mobile.
+        /// </summary>
+        private bool IsPointerOverUI()
+        {
+            if (EventSystem.current == null) return false;
+
+            // Mobile touch: use fingerId for reliable detection
+            if (Input.touchCount > 0)
+            {
+                return EventSystem.current.IsPointerOverGameObject(Input.GetTouch(0).fingerId);
+            }
+
+            // Desktop mouse
+            return EventSystem.current.IsPointerOverGameObject();
+        }
+
         private void PositionPanelNearUnit(Unit unit)
         {
             if (selectionPanel == null || unit == null) return;

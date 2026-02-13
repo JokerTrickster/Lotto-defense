@@ -9,6 +9,7 @@ using LottoDefense.Combat;
 using LottoDefense.VFX;
 using LottoDefense.Quests;
 using LottoDefense.Networking;
+using UnityEngine.EventSystems;
 
 namespace LottoDefense.Gameplay
 {
@@ -44,6 +45,7 @@ namespace LottoDefense.Gameplay
 
             Debug.Log("[GameSceneBootstrapper] Creating main canvas...");
             EnsureMainCanvas();
+            EnsureEventSystem();
             Debug.Log("[GameSceneBootstrapper] Main canvas created");
 
             EnsureGridManager();
@@ -117,6 +119,17 @@ namespace LottoDefense.Gameplay
             }
         }
         #endregion
+
+        private void EnsureEventSystem()
+        {
+            if (FindFirstObjectByType<EventSystem>() == null)
+            {
+                GameObject esObj = new GameObject("EventSystem");
+                esObj.AddComponent<EventSystem>();
+                esObj.AddComponent<StandaloneInputModule>();
+                Debug.Log("[GameSceneBootstrapper] Created EventSystem");
+            }
+        }
 
         #region Managers
         private void EnsureGridManager()

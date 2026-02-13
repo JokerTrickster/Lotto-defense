@@ -85,6 +85,7 @@ namespace LottoDefense.UI
 
         private void Update()
         {
+            EnsureListeners();
             if (GameplayManager.Instance != null)
             {
                 UpdateButtonStates();
