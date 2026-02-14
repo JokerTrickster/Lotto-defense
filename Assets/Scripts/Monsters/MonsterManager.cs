@@ -91,6 +91,7 @@ namespace LottoDefense.Monsters
         private bool isSpawning = false;
         private int monstersSpawnedThisRound = 0;
         private Coroutine spawnCoroutine;
+        private Coroutine subscribeCoroutine;
         private GameHUD cachedGameHUD;
         private MonsterData currentRoundMonsterType; // 현재 라운드에서 스폰할 몬스터 타입 (1종류만)
         #endregion
@@ -151,16 +152,33 @@ namespace LottoDefense.Monsters
 
         private void OnEnable()
         {
-            // Subscribe to game state changes
+            subscribeCoroutine = StartCoroutine(SubscribeWhenReady());
+        }
+
+        private IEnumerator SubscribeWhenReady()
+        {
+            int maxRetries = 300;
+            int retries = 0;
+            while (GameplayManager.Instance == null && retries < maxRetries)
+            {
+                retries++;
+                yield return null;
+            }
             if (GameplayManager.Instance != null)
             {
+                GameplayManager.Instance.OnStateChanged -= HandleStateChanged;
                 GameplayManager.Instance.OnStateChanged += HandleStateChanged;
+                Debug.Log("[MonsterManager] Subscribed to GameplayManager state changes");
             }
         }
 
         private void OnDisable()
         {
-            // Unsubscribe from game state changes
+            if (subscribeCoroutine != null)
+            {
+                StopCoroutine(subscribeCoroutine);
+                subscribeCoroutine = null;
+            }
             if (GameplayManager.Instance != null)
             {
                 GameplayManager.Instance.OnStateChanged -= HandleStateChanged;

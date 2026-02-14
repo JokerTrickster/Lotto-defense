@@ -385,7 +385,8 @@ namespace LottoDefense.Gameplay
             DestroyIfExists<UnitManager>();
             DestroyIfExists<UnitPlacementManager>();
             DestroyIfExists<SynthesisManager>();
-            DestroyIfExists<UpgradeManager>();
+            DestroyIfExists<AutoSynthesisManager>();
+            DestroyIfExists<UnitUpgradeManager>();
             DestroyIfExists<VFXManager>();
             DestroyIfExists<MobileOptimizationManager>();
             DestroyIfExists<QuestManager>();

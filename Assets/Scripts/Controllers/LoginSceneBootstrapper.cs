@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using LottoDefense.Authentication;
+using LottoDefense.UI;
 
 namespace LottoDefense.Controllers
 {
@@ -12,6 +13,7 @@ namespace LottoDefense.Controllers
     public class LoginSceneBootstrapper : MonoBehaviour
     {
         private Canvas mainCanvas;
+        private Transform safeAreaRoot;
         private Font defaultFont;
         private Button loginButton;
         private Button guestButton;
@@ -87,6 +89,19 @@ namespace LottoDefense.Controllers
             scaler.matchWidthOrHeight = 0.5f;
 
             canvasObj.AddComponent<GraphicRaycaster>();
+
+            // Create SafeArea container
+            GameObject safeAreaObj = new GameObject("SafeArea");
+            safeAreaObj.transform.SetParent(mainCanvas.transform, false);
+
+            RectTransform safeRect = safeAreaObj.AddComponent<RectTransform>();
+            safeRect.anchorMin = Vector2.zero;
+            safeRect.anchorMax = Vector2.one;
+            safeRect.offsetMin = Vector2.zero;
+            safeRect.offsetMax = Vector2.zero;
+
+            safeAreaObj.AddComponent<SafeAreaAdapter>();
+            safeAreaRoot = safeAreaObj.transform;
         }
 
         private void CreateLoginUI()
@@ -102,6 +117,7 @@ namespace LottoDefense.Controllers
         {
             GameObject bgObj = new GameObject("Background");
             bgObj.transform.SetParent(mainCanvas.transform, false);
+            bgObj.transform.SetAsFirstSibling();
             Image bg = bgObj.AddComponent<Image>();
             bg.color = new Color(0.08f, 0.08f, 0.16f, 1f);
 
@@ -114,7 +130,7 @@ namespace LottoDefense.Controllers
         private void CreateTitle()
         {
             GameObject titleObj = new GameObject("Title");
-            titleObj.transform.SetParent(mainCanvas.transform, false);
+            titleObj.transform.SetParent(safeAreaRoot, false);
             Text titleText = titleObj.AddComponent<Text>();
             titleText.text = "LOTTO DEFENSE";
             titleText.font = defaultFont;
@@ -161,7 +177,7 @@ namespace LottoDefense.Controllers
         private void CreateStatusText()
         {
             GameObject textObj = new GameObject("StatusText");
-            textObj.transform.SetParent(mainCanvas.transform, false);
+            textObj.transform.SetParent(safeAreaRoot, false);
             statusText = textObj.AddComponent<Text>();
             statusText.text = "";
             statusText.font = defaultFont;
@@ -180,7 +196,7 @@ namespace LottoDefense.Controllers
             Vector2 anchorMin, Vector2 anchorMax, int fontSize)
         {
             GameObject btnObj = new GameObject(name);
-            btnObj.transform.SetParent(mainCanvas.transform, false);
+            btnObj.transform.SetParent(safeAreaRoot, false);
 
             Image btnImage = btnObj.AddComponent<Image>();
             btnImage.color = bgColor;

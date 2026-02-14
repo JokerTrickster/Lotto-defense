@@ -97,6 +97,8 @@ namespace LottoDefense.Units
         private float attackCooldown;
         private float currentCooldown;
         private int combatTickCount; // Track combat ticks for logging throttle
+        private int outOfRangeTicks; // Track how long target has been out of range
+        private const int MAX_OUT_OF_RANGE_TICKS = 20; // 2 seconds before target switch
         private float activeDamageBuff = 1f;
         private float activeSpeedBuff = 1f;
         #endregion
@@ -354,11 +356,11 @@ namespace LottoDefense.Units
             // Update skill cooldowns
             UpdateSkillCooldowns(tickInterval);
 
-            // Find or validate target - ONLY if target is dead/inactive
-            // Do NOT switch targets just because out of range - pursue until death!
+            // Find or validate target
             if (CurrentTarget == null || !CurrentTarget.IsActive)
             {
                 CurrentTarget = FindNearestMonster();
+                outOfRangeTicks = 0;
                 if (CurrentTarget != null)
                 {
                     Debug.Log($"[Unit] {Data.GetDisplayName()} found target: {CurrentTarget.Data.monsterName} at distance {Vector3.Distance(transform.position, CurrentTarget.transform.position):F2}");
@@ -366,29 +368,28 @@ namespace LottoDefense.Units
             }
 
             // Attack if ready and has target
-            // NOTE: Attack even if out of range - unit will chase target until it dies
             if (CurrentTarget != null && currentCooldown <= 0f)
             {
                 float distance = Vector3.Distance(transform.position, CurrentTarget.transform.position);
 
-                // Only attack if within range, but keep target locked
                 if (distance <= Data.attackRange)
                 {
+                    outOfRangeTicks = 0;
                     ExecuteAttack();
                     currentCooldown = attackCooldown;
-
-                    // Only log if target still exists after attack (it might have died)
-                    if (CurrentTarget != null && CurrentTarget.Data != null)
-                    {
-                        Debug.Log($"[Unit] {Data.GetDisplayName()} attacked {CurrentTarget.Data.monsterName} for {CurrentAttack} damage. Next attack in {attackCooldown:F2}s");
-                    }
                 }
                 else
                 {
-                    // Target out of range but still locked - log occasionally
-                    if (combatTickCount % 20 == 0) // Log every 2 seconds
+                    outOfRangeTicks++;
+                    // If target has been out of range too long, find a new one
+                    if (outOfRangeTicks >= MAX_OUT_OF_RANGE_TICKS)
                     {
-                        Debug.Log($"[Unit] {Data.GetDisplayName()} target out of range ({distance:F2} > {Data.attackRange}), waiting for target to return or die");
+                        Monster newTarget = FindNearestMonster();
+                        if (newTarget != null)
+                        {
+                            CurrentTarget = newTarget;
+                            outOfRangeTicks = 0;
+                        }
                     }
                 }
             }
@@ -647,7 +648,7 @@ namespace LottoDefense.Units
             lineRenderer.startWidth = 0.03f;
             lineRenderer.endWidth = 0.03f;
             lineRenderer.positionCount = 2;
-            lineRenderer.material = new Material(Shader.Find("Sprites/Default"));
+            lineRenderer.material = DefaultSpriteMaterial;
             lineRenderer.startColor = new Color(1f, 0.5f, 0f, 0.6f); // Orange
             lineRenderer.endColor = new Color(1f, 0.5f, 0f, 0f);
 
@@ -675,7 +676,7 @@ namespace LottoDefense.Units
             lineRenderer.startWidth = 0.04f;
             lineRenderer.endWidth = 0.04f;
             lineRenderer.positionCount = 2;
-            lineRenderer.material = new Material(Shader.Find("Sprites/Default"));
+            lineRenderer.material = DefaultSpriteMaterial;
             lineRenderer.startColor = new Color(0.5f, 0.5f, 1f, 0.8f); // Electric blue
             lineRenderer.endColor = new Color(0.5f, 0.5f, 1f, 0.8f);
 
@@ -708,7 +709,7 @@ namespace LottoDefense.Units
             lineRenderer.startWidth = 0.05f;
             lineRenderer.endWidth = 0.05f;
             lineRenderer.positionCount = 2;
-            lineRenderer.material = new Material(Shader.Find("Sprites/Default"));
+            lineRenderer.material = DefaultSpriteMaterial;
 
             // Set color based on unit rarity
             Color missileColor = GetMissileColor();
@@ -778,6 +779,7 @@ namespace LottoDefense.Units
             CurrentTarget = null;
             currentCooldown = 0f;
             combatTickCount = 0;
+            outOfRangeTicks = 0;
         }
         #endregion
 
@@ -834,6 +836,9 @@ namespace LottoDefense.Units
 
                 // Apply skill effect
                 ApplySkillEffect(skillToActivate);
+
+                // Visual feedback
+                LottoDefense.VFX.VFXManager.Instance?.ShowUpgradeEffect(transform.position, Data.rarity);
 
                 // Reset mana to 0 after using skill
                 CurrentMana = 0f;
@@ -953,6 +958,19 @@ namespace LottoDefense.Units
         }
         #endregion
 
+        #region Shared Materials
+        private static Material s_defaultSpriteMaterial;
+        private static Material DefaultSpriteMaterial
+        {
+            get
+            {
+                if (s_defaultSpriteMaterial == null)
+                    s_defaultSpriteMaterial = new Material(Shader.Find("Sprites/Default"));
+                return s_defaultSpriteMaterial;
+            }
+        }
+        #endregion
+
         #region Attack Range Indicator
         private static Texture2D s_circleTexture;
         private static Sprite s_circleSprite;
@@ -1052,7 +1070,7 @@ namespace LottoDefense.Units
                 border.startWidth = 0.04f;
                 border.endWidth = 0.04f;
                 border.positionCount = 64;
-                border.material = new Material(Shader.Find("Sprites/Default"));
+                border.material = DefaultSpriteMaterial;
                 border.sortingOrder = -1;
 
                 Color borderColor = rangeColor;

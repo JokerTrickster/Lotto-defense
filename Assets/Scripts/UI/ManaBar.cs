@@ -17,7 +17,7 @@ namespace LottoDefense.UI
 
         [Header("Visual Settings")]
         [SerializeField] private Color manaColor = new Color(0.2f, 0.5f, 1f, 1f); // Blue
-        [SerializeField] private Color fullManaColor = new Color(1f, 0.8f, 0.2f, 1f); // Gold when full
+        [SerializeField] private Color fullManaColor = new Color(0.4f, 0.7f, 1f, 1f); // Bright blue when full
         [SerializeField] private float heightOffset = 0.5f; // Distance above unit
         [SerializeField] private Vector2 barSize = new Vector2(0.8f, 0.1f); // Bar dimensions
         #endregion
@@ -25,6 +25,7 @@ namespace LottoDefense.UI
         #region Private Fields
         private Unit ownerUnit;
         private RectTransform rectTransform;
+        private Camera cachedCamera;
         private bool isInitialized = false;
         #endregion
 
@@ -32,6 +33,7 @@ namespace LottoDefense.UI
         private void Awake()
         {
             rectTransform = GetComponent<RectTransform>();
+            cachedCamera = Camera.main;
         }
 
         private void Update()
@@ -180,7 +182,8 @@ namespace LottoDefense.UI
 
             // Convert unit world position to screen position
             Vector3 worldPos = ownerUnit.transform.position + Vector3.up * heightOffset;
-            Vector3 screenPos = Camera.main.WorldToScreenPoint(worldPos);
+            if (cachedCamera == null) cachedCamera = Camera.main;
+            Vector3 screenPos = cachedCamera.WorldToScreenPoint(worldPos);
 
             // Update rect transform position
             rectTransform.position = screenPos;

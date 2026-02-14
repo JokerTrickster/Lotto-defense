@@ -51,8 +51,8 @@ namespace LottoDefense.UI
             balanceConfig = Resources.Load<GameBalanceConfig>("GameBalanceConfig");
             if (balanceConfig == null)
             {
-                Debug.LogError("[SynthesisGuideUI] GameBalanceConfig not found!");
-                return;
+                Debug.LogWarning("[SynthesisGuideUI] GameBalanceConfig asset not found, using code defaults");
+                balanceConfig = ScriptableObject.CreateInstance<GameBalanceConfig>();
             }
 
             // Get all recipes

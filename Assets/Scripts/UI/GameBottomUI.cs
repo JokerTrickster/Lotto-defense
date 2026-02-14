@@ -42,16 +42,22 @@ namespace LottoDefense.UI
         private bool listenersInitialized;
         private GameBalanceConfig balanceConfig;
         private UnitInfoPanel unitInfoPanel;
+        private UnitSelectionUI cachedSelectionUI;
         #endregion
 
         #region Unity Lifecycle
         private void Awake()
         {
             balanceConfig = Resources.Load<GameBalanceConfig>("GameBalanceConfig");
+            if (balanceConfig == null)
+            {
+                balanceConfig = ScriptableObject.CreateInstance<GameBalanceConfig>();
+            }
 
             if (GameplayManager.Instance != null)
             {
                 GameplayManager.Instance.OnStateChanged += HandleStateChanged;
+                GameplayManager.Instance.OnGameValueChanged += HandleGameValueChanged;
             }
         }
 
@@ -91,15 +97,7 @@ namespace LottoDefense.UI
             if (GameplayManager.Instance != null)
             {
                 GameplayManager.Instance.OnStateChanged -= HandleStateChanged;
-            }
-        }
-
-        private void Update()
-        {
-            EnsureListeners();
-            if (GameplayManager.Instance != null)
-            {
-                UpdateButtonStates();
+                GameplayManager.Instance.OnGameValueChanged -= HandleGameValueChanged;
             }
         }
         #endregion
@@ -150,6 +148,14 @@ namespace LottoDefense.UI
         private void HandleStateChanged(GameState oldState, GameState newState)
         {
             UpdateButtonStates();
+        }
+
+        private void HandleGameValueChanged(string valueType, int newValue)
+        {
+            if (valueType == "Gold")
+            {
+                UpdateButtonStates();
+            }
         }
         #endregion
 
@@ -221,6 +227,7 @@ namespace LottoDefense.UI
                 {
                     Debug.Log($"[GameBottomUI] Upgraded {selectedUnit.Data.GetDisplayName()} attack");
                     VFXManager.Instance?.ShowUpgradeEffect(selectedUnit.transform.position, selectedUnit.Data.rarity);
+                    unitInfoPanel?.RefreshStats();
                     UpdateButtonStates();
                 }
             }
@@ -238,6 +245,7 @@ namespace LottoDefense.UI
                 {
                     Debug.Log($"[GameBottomUI] Upgraded {selectedUnit.Data.GetDisplayName()} attack speed");
                     VFXManager.Instance?.ShowUpgradeEffect(selectedUnit.transform.position, selectedUnit.Data.rarity);
+                    unitInfoPanel?.RefreshStats();
                     UpdateButtonStates();
                 }
             }
@@ -263,11 +271,10 @@ namespace LottoDefense.UI
 
             Destroy(selectedUnit.gameObject);
 
-            UnitSelectionUI selectionUI = FindFirstObjectByType<UnitSelectionUI>();
-            if (selectionUI != null)
-            {
-                selectionUI.HideUI();
-            }
+            if (cachedSelectionUI == null)
+                cachedSelectionUI = FindFirstObjectByType<UnitSelectionUI>();
+            if (cachedSelectionUI != null)
+                cachedSelectionUI.HideUI();
 
             selectedUnit = null;
             UpdateButtonStates();
@@ -296,11 +303,10 @@ namespace LottoDefense.UI
                 Debug.Log("[GameBottomUI] Synthesis successful!");
             }
 
-            UnitSelectionUI selectionUI = FindFirstObjectByType<UnitSelectionUI>();
-            if (selectionUI != null)
-            {
-                selectionUI.HideUI();
-            }
+            if (cachedSelectionUI == null)
+                cachedSelectionUI = FindFirstObjectByType<UnitSelectionUI>();
+            if (cachedSelectionUI != null)
+                cachedSelectionUI.HideUI();
 
             selectedUnit = null;
             UpdateButtonStates();
@@ -472,16 +478,17 @@ namespace LottoDefense.UI
             if (isInteractable)
             {
                 colors.normalColor = Color.white;
-                colors.highlightedColor = new Color(1.2f, 1.2f, 1.2f, 1f);
-                colors.pressedColor = new Color(0.7f, 0.7f, 0.7f, 1f);
+                colors.highlightedColor = new Color(0.9f, 0.95f, 1f, 1f);
+                colors.pressedColor = new Color(0.55f, 0.55f, 0.55f, 1f);
             }
             else
             {
-                colors.normalColor = new Color(0.4f, 0.4f, 0.4f, 0.7f);
-                colors.highlightedColor = new Color(0.4f, 0.4f, 0.4f, 0.7f);
-                colors.pressedColor = new Color(0.4f, 0.4f, 0.4f, 0.7f);
+                colors.normalColor = GameSceneDesignTokens.ActionBtnDisabled;
+                colors.highlightedColor = GameSceneDesignTokens.ActionBtnDisabled;
+                colors.pressedColor = GameSceneDesignTokens.ActionBtnDisabled;
             }
-            colors.disabledColor = new Color(0.35f, 0.35f, 0.35f, 0.7f);
+            colors.disabledColor = GameSceneDesignTokens.ActionBtnDisabled;
+            colors.fadeDuration = 0.06f;
             button.colors = colors;
         }
 

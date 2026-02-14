@@ -17,6 +17,7 @@ namespace LottoDefense.UI
         private Unit targetUnit;
         private Action<Unit, Unit> onClickCallback;
         private RectTransform rectTransform;
+        private Camera cachedCamera;
         private const float HEIGHT_OFFSET = 0.8f;
         #endregion
 
@@ -154,7 +155,8 @@ namespace LottoDefense.UI
             if (targetUnit == null || rectTransform == null) return;
 
             Vector3 worldPos = targetUnit.transform.position + Vector3.up * HEIGHT_OFFSET;
-            Vector3 screenPos = Camera.main.WorldToScreenPoint(worldPos);
+            if (cachedCamera == null) cachedCamera = Camera.main;
+            Vector3 screenPos = cachedCamera.WorldToScreenPoint(worldPos);
             rectTransform.position = screenPos;
         }
         #endregion

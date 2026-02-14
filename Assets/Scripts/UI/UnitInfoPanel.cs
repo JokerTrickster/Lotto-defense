@@ -35,7 +35,14 @@ namespace LottoDefense.UI
         {
             if (unit == null) return;
 
+            // Unsubscribe from previous unit
+            if (currentUnit != null)
+            {
+                currentUnit.OnManaChanged -= HandleManaChanged;
+            }
+
             currentUnit = unit;
+            currentUnit.OnManaChanged += HandleManaChanged;
 
             if (statsContainer != null) statsContainer.SetActive(true);
             if (emptyStateText != null) emptyStateText.gameObject.SetActive(false);
@@ -45,19 +52,34 @@ namespace LottoDefense.UI
 
         public void Hide()
         {
+            if (currentUnit != null)
+            {
+                currentUnit.OnManaChanged -= HandleManaChanged;
+            }
             currentUnit = null;
 
             if (statsContainer != null) statsContainer.SetActive(false);
             if (emptyStateText != null) emptyStateText.gameObject.SetActive(true);
         }
-        #endregion
 
-        #region Unity Lifecycle
-        private void Update()
+        /// <summary>
+        /// Call externally after upgrades to refresh displayed stats.
+        /// </summary>
+        public void RefreshStats()
         {
             if (currentUnit != null)
             {
                 UpdateStats();
+            }
+        }
+        #endregion
+
+        #region Event Handlers
+        private void HandleManaChanged(float current, float max)
+        {
+            if (manaBarFill != null)
+            {
+                manaBarFill.fillAmount = max > 0f ? current / max : 0f;
             }
         }
         #endregion
@@ -128,7 +150,17 @@ namespace LottoDefense.UI
 
                 if (skillText != null && currentUnit.Data.skills.Length > 0)
                 {
-                    skillText.text = $"SKILL: {currentUnit.Data.skills[0].skillName}";
+                    // Prefer showing Active skill name (mana skill)
+                    string activeSkillName = null;
+                    foreach (var s in currentUnit.Data.skills)
+                    {
+                        if (s.skillType == SkillType.Active)
+                        {
+                            activeSkillName = s.skillName;
+                            break;
+                        }
+                    }
+                    skillText.text = $"SKILL: {activeSkillName ?? currentUnit.Data.skills[0].skillName}";
                 }
 
                 if (manaBarFill != null)

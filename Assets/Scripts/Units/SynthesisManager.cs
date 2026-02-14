@@ -77,7 +77,8 @@ namespace LottoDefense.Units
             balanceConfig = Resources.Load<GameBalanceConfig>("GameBalanceConfig");
             if (balanceConfig == null)
             {
-                Debug.LogError("[SynthesisManager] GameBalanceConfig not found in Resources!");
+                Debug.LogWarning("[SynthesisManager] GameBalanceConfig asset not found, using code defaults");
+                balanceConfig = ScriptableObject.CreateInstance<GameBalanceConfig>();
             }
 
             Debug.Log("[SynthesisManager] Initialized");

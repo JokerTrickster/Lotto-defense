@@ -53,6 +53,7 @@ namespace LottoDefense.Combat
 
         #region Private Fields
         private Coroutine combatCoroutine;
+        private Coroutine subscribeCoroutine;
         private bool isCombatActive = false;
         private int combatTickCount = 0;
         #endregion
@@ -115,16 +116,33 @@ namespace LottoDefense.Combat
 
         private void OnEnable()
         {
-            // Subscribe to game state changes
+            subscribeCoroutine = StartCoroutine(SubscribeWhenReady());
+        }
+
+        private IEnumerator SubscribeWhenReady()
+        {
+            int maxRetries = 300;
+            int retries = 0;
+            while (GameplayManager.Instance == null && retries < maxRetries)
+            {
+                retries++;
+                yield return null;
+            }
             if (GameplayManager.Instance != null)
             {
+                GameplayManager.Instance.OnStateChanged -= HandleStateChanged;
                 GameplayManager.Instance.OnStateChanged += HandleStateChanged;
+                Debug.Log("[CombatManager] Subscribed to GameplayManager state changes");
             }
         }
 
         private void OnDisable()
         {
-            // Unsubscribe from game state changes
+            if (subscribeCoroutine != null)
+            {
+                StopCoroutine(subscribeCoroutine);
+                subscribeCoroutine = null;
+            }
             if (GameplayManager.Instance != null)
             {
                 GameplayManager.Instance.OnStateChanged -= HandleStateChanged;

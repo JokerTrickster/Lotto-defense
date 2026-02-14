@@ -19,7 +19,10 @@ namespace LottoDefense.Lobby
         {
             balanceConfig = Resources.Load<GameBalanceConfig>("GameBalanceConfig");
             if (balanceConfig == null)
-                Debug.LogError("[DailyRewardManager] GameBalanceConfig not found!");
+            {
+                Debug.LogWarning("[DailyRewardManager] GameBalanceConfig asset not found, using code defaults");
+                balanceConfig = ScriptableObject.CreateInstance<GameBalanceConfig>();
+            }
         }
         #endregion
 

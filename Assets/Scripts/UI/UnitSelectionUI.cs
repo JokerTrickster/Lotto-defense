@@ -24,6 +24,7 @@ namespace LottoDefense.UI
         #region Private Fields
         private Unit selectedUnit;
         private GameBalanceConfig balanceConfig;
+        private Camera cachedCamera;
         private readonly List<SynthesisButtonController> activeSynthesisButtons = new List<SynthesisButtonController>();
         #endregion
 
@@ -31,6 +32,10 @@ namespace LottoDefense.UI
         private void Awake()
         {
             balanceConfig = Resources.Load<GameBalanceConfig>("GameBalanceConfig");
+            if (balanceConfig == null)
+            {
+                balanceConfig = ScriptableObject.CreateInstance<GameBalanceConfig>();
+            }
         }
 
         private void OnDestroy()
@@ -64,7 +69,11 @@ namespace LottoDefense.UI
             if (unit == null) return;
 
             if (balanceConfig == null)
+            {
                 balanceConfig = Resources.Load<GameBalanceConfig>("GameBalanceConfig");
+                if (balanceConfig == null)
+                    balanceConfig = ScriptableObject.CreateInstance<GameBalanceConfig>();
+            }
 
             selectedUnit = unit;
 
@@ -231,9 +240,10 @@ namespace LottoDefense.UI
             }
 
             // Check if a unit was tapped
-            if (Camera.main != null)
+            if (cachedCamera == null) cachedCamera = Camera.main;
+            if (cachedCamera != null)
             {
-                Vector2 worldPos = Camera.main.ScreenToWorldPoint(touchScreenPos);
+                Vector2 worldPos = cachedCamera.ScreenToWorldPoint(touchScreenPos);
                 RaycastHit2D hit = Physics2D.Raycast(worldPos, Vector2.zero);
 
                 if (hit.collider != null)
@@ -252,7 +262,8 @@ namespace LottoDefense.UI
             if (selectionPanel == null || unit == null) return;
 
             Vector3 worldPos = unit.transform.position + Vector3.up * 0.45f;
-            Vector3 screenPos = Camera.main.WorldToScreenPoint(worldPos);
+            if (cachedCamera == null) cachedCamera = Camera.main;
+            Vector3 screenPos = cachedCamera.WorldToScreenPoint(worldPos);
 
             RectTransform panelRect = selectionPanel.GetComponent<RectTransform>();
             if (panelRect != null)

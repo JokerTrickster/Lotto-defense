@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using LottoDefense.Gameplay;
 using LottoDefense.Grid;
-using LottoDefense.Lobby;
 using LottoDefense.Utils;
 
 namespace LottoDefense.Units
@@ -224,32 +223,17 @@ namespace LottoDefense.Units
         }
 
         /// <summary>
-        /// Filter a unit pool to only include unlocked units.
-        /// </summary>
-        private List<UnitData> FilterByUnlocked(List<UnitData> pool)
-        {
-            List<string> unlockedNames = LobbyDataManager.GetUnlockedUnitsStatic();
-            return pool.Where(u => unlockedNames.Contains(u.unitName)).ToList();
-        }
-
-        /// <summary>
         /// Performs weighted random selection based on rarity drop rates from GameBalanceConfig.
         /// Returns a random unit from the selected rarity pool.
-        /// Only includes unlocked units in each pool.
+        /// All units in Resources are available regardless of shop unlock status.
         /// </summary>
         private UnitData PerformWeightedDraw()
         {
-            // Filter pools by unlocked units
-            List<UnitData> filteredNormal = FilterByUnlocked(normalUnits);
-            List<UnitData> filteredRare = FilterByUnlocked(rareUnits);
-            List<UnitData> filteredEpic = FilterByUnlocked(epicUnits);
-            List<UnitData> filteredLegendary = FilterByUnlocked(legendaryUnits);
-
-            // Get spawn rates from balance config
-            float legendaryRate = filteredLegendary.Count > 0 ? balanceConfig.spawnRates.legendaryRate : 0f;
-            float epicRate = filteredEpic.Count > 0 ? balanceConfig.spawnRates.epicRate : 0f;
-            float rareRate = filteredRare.Count > 0 ? balanceConfig.spawnRates.rareRate : 0f;
-            float normalRate = filteredNormal.Count > 0 ? balanceConfig.spawnRates.normalRate : 0f;
+            // Get spawn rates from balance config (no unlock filter - all units available in gacha)
+            float legendaryRate = legendaryUnits.Count > 0 ? balanceConfig.spawnRates.legendaryRate : 0f;
+            float epicRate = epicUnits.Count > 0 ? balanceConfig.spawnRates.epicRate : 0f;
+            float rareRate = rareUnits.Count > 0 ? balanceConfig.spawnRates.rareRate : 0f;
+            float normalRate = normalUnits.Count > 0 ? balanceConfig.spawnRates.normalRate : 0f;
 
             // Redistribute empty pool weights to remaining pools
             float totalRate = normalRate + rareRate + epicRate + legendaryRate;
@@ -276,22 +260,22 @@ namespace LottoDefense.Units
             if (roll < legendaryRate)
             {
                 selectedRarity = Rarity.Legendary;
-                selectedPool = filteredLegendary;
+                selectedPool = legendaryUnits;
             }
             else if (roll < legendaryRate + epicRate)
             {
                 selectedRarity = Rarity.Epic;
-                selectedPool = filteredEpic;
+                selectedPool = epicUnits;
             }
             else if (roll < legendaryRate + epicRate + rareRate)
             {
                 selectedRarity = Rarity.Rare;
-                selectedPool = filteredRare;
+                selectedPool = rareUnits;
             }
             else
             {
                 selectedRarity = Rarity.Normal;
-                selectedPool = filteredNormal;
+                selectedPool = normalUnits;
             }
 
             // Select random unit from the chosen pool
@@ -512,12 +496,10 @@ namespace LottoDefense.Units
                     if (unit != null)
                     {
                         placedUnits.Add(unit);
-                        Debug.Log($"[UnitManager] Found unit at ({x},{y}): {unit.Data.GetDisplayName()}");
                     }
                 }
             }
 
-            Debug.Log($"[UnitManager] GetPlacedUnits: Found {placedUnits.Count} total units");
             return placedUnits;
         }
 

@@ -236,13 +236,13 @@ namespace LottoDefense.UI
         public const float BottomPanelHeight = 130f;
 
         /// <summary>Fixed bottom command panel height (StarCraft-style).</summary>
-        public const float CommandPanelHeight = 200f;
+        public const float CommandPanelHeight = 220f;
 
-        /// <summary>Compact command button height (3x2 grid).</summary>
-        public const float CommandButtonHeight = 55f;
+        /// <summary>Compact command button height (3x2 grid, 66px meets 44pt minimum at 1.5x).</summary>
+        public const float CommandButtonHeight = 66f;
 
         /// <summary>Compact command button text size.</summary>
-        public const int CommandButtonTextSize = 15;
+        public const int CommandButtonTextSize = 16;
 
         /// <summary>Floating synthesis button size.</summary>
         public const float SynthFloatBtnWidth = 100f;

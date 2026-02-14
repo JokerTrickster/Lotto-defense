@@ -30,6 +30,7 @@ namespace LottoDefense.Lobby
 
         #region Fields
         private Canvas mainCanvas;
+        private Transform safeAreaRoot;
         private Font defaultFont;
 
         // Currency displays
@@ -114,6 +115,19 @@ namespace LottoDefense.Lobby
             scaler.matchWidthOrHeight = 0.5f;
 
             canvasObj.AddComponent<GraphicRaycaster>();
+
+            // Create SafeArea container
+            GameObject safeAreaObj = new GameObject("SafeArea");
+            safeAreaObj.transform.SetParent(mainCanvas.transform, false);
+
+            RectTransform safeRect = safeAreaObj.AddComponent<RectTransform>();
+            safeRect.anchorMin = Vector2.zero;
+            safeRect.anchorMax = Vector2.one;
+            safeRect.offsetMin = Vector2.zero;
+            safeRect.offsetMax = Vector2.zero;
+
+            safeAreaObj.AddComponent<LottoDefense.UI.SafeAreaAdapter>();
+            safeAreaRoot = safeAreaObj.transform;
         }
 
         private void EnsureManagers()
@@ -174,6 +188,7 @@ namespace LottoDefense.Lobby
         {
             GameObject bgObj = new GameObject("Background");
             bgObj.transform.SetParent(mainCanvas.transform, false);
+            bgObj.transform.SetAsFirstSibling();
             Image bg = bgObj.AddComponent<Image>();
             bg.color = LobbyDesignTokens.Background;
             bg.raycastTarget = true;
@@ -188,7 +203,7 @@ namespace LottoDefense.Lobby
         {
             // Top bar container
             GameObject barObj = new GameObject("TopBar");
-            barObj.transform.SetParent(mainCanvas.transform, false);
+            barObj.transform.SetParent(safeAreaRoot, false);
             Image barBg = barObj.AddComponent<Image>();
             barBg.color = LobbyDesignTokens.TopBarBg;
 
@@ -336,8 +351,9 @@ namespace LottoDefense.Lobby
             Button btn = btnObj.AddComponent<Button>();
             ColorBlock colors = btn.colors;
             colors.normalColor = Color.white;
-            colors.highlightedColor = new Color(0.9f, 0.9f, 0.9f, 1f);
-            colors.pressedColor = new Color(0.7f, 0.7f, 0.7f, 1f);
+            colors.highlightedColor = new Color(0.9f, 0.95f, 1f, 1f);
+            colors.pressedColor = new Color(0.55f, 0.55f, 0.55f, 1f);
+            colors.fadeDuration = 0.06f;
             btn.colors = colors;
 
             LayoutElement le = btnObj.AddComponent<LayoutElement>();
@@ -361,7 +377,7 @@ namespace LottoDefense.Lobby
         private void CreateTitle()
         {
             GameObject titleObj = new GameObject("Title");
-            titleObj.transform.SetParent(mainCanvas.transform, false);
+            titleObj.transform.SetParent(safeAreaRoot, false);
             Text titleText = CreateText(titleObj, "LOTTO DEFENSE", LobbyDesignTokens.TitleSize, LobbyDesignTokens.TextPrimary);
             titleText.fontStyle = FontStyle.Bold;
 
@@ -375,7 +391,7 @@ namespace LottoDefense.Lobby
         {
             // Container for centering
             GameObject container = new GameObject("GameStartContainer");
-            container.transform.SetParent(mainCanvas.transform, false);
+            container.transform.SetParent(safeAreaRoot, false);
 
             RectTransform containerRect = container.AddComponent<RectTransform>();
             containerRect.anchorMin = new Vector2(0.5f, 0.15f);
@@ -389,8 +405,9 @@ namespace LottoDefense.Lobby
             Button btn = container.AddComponent<Button>();
             ColorBlock colors = btn.colors;
             colors.normalColor = Color.white;
-            colors.highlightedColor = new Color(0.9f, 0.9f, 0.9f, 1f);
-            colors.pressedColor = new Color(0.7f, 0.7f, 0.7f, 1f);
+            colors.highlightedColor = new Color(0.9f, 0.95f, 1f, 1f);
+            colors.pressedColor = new Color(0.55f, 0.55f, 0.55f, 1f);
+            colors.fadeDuration = 0.06f;
             btn.colors = colors;
             btn.onClick.AddListener(OnGameStartClicked);
 
@@ -425,7 +442,7 @@ namespace LottoDefense.Lobby
         {
             // Settings button (bottom left) - placeholder
             GameObject settingsObj = new GameObject("SettingsButton");
-            settingsObj.transform.SetParent(mainCanvas.transform, false);
+            settingsObj.transform.SetParent(safeAreaRoot, false);
 
             Image settingsBg = settingsObj.AddComponent<Image>();
             settingsBg.color = LobbyDesignTokens.ButtonSecondary;
@@ -450,7 +467,7 @@ namespace LottoDefense.Lobby
 
             // Logout button (bottom right)
             GameObject logoutObj = new GameObject("LogoutButton");
-            logoutObj.transform.SetParent(mainCanvas.transform, false);
+            logoutObj.transform.SetParent(safeAreaRoot, false);
 
             Image logoutBg = logoutObj.AddComponent<Image>();
             logoutBg.color = LobbyDesignTokens.ButtonDanger;

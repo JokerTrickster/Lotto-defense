@@ -87,7 +87,7 @@ namespace LottoDefense.Gameplay
                 attackSpeed = 1.0f,
                 attackRange = 1.5f,
                 upgradeCost = 5,
-                skillIds = new List<string> { "battle_frenzy", "critical_strike" }
+                skillIds = new List<string> { "battle_frenzy", "critical_strike", "war_cry" }
             },
 
             // Rare 유닛 - Archer (원거리 궁수)
@@ -99,7 +99,7 @@ namespace LottoDefense.Gameplay
                 attackSpeed = 1.2f,
                 attackRange = 3.0f,
                 upgradeCost = 10,
-                skillIds = new List<string> { "double_shot", "sniper" }
+                skillIds = new List<string> { "double_shot", "sniper", "arrow_rain" }
             },
 
             // Epic 유닛 - Mage (광역 마법사)
@@ -111,7 +111,7 @@ namespace LottoDefense.Gameplay
                 attackSpeed = 0.8f,
                 attackRange = 4.0f,
                 upgradeCost = 20,
-                skillIds = new List<string> { "area_attack", "chain_lightning" }
+                skillIds = new List<string> { "area_attack", "chain_lightning", "meteor" }
             },
 
             // Legendary 유닛 - Dragon Knight (전설 기사)
@@ -123,7 +123,19 @@ namespace LottoDefense.Gameplay
                 attackSpeed = 0.7f,
                 attackRange = 2.0f,
                 upgradeCost = 50,
-                skillIds = new List<string> { "berserker", "area_attack", "rapid_fire" }
+                skillIds = new List<string> { "berserker", "area_attack", "rapid_fire", "dragon_fury" }
+            },
+
+            // Legendary 유닛 - Phoenix (불사조)
+            new UnitBalance
+            {
+                unitName = "Phoenix",
+                rarity = Rarity.Legendary,
+                attack = 50,
+                attackSpeed = 0.6f,
+                attackRange = 5.0f,
+                upgradeCost = 60,
+                skillIds = new List<string> { "area_attack", "chain_lightning", "critical_strike", "phoenix_flame" }
             }
         };
         #endregion
@@ -262,6 +274,75 @@ namespace LottoDefense.Gameplay
                     cooldownDuration = 0f,
                     aoeRadius = 1.5f,
                     targetCount = 5
+                }
+            },
+
+            // ===== Active 스킬 (마나 충전 후 자동 발동) =====
+            new SkillPreset
+            {
+                skillId = "war_cry",
+                skill = new SkillBalance
+                {
+                    skillName = "전사의 함성",
+                    description = "3초간 공격력 2배",
+                    skillType = SkillType.Active,
+                    cooldownDuration = 0f,
+                    damageMultiplier = 2.0f,
+                    effectDuration = 3f
+                }
+            },
+            new SkillPreset
+            {
+                skillId = "arrow_rain",
+                skill = new SkillBalance
+                {
+                    skillName = "화살 비",
+                    description = "4초간 공격속도 2배",
+                    skillType = SkillType.Active,
+                    cooldownDuration = 0f,
+                    attackSpeedMultiplier = 2.0f,
+                    effectDuration = 4f
+                }
+            },
+            new SkillPreset
+            {
+                skillId = "meteor",
+                skill = new SkillBalance
+                {
+                    skillName = "메테오",
+                    description = "5초간 공격력 3배",
+                    skillType = SkillType.Active,
+                    cooldownDuration = 0f,
+                    damageMultiplier = 3.0f,
+                    effectDuration = 5f
+                }
+            },
+            new SkillPreset
+            {
+                skillId = "dragon_fury",
+                skill = new SkillBalance
+                {
+                    skillName = "용의 분노",
+                    description = "5초간 공격력 2.5배 + 공속 1.5배",
+                    skillType = SkillType.Active,
+                    cooldownDuration = 0f,
+                    damageMultiplier = 2.5f,
+                    attackSpeedMultiplier = 1.5f,
+                    effectDuration = 5f
+                }
+            },
+            new SkillPreset
+            {
+                skillId = "phoenix_flame",
+                skill = new SkillBalance
+                {
+                    skillName = "불사조의 불꽃",
+                    description = "6초간 공격력 3배 + 공속 2배",
+                    skillType = SkillType.Active,
+                    cooldownDuration = 0f,
+                    damageMultiplier = 3.0f,
+                    attackSpeedMultiplier = 2.0f,
+                    effectDuration = 6f
                 }
             }
         };
@@ -485,6 +566,14 @@ namespace LottoDefense.Gameplay
                 sourceUnitName = "Mage",
                 resultUnitName = "Dragon Knight",
                 synthesisGoldCost = 0
+            },
+
+            // Legendary → Legendary (Dragon Knight → Phoenix)
+            new SynthesisRecipe
+            {
+                sourceUnitName = "Dragon Knight",
+                resultUnitName = "Phoenix",
+                synthesisGoldCost = 0
             }
         };
 
@@ -516,7 +605,8 @@ namespace LottoDefense.Gameplay
             new UnitShopPrice { unitName = "Warrior", goldCost = 0 },
             new UnitShopPrice { unitName = "Archer", goldCost = 100 },
             new UnitShopPrice { unitName = "Mage", goldCost = 500 },
-            new UnitShopPrice { unitName = "Dragon Knight", goldCost = 2000 }
+            new UnitShopPrice { unitName = "Dragon Knight", goldCost = 2000 },
+            new UnitShopPrice { unitName = "Phoenix", goldCost = 3000 }
         };
 
         public int GetUnitUnlockCost(string unitName)

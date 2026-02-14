@@ -18,6 +18,7 @@ namespace LottoDefense.Gameplay
         [Header("References (Auto-created if null)")]
         [SerializeField] private Canvas mainCanvas;
 
+        private Transform safeAreaRoot;
         private Font defaultFont;
         private GameBalanceConfig balanceConfig;
 
@@ -115,6 +116,27 @@ namespace LottoDefense.Gameplay
                 scaler.matchWidthOrHeight = 0.5f;
 
                 canvasObj.AddComponent<GraphicRaycaster>();
+            }
+
+            // Create SafeArea container inside canvas
+            Transform existingSafe = mainCanvas.transform.Find("SafeArea");
+            if (existingSafe != null)
+            {
+                safeAreaRoot = existingSafe;
+            }
+            else
+            {
+                GameObject safeAreaObj = new GameObject("SafeArea");
+                safeAreaObj.transform.SetParent(mainCanvas.transform, false);
+
+                RectTransform safeRect = safeAreaObj.AddComponent<RectTransform>();
+                safeRect.anchorMin = Vector2.zero;
+                safeRect.anchorMax = Vector2.one;
+                safeRect.offsetMin = Vector2.zero;
+                safeRect.offsetMax = Vector2.zero;
+
+                safeAreaObj.AddComponent<LottoDefense.UI.SafeAreaAdapter>();
+                safeAreaRoot = safeAreaObj.transform;
             }
         }
         #endregion
@@ -245,7 +267,7 @@ namespace LottoDefense.Gameplay
 
             // Full-screen overlay
             GameObject countdownObj = new GameObject("CountdownUI");
-            countdownObj.transform.SetParent(mainCanvas.transform, false);
+            countdownObj.transform.SetParent(safeAreaRoot, false);
 
             RectTransform rect = countdownObj.AddComponent<RectTransform>();
             rect.anchorMin = Vector2.zero;
@@ -326,7 +348,7 @@ namespace LottoDefense.Gameplay
 
             // Full-screen overlay for round start notification
             GameObject roundStartObj = new GameObject("RoundStartUI");
-            roundStartObj.transform.SetParent(mainCanvas.transform, false);
+            roundStartObj.transform.SetParent(safeAreaRoot, false);
 
             RectTransform rect = roundStartObj.AddComponent<RectTransform>();
             rect.anchorMin = Vector2.zero;
@@ -384,11 +406,11 @@ namespace LottoDefense.Gameplay
 
             // Always-active container for UnitSelectionUI component
             GameObject containerObj = new GameObject("UnitSelectionUIContainer");
-            containerObj.transform.SetParent(mainCanvas.transform, false);
+            containerObj.transform.SetParent(safeAreaRoot, false);
 
             // Floating name tag panel above unit
             GameObject selectionPanelObj = new GameObject("UnitSelectionPanel");
-            selectionPanelObj.transform.SetParent(mainCanvas.transform, false);
+            selectionPanelObj.transform.SetParent(safeAreaRoot, false);
 
             RectTransform panelRect = selectionPanelObj.AddComponent<RectTransform>();
             panelRect.anchorMin = Vector2.zero;
@@ -449,8 +471,11 @@ namespace LottoDefense.Gameplay
             t.fontStyle = FontStyle.Bold;
             t.supportRichText = true;
             t.resizeTextForBestFit = true;
-            t.resizeTextMinSize = 11;
+            t.resizeTextMinSize = 9;
             t.resizeTextMaxSize = GameSceneDesignTokens.UnitInfoDetailSize;
+            // Prevent text from overflowing into adjacent layout cells
+            t.horizontalOverflow = HorizontalWrapMode.Wrap;
+            t.verticalOverflow = VerticalWrapMode.Truncate;
 
             return t;
         }
@@ -467,7 +492,7 @@ namespace LottoDefense.Gameplay
 
             // --- Root panel: fixed at bottom, h=200 ---
             GameObject bottomPanelObj = new GameObject("GameBottomUI");
-            bottomPanelObj.transform.SetParent(mainCanvas.transform, false);
+            bottomPanelObj.transform.SetParent(safeAreaRoot, false);
 
             RectTransform panelRect = bottomPanelObj.AddComponent<RectTransform>();
             panelRect.anchorMin = new Vector2(0, 0);
@@ -557,7 +582,7 @@ namespace LottoDefense.Gameplay
             statsLE.flexibleWidth = 1f;
 
             VerticalLayoutGroup statsVLayout = statsAreaObj.AddComponent<VerticalLayoutGroup>();
-            statsVLayout.spacing = 1f;
+            statsVLayout.spacing = 3f;
             statsVLayout.childControlWidth = true;
             statsVLayout.childControlHeight = true;
             statsVLayout.childForceExpandWidth = true;
@@ -572,6 +597,8 @@ namespace LottoDefense.Gameplay
             Text infoNameText = CreateText(nameRowObj, "", GameSceneDesignTokens.UnitInfoNameSize, Color.white);
             infoNameText.alignment = TextAnchor.MiddleLeft;
             infoNameText.fontStyle = FontStyle.Bold;
+            infoNameText.horizontalOverflow = HorizontalWrapMode.Wrap;
+            infoNameText.verticalOverflow = VerticalWrapMode.Truncate;
             infoNameText.resizeTextForBestFit = true;
             infoNameText.resizeTextMinSize = 12;
             infoNameText.resizeTextMaxSize = GameSceneDesignTokens.UnitInfoNameSize;
@@ -634,6 +661,8 @@ namespace LottoDefense.Gameplay
 
             Text infoSkillText = CreateText(skillTextObj, "", 13, GameSceneDesignTokens.UnitInfoSkillColor);
             infoSkillText.alignment = TextAnchor.MiddleLeft;
+            infoSkillText.horizontalOverflow = HorizontalWrapMode.Wrap;
+            infoSkillText.verticalOverflow = VerticalWrapMode.Truncate;
             infoSkillText.resizeTextForBestFit = true;
             infoSkillText.resizeTextMinSize = 10;
             infoSkillText.resizeTextMaxSize = 13;
@@ -708,8 +737,8 @@ namespace LottoDefense.Gameplay
 
             // 2 rows of 3 buttons each (adapts to screen width)
             VerticalLayoutGroup rightVLayout = rightCol.AddComponent<VerticalLayoutGroup>();
-            rightVLayout.spacing = 6;
-            rightVLayout.padding = new RectOffset(4, 4, 4, 4);
+            rightVLayout.spacing = 8;
+            rightVLayout.padding = new RectOffset(4, 4, 6, 6);
             rightVLayout.childControlWidth = true;
             rightVLayout.childControlHeight = true;
             rightVLayout.childForceExpandWidth = true;
@@ -719,7 +748,7 @@ namespace LottoDefense.Gameplay
             GameObject row1 = new GameObject("ButtonRow1");
             row1.transform.SetParent(rightCol.transform, false);
             HorizontalLayoutGroup row1H = row1.AddComponent<HorizontalLayoutGroup>();
-            row1H.spacing = 6;
+            row1H.spacing = 8;
             row1H.childControlWidth = true;
             row1H.childControlHeight = true;
             row1H.childForceExpandWidth = true;
@@ -745,7 +774,7 @@ namespace LottoDefense.Gameplay
             GameObject row2 = new GameObject("ButtonRow2");
             row2.transform.SetParent(rightCol.transform, false);
             HorizontalLayoutGroup row2H = row2.AddComponent<HorizontalLayoutGroup>();
-            row2H.spacing = 6;
+            row2H.spacing = 8;
             row2H.childControlWidth = true;
             row2H.childControlHeight = true;
             row2H.childForceExpandWidth = true;
@@ -821,10 +850,10 @@ namespace LottoDefense.Gameplay
             Button button = buttonObj.AddComponent<Button>();
             ColorBlock colors = button.colors;
             colors.normalColor = Color.white;
-            colors.highlightedColor = new Color(1.2f, 1.2f, 1.2f, 1f);
-            colors.pressedColor = new Color(0.7f, 0.7f, 0.7f, 1f);
-            colors.disabledColor = new Color(0.5f, 0.5f, 0.5f, 0.7f);
-            colors.fadeDuration = 0.08f;
+            colors.highlightedColor = new Color(0.9f, 0.95f, 1f, 1f);
+            colors.pressedColor = new Color(0.55f, 0.55f, 0.55f, 1f);
+            colors.disabledColor = GameSceneDesignTokens.ActionBtnDisabled;
+            colors.fadeDuration = 0.06f;
             button.colors = colors;
 
             // Inner highlight strip
@@ -846,14 +875,14 @@ namespace LottoDefense.Gameplay
             RectTransform textRect = textObj.AddComponent<RectTransform>();
             textRect.anchorMin = Vector2.zero;
             textRect.anchorMax = Vector2.one;
-            textRect.offsetMin = new Vector2(4, 3);
-            textRect.offsetMax = new Vector2(-4, -3);
+            textRect.offsetMin = new Vector2(6, 4);
+            textRect.offsetMax = new Vector2(-6, -4);
 
             Text buttonText = CreateText(textObj, text, textSize, Color.white);
             buttonText.alignment = TextAnchor.MiddleCenter;
             buttonText.fontStyle = FontStyle.Bold;
             buttonText.resizeTextForBestFit = true;
-            buttonText.resizeTextMinSize = 11;
+            buttonText.resizeTextMinSize = 12;
             buttonText.resizeTextMaxSize = textSize;
             buttonText.supportRichText = true;
 
@@ -872,7 +901,7 @@ namespace LottoDefense.Gameplay
 
             // ---- Root HUD panel (top of screen) ----
             GameObject hudObj = new GameObject("GameHUD");
-            hudObj.transform.SetParent(mainCanvas.transform, false);
+            hudObj.transform.SetParent(safeAreaRoot, false);
 
             RectTransform hudRect = hudObj.AddComponent<RectTransform>();
             hudRect.anchorMin = new Vector2(0, 1);
@@ -947,7 +976,7 @@ namespace LottoDefense.Gameplay
 
             // Tooltip panel (full-width bar below HUD)
             GameObject tooltipObj = new GameObject("TooltipPanel");
-            tooltipObj.transform.SetParent(mainCanvas.transform, false);
+            tooltipObj.transform.SetParent(safeAreaRoot, false);
 
             RectTransform tooltipRect = tooltipObj.AddComponent<RectTransform>();
             tooltipRect.anchorMin = new Vector2(0, 1);
@@ -1112,7 +1141,7 @@ namespace LottoDefense.Gameplay
         {
             // Top-right corner icon button (52x52) positioned below HUD
             GameObject btnObj = new GameObject("SynthesisGuideButton");
-            btnObj.transform.SetParent(mainCanvas.transform, false);
+            btnObj.transform.SetParent(safeAreaRoot, false);
 
             float btnSize = GameSceneDesignTokens.UtilityButtonSize;
             RectTransform btnRect = btnObj.AddComponent<RectTransform>();
@@ -1169,7 +1198,7 @@ namespace LottoDefense.Gameplay
 
             // Create guide panel
             GameObject guideObj = new GameObject("SynthesisGuideUI");
-            guideObj.transform.SetParent(mainCanvas.transform, false);
+            guideObj.transform.SetParent(safeAreaRoot, false);
 
             RectTransform rect = guideObj.AddComponent<RectTransform>();
             rect.anchorMin = Vector2.zero;
@@ -1439,7 +1468,7 @@ namespace LottoDefense.Gameplay
 
             // Full-screen overlay for game result
             GameObject resultObj = new GameObject("GameResultUI");
-            resultObj.transform.SetParent(mainCanvas.transform, false);
+            resultObj.transform.SetParent(safeAreaRoot, false);
 
             RectTransform rect = resultObj.AddComponent<RectTransform>();
             rect.anchorMin = Vector2.zero;
@@ -1656,7 +1685,7 @@ namespace LottoDefense.Gameplay
 
             // Full-screen overlay (same pattern as SynthesisGuideUI)
             GameObject questObj = new GameObject("QuestUI");
-            questObj.transform.SetParent(mainCanvas.transform, false);
+            questObj.transform.SetParent(safeAreaRoot, false);
 
             RectTransform rect = questObj.AddComponent<RectTransform>();
             rect.anchorMin = Vector2.zero;
@@ -1760,7 +1789,7 @@ namespace LottoDefense.Gameplay
 
             // Button positioned below SynthesisGuideButton (top-right, below HUD)
             GameObject btnObj = new GameObject("QuestButton");
-            btnObj.transform.SetParent(mainCanvas.transform, false);
+            btnObj.transform.SetParent(safeAreaRoot, false);
 
             float btnSize = GameSceneDesignTokens.UtilityButtonSize;
             RectTransform btnRect = btnObj.AddComponent<RectTransform>();
