@@ -137,6 +137,8 @@ namespace LottoDefense.Gameplay
         #endregion
 
         #region Unity Lifecycle
+        private Coroutine subscribeCoroutine;
+
         private void Awake()
         {
             if (_instance != null && _instance != this)
@@ -153,27 +155,59 @@ namespace LottoDefense.Gameplay
 
         private void OnEnable()
         {
-            // Subscribe to GameplayManager state changes
+            subscribeCoroutine = StartCoroutine(SubscribeWhenReady());
+        }
+
+        private IEnumerator SubscribeWhenReady()
+        {
+            int maxRetries = 300;
+            int retries = 0;
+            while (GameplayManager.Instance == null && retries < maxRetries)
+            {
+                retries++;
+                yield return null;
+            }
             if (GameplayManager.Instance != null)
             {
+                GameplayManager.Instance.OnStateChanged -= HandleGameStateChanged;
                 GameplayManager.Instance.OnStateChanged += HandleGameStateChanged;
+                Debug.Log("[RoundManager] Subscribed to GameplayManager state changes");
+            }
+            else
+            {
+                Debug.LogError("[RoundManager] Failed to subscribe - GameplayManager not found after 300 frames!");
             }
 
             // Subscribe to MonsterManager events
+            retries = 0;
+            while (MonsterManager.Instance == null && retries < maxRetries)
+            {
+                retries++;
+                yield return null;
+            }
             if (MonsterManager.Instance != null)
             {
+                MonsterManager.Instance.OnRoundComplete -= HandleMonsterRoundComplete;
                 MonsterManager.Instance.OnRoundComplete += HandleMonsterRoundComplete;
+                Debug.Log("[RoundManager] Subscribed to MonsterManager round complete");
             }
 
             // Subscribe to multiplayer wave sync
             if (MultiplayerManager.Instance != null)
             {
+                MultiplayerManager.Instance.OnWaveSync -= HandleWaveSync;
                 MultiplayerManager.Instance.OnWaveSync += HandleWaveSync;
             }
         }
 
         private void OnDisable()
         {
+            if (subscribeCoroutine != null)
+            {
+                StopCoroutine(subscribeCoroutine);
+                subscribeCoroutine = null;
+            }
+
             // Unsubscribe from GameplayManager
             if (GameplayManager.Instance != null)
             {
@@ -286,6 +320,20 @@ namespace LottoDefense.Gameplay
             RemainingTime = combatDuration;
 
             Debug.Log($"[RoundManager] Starting Combat Phase - Round {CurrentRound}, Duration: {combatDuration}s");
+
+            // Safety: ensure CombatManager starts combat even if it missed the state change event
+            if (LottoDefense.Combat.CombatManager.Instance != null && !LottoDefense.Combat.CombatManager.Instance.IsCombatActive)
+            {
+                Debug.LogWarning("[RoundManager] CombatManager was not active! Starting combat as safety net.");
+                LottoDefense.Combat.CombatManager.Instance.StartCombat();
+            }
+
+            // Safety: ensure MonsterManager starts spawning even if it missed the state change event
+            if (MonsterManager.Instance != null && !MonsterManager.Instance.IsSpawning)
+            {
+                Debug.LogWarning("[RoundManager] MonsterManager was not spawning! Starting as safety net.");
+                MonsterManager.Instance.StartSpawning();
+            }
 
             // Fire events
             OnPhaseChanged?.Invoke(oldPhase, CurrentPhase);

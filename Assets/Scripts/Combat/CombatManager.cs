@@ -206,7 +206,16 @@ namespace LottoDefense.Combat
 
             OnCombatStarted?.Invoke();
 
-            Debug.Log("[CombatManager] Combat started");
+            // Log combat start with participant info
+            List<Unit> units = GetActiveUnits();
+            Debug.Log($"[CombatManager] Combat started - {units.Count} units ready, tickInterval={combatTickInterval}s");
+            foreach (Unit unit in units)
+            {
+                if (unit != null && unit.Data != null)
+                {
+                    Debug.Log($"[CombatManager]   Unit: {unit.Data.GetDisplayName()} at {unit.transform.position} (ATK={unit.CurrentAttack}, Range={unit.Data.attackRange}, Speed={unit.CurrentAttackSpeed})");
+                }
+            }
         }
 
         /// <summary>
@@ -260,6 +269,9 @@ namespace LottoDefense.Combat
         /// </summary>
         private IEnumerator CombatUpdateRoutine()
         {
+            // Process first tick immediately (no initial delay)
+            ProcessCombatTick();
+
             while (isCombatActive)
             {
                 yield return new WaitForSeconds(combatTickInterval);
@@ -280,18 +292,19 @@ namespace LottoDefense.Combat
             List<Unit> activeUnits = GetActiveUnits();
             List<Monster> activeMonsters = GetActiveMonsters();
 
-            // Debug: Log tick info every 10 ticks
-            if (combatTickCount % 10 == 1)
+            // Debug: Log tick info every 30 ticks (3 seconds)
+            if (combatTickCount % 30 == 1)
             {
-                Debug.Log($"[CombatManager] Tick #{combatTickCount}: Units={activeUnits.Count}, Monsters={activeMonsters.Count}");
+                Debug.Log($"[CombatManager] Tick #{combatTickCount}: Units={activeUnits.Count}, Monsters={activeMonsters.Count}, isCombatActive={isCombatActive}");
             }
 
             // Early exit if no units or monsters
             if (activeUnits.Count == 0 || activeMonsters.Count == 0)
             {
-                if (combatTickCount == 1)
+                // Log periodically while waiting for participants
+                if (combatTickCount <= 3 || combatTickCount % 50 == 0)
                 {
-                    Debug.LogWarning($"[CombatManager] No combat participants! Units={activeUnits.Count}, Monsters={activeMonsters.Count}");
+                    Debug.Log($"[CombatManager] Waiting for participants - Units={activeUnits.Count}, Monsters={activeMonsters.Count} (tick #{combatTickCount})");
                 }
                 return;
             }
