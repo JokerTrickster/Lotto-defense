@@ -250,7 +250,7 @@ namespace LottoDefense.Gameplay
                     return to == GameState.Combat;
 
                 case GameState.Combat:
-                    return to == GameState.RoundResult;
+                    return to == GameState.RoundResult || to == GameState.Victory;
 
                 case GameState.RoundResult:
                     return to == GameState.Preparation || to == GameState.Victory;

@@ -286,7 +286,7 @@ namespace LottoDefense.Gameplay
                     skillName = "전사의 함성",
                     description = "3초간 공격력 2배",
                     skillType = SkillType.Active,
-                    cooldownDuration = 0f,
+                    cooldownDuration = 10f,
                     damageMultiplier = 2.0f,
                     effectDuration = 3f
                 }
@@ -299,7 +299,7 @@ namespace LottoDefense.Gameplay
                     skillName = "화살 비",
                     description = "4초간 공격속도 2배",
                     skillType = SkillType.Active,
-                    cooldownDuration = 0f,
+                    cooldownDuration = 12f,
                     attackSpeedMultiplier = 2.0f,
                     effectDuration = 4f
                 }
@@ -312,7 +312,7 @@ namespace LottoDefense.Gameplay
                     skillName = "메테오",
                     description = "5초간 공격력 3배",
                     skillType = SkillType.Active,
-                    cooldownDuration = 0f,
+                    cooldownDuration = 15f,
                     damageMultiplier = 3.0f,
                     effectDuration = 5f
                 }
@@ -325,7 +325,7 @@ namespace LottoDefense.Gameplay
                     skillName = "용의 분노",
                     description = "5초간 공격력 2.5배 + 공속 1.5배",
                     skillType = SkillType.Active,
-                    cooldownDuration = 0f,
+                    cooldownDuration = 15f,
                     damageMultiplier = 2.5f,
                     attackSpeedMultiplier = 1.5f,
                     effectDuration = 5f
@@ -339,7 +339,7 @@ namespace LottoDefense.Gameplay
                     skillName = "불사조의 불꽃",
                     description = "6초간 공격력 3배 + 공속 2배",
                     skillType = SkillType.Active,
-                    cooldownDuration = 0f,
+                    cooldownDuration = 12f,
                     damageMultiplier = 3.0f,
                     attackSpeedMultiplier = 2.0f,
                     effectDuration = 6f

@@ -133,9 +133,14 @@ namespace LottoDefense.Units
         public float ManaRegenPerSecond { get; private set; } = 10f;
 
         /// <summary>
+        /// Per-instance cloned skills (prevents shared state between same-type units).
+        /// </summary>
+        private UnitSkill[] instanceSkills;
+
+        /// <summary>
         /// Whether this unit has at least one skill.
         /// </summary>
-        public bool HasSkill => Data != null && Data.skills != null && Data.skills.Length > 0;
+        public bool HasSkill => instanceSkills != null && instanceSkills.Length > 0;
 
         /// <summary>
         /// Fired when mana changes.
@@ -236,25 +241,52 @@ namespace LottoDefense.Units
             MaxMana = 100f;
             ManaRegenPerSecond = 10f; // 기본값 (스킬 없을 때 fallback)
 
-            // Initialize skills
+            // Clone skills per-unit to prevent shared cooldown state between same-type units
             if (unitData.skills != null && unitData.skills.Length > 0)
             {
-                foreach (var skill in unitData.skills)
+                instanceSkills = new UnitSkill[unitData.skills.Length];
+                for (int i = 0; i < unitData.skills.Length; i++)
                 {
-                    skill.Initialize();
+                    instanceSkills[i] = UnitSkill.FromBalance(new Gameplay.GameBalanceConfig.SkillBalance
+                    {
+                        skillName = unitData.skills[i].skillName,
+                        description = unitData.skills[i].description,
+                        skillType = unitData.skills[i].skillType,
+                        cooldownDuration = unitData.skills[i].cooldownDuration,
+                        initialCooldown = unitData.skills[i].initialCooldown,
+                        damageMultiplier = unitData.skills[i].damageMultiplier,
+                        rangeMultiplier = unitData.skills[i].rangeMultiplier,
+                        attackSpeedMultiplier = unitData.skills[i].attackSpeedMultiplier,
+                        effectDuration = unitData.skills[i].effectDuration,
+                        targetCount = unitData.skills[i].targetCount,
+                        aoeRadius = unitData.skills[i].aoeRadius
+                    });
+                    instanceSkills[i].Initialize();
                 }
 
-                // 첫 번째 Active 스킬의 cooldownDuration에 맞춰 마나 재생 속도 설정
+                // Active 스킬의 cooldownDuration에 맞춰 마나 재생 속도 설정
                 // 마나가 정확히 cooldownDuration 초 후에 가득 차서 스킬이 자동 발동됨
-                float skillCooldown = unitData.skills[0].cooldownDuration;
+                float skillCooldown = 0f;
+                foreach (var skill in instanceSkills)
+                {
+                    if (skill.skillType == SkillType.Active && skill.cooldownDuration > 0f)
+                    {
+                        skillCooldown = skill.cooldownDuration;
+                        break;
+                    }
+                }
                 if (skillCooldown > 0f)
                 {
                     ManaRegenPerSecond = MaxMana / skillCooldown;
                 }
-                Debug.Log($"[Unit] Initialized {unitData.skills.Length} skills for {Data.GetDisplayName()} (cooldown={skillCooldown}s, manaRegen={ManaRegenPerSecond:F1}/s)");
+                Debug.Log($"[Unit] Initialized {instanceSkills.Length} skills for {Data.GetDisplayName()} (activeSkillCooldown={skillCooldown}s, manaRegen={ManaRegenPerSecond:F1}/s)");
 
                 // Create mana bar for units with skills
                 CreateManaBar();
+            }
+            else
+            {
+                instanceSkills = null;
             }
 
             gameObject.name = $"Unit_{unitData.unitName}_{gridPos.x}_{gridPos.y}";
@@ -727,15 +759,15 @@ namespace LottoDefense.Units
         /// </summary>
         private void TriggerSkill()
         {
-            if (Data == null || Data.skills == null || Data.skills.Length == 0)
+            if (instanceSkills == null || instanceSkills.Length == 0)
             {
-                Debug.LogWarning($"[Unit] {Data.GetDisplayName()} has no skills to trigger!");
+                Debug.LogWarning($"[Unit] {Data?.GetDisplayName()} has no skills to trigger!");
                 return;
             }
 
             // Find first active skill that can be triggered
             UnitSkill skillToActivate = null;
-            foreach (var skill in Data.skills)
+            foreach (var skill in instanceSkills)
             {
                 if (skill.skillType == SkillType.Active && skill.TryActivate())
                 {
@@ -865,9 +897,9 @@ namespace LottoDefense.Units
         /// </summary>
         private void UpdateSkillCooldowns(float deltaTime)
         {
-            if (Data == null || Data.skills == null) return;
+            if (instanceSkills == null) return;
 
-            foreach (var skill in Data.skills)
+            foreach (var skill in instanceSkills)
             {
                 skill.UpdateCooldown(deltaTime);
             }
