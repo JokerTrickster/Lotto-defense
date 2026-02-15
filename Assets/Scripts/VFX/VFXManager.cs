@@ -1172,6 +1172,113 @@ namespace LottoDefense.VFX
         }
         #endregion
 
+        #region Combat Line Effects
+        private static Material s_defaultSpriteMaterial;
+        private static Material DefaultSpriteMaterial
+        {
+            get
+            {
+                if (s_defaultSpriteMaterial == null)
+                    s_defaultSpriteMaterial = new Material(Shader.Find("Sprites/Default"));
+                return s_defaultSpriteMaterial;
+            }
+        }
+
+        /// <summary>
+        /// Draw a missile/laser line effect from start to end with fade animation.
+        /// </summary>
+        public void PlayMissileEffect(Vector3 start, Vector3 end, Rarity rarity)
+        {
+            StartCoroutine(MissileEffectCoroutine(start, end, UnitData.GetRarityColor(rarity)));
+        }
+
+        private IEnumerator MissileEffectCoroutine(Vector3 start, Vector3 end, Color color)
+        {
+            GameObject lineObj = new GameObject("MissileEffect");
+            LineRenderer lr = lineObj.AddComponent<LineRenderer>();
+            lr.startWidth = 0.05f;
+            lr.endWidth = 0.05f;
+            lr.positionCount = 2;
+            lr.material = DefaultSpriteMaterial;
+            lr.startColor = color;
+            lr.endColor = color;
+
+            float duration = 0.15f;
+            float elapsed = 0f;
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                float t = elapsed / duration;
+                lr.SetPosition(0, start);
+                lr.SetPosition(1, Vector3.Lerp(start, end, t));
+                yield return null;
+            }
+
+            float fadeDuration = 0.1f;
+            elapsed = 0f;
+            while (elapsed < fadeDuration)
+            {
+                elapsed += Time.deltaTime;
+                float alpha = 1f - (elapsed / fadeDuration);
+                Color fadeColor = new Color(color.r, color.g, color.b, alpha);
+                lr.startColor = fadeColor;
+                lr.endColor = fadeColor;
+                yield return null;
+            }
+            Destroy(lineObj);
+        }
+
+        /// <summary>
+        /// Draw splash effect line from center to hit position.
+        /// </summary>
+        public void PlaySplashEffect(Vector3 center, Vector3 hitPos)
+        {
+            StartCoroutine(SplashEffectCoroutine(center, hitPos));
+        }
+
+        private IEnumerator SplashEffectCoroutine(Vector3 start, Vector3 end)
+        {
+            GameObject lineObj = new GameObject("SplashEffect");
+            LineRenderer lr = lineObj.AddComponent<LineRenderer>();
+            lr.startWidth = 0.03f;
+            lr.endWidth = 0.03f;
+            lr.positionCount = 2;
+            lr.material = DefaultSpriteMaterial;
+            lr.startColor = new Color(1f, 0.5f, 0f, 0.6f);
+            lr.endColor = new Color(1f, 0.5f, 0f, 0f);
+            lr.SetPosition(0, start);
+            lr.SetPosition(1, end);
+
+            yield return new WaitForSeconds(0.1f);
+            Destroy(lineObj);
+        }
+
+        /// <summary>
+        /// Draw chain lightning effect between targets.
+        /// </summary>
+        public void PlayChainEffect(Vector3 from, Vector3 to)
+        {
+            StartCoroutine(ChainEffectCoroutine(from, to));
+        }
+
+        private IEnumerator ChainEffectCoroutine(Vector3 start, Vector3 end)
+        {
+            GameObject lineObj = new GameObject("ChainEffect");
+            LineRenderer lr = lineObj.AddComponent<LineRenderer>();
+            lr.startWidth = 0.04f;
+            lr.endWidth = 0.04f;
+            lr.positionCount = 2;
+            lr.material = DefaultSpriteMaterial;
+            lr.startColor = new Color(0.5f, 0.5f, 1f, 0.8f);
+            lr.endColor = new Color(0.5f, 0.5f, 1f, 0.8f);
+            lr.SetPosition(0, start);
+            lr.SetPosition(1, end);
+
+            yield return new WaitForSeconds(0.15f);
+            Destroy(lineObj);
+        }
+        #endregion
+
         #region Upgrade Effect
         /// <summary>
         /// Show upgrade effect: glow on upgraded unit + brief pulse on all same-rarity units.
@@ -1187,13 +1294,27 @@ namespace LottoDefense.VFX
 
             Color rarityColor = UnitData.GetRarityColor(rarity);
 
-            // Show floating text at upgraded unit
-            ShowFloatingText(unitPosition + Vector3.up * 0.5f, "UP!", rarityColor);
+            // Pulse all same-rarity units on grid and show "UP!" on each immediately
+            if (GridManager.Instance != null)
+            {
+                for (int x = 0; x < GridManager.GRID_WIDTH; x++)
+                {
+                    for (int y = 0; y < GridManager.GRID_HEIGHT; y++)
+                    {
+                        Unit unit = GridManager.Instance.GetUnitAt(x, y);
+                        if (unit != null && unit.Data != null && unit.Data.rarity == rarity)
+                        {
+                            StartCoroutine(PulseUnitColor(unit, rarityColor));
+                            ShowFloatingText(unit.transform.position + Vector3.up * 0.5f, "UP!", rarityColor);
+                        }
+                    }
+                }
+            }
 
-            // Create expanding ring at upgraded unit position
+            // Create expanding ring at clicked unit position
             GameObject ring = CreateWorldRing(unitPosition, rarityColor);
 
-            // Animate ring
+            // Animate ring concurrently with pulses
             float duration = 0.5f;
             float elapsed = 0f;
             while (elapsed < duration)
@@ -1210,22 +1331,6 @@ namespace LottoDefense.VFX
                 yield return null;
             }
             if (ring != null) Destroy(ring);
-
-            // Pulse all same-rarity units on grid
-            if (GridManager.Instance != null)
-            {
-                for (int x = 0; x < GridManager.GRID_WIDTH; x++)
-                {
-                    for (int y = 0; y < GridManager.GRID_HEIGHT; y++)
-                    {
-                        Unit unit = GridManager.Instance.GetUnitAt(x, y);
-                        if (unit != null && unit.Data != null && unit.Data.rarity == rarity)
-                        {
-                            StartCoroutine(PulseUnitColor(unit, rarityColor));
-                        }
-                    }
-                }
-            }
         }
 
         /// <summary>

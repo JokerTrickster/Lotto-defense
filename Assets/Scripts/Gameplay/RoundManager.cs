@@ -97,7 +97,7 @@ namespace LottoDefense.Gameplay
                     return roundConfig.TotalRounds;
                 if (difficultyConfig != null)
                     return difficultyConfig.MaxRounds;
-                return 30; // Fallback default
+                return 10; // Fallback default
             }
         }
         #endregion

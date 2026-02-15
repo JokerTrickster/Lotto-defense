@@ -76,11 +76,22 @@ namespace LottoDefense.Grid
 
         private void OnMouseDown()
         {
+            // Block selection when a UI panel (quest/synthesis guide) covers the screen
+            if (IsPointerOverUI()) return;
+
             // Notify GridManager of cell click
             if (GridManager.Instance != null)
             {
                 GridManager.Instance.SelectCell(Coordinates);
             }
+        }
+
+        private bool IsPointerOverUI()
+        {
+            if (UnityEngine.EventSystems.EventSystem.current == null) return false;
+            if (Input.touchCount > 0)
+                return UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject(Input.GetTouch(0).fingerId);
+            return UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject();
         }
         #endregion
 

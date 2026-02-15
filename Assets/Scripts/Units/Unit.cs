@@ -145,11 +145,22 @@ namespace LottoDefense.Units
 
         private void OnMouseDown()
         {
+            // Block selection when a UI panel (quest/synthesis guide) covers the screen
+            if (IsPointerOverUI()) return;
+
             // Notify placement manager when this placed unit is clicked
             if (UnitPlacementManager.Instance != null)
             {
                 UnitPlacementManager.Instance.OnPlacedUnitClicked(this);
             }
+        }
+
+        private bool IsPointerOverUI()
+        {
+            if (UnityEngine.EventSystems.EventSystem.current == null) return false;
+            if (Input.touchCount > 0)
+                return UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject(Input.GetTouch(0).fingerId);
+            return UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject();
         }
 
         private void OnDestroy()
@@ -187,7 +198,7 @@ namespace LottoDefense.Units
                 {
                     spriteRenderer.sprite = unitData.icon;
                     // Use rarity color for unit
-                    originalColor = GetRarityColorForUnit(unitData.rarity);
+                    originalColor = UnitData.GetRarityColor(unitData.rarity);
                     spriteRenderer.color = originalColor;
                 }
                 else
@@ -400,11 +411,13 @@ namespace LottoDefense.Units
         /// </summary>
         private Monster FindNearestMonster()
         {
-            Monster[] allMonsters = UnityEngine.Object.FindObjectsByType<Monster>(FindObjectsSortMode.None);
+            if (LottoDefense.Monsters.MonsterManager.Instance == null) return null;
+
+            var activeMonsters = LottoDefense.Monsters.MonsterManager.Instance.GetActiveMonstersList();
             Monster nearest = null;
             float nearestDistance = float.MaxValue;
 
-            foreach (Monster monster in allMonsters)
+            foreach (Monster monster in activeMonsters)
             {
                 if (!monster.IsActive) continue;
 
@@ -458,7 +471,7 @@ namespace LottoDefense.Units
             }
 
             // Visual effect
-            DrawMissileEffect(transform.position, targetPos);
+            LottoDefense.VFX.VFXManager.Instance?.PlayMissileEffect(transform.position, targetPos, Data.rarity);
         }
 
         /// <summary>
@@ -503,7 +516,7 @@ namespace LottoDefense.Units
                         monster.TakeDamage(splashDamage);
 
                         // Visual splash effect
-                        DrawSplashEffect(targetPos, monster.transform.position);
+                        LottoDefense.VFX.VFXManager.Instance?.PlaySplashEffect(targetPos, monster.transform.position);
                     }
                 }
             }
@@ -599,7 +612,7 @@ namespace LottoDefense.Units
                 if (nextTarget == null) break;
 
                 // Visual chain effect
-                DrawChainEffect(currentTarget.transform.position, nextTarget.transform.position);
+                LottoDefense.VFX.VFXManager.Instance?.PlayChainEffect(currentTarget.transform.position, nextTarget.transform.position);
 
                 currentTarget = nextTarget;
             }
@@ -629,146 +642,6 @@ namespace LottoDefense.Units
             }
 
             return nearest;
-        }
-
-        /// <summary>
-        /// Draw splash effect line from center to hit position.
-        /// </summary>
-        private void DrawSplashEffect(Vector3 center, Vector3 hitPos)
-        {
-            StartCoroutine(SplashEffectCoroutine(center, hitPos));
-        }
-
-        private System.Collections.IEnumerator SplashEffectCoroutine(Vector3 start, Vector3 end)
-        {
-            GameObject lineObj = new GameObject("SplashEffect");
-            lineObj.transform.SetParent(transform);
-            LineRenderer lineRenderer = lineObj.AddComponent<LineRenderer>();
-
-            lineRenderer.startWidth = 0.03f;
-            lineRenderer.endWidth = 0.03f;
-            lineRenderer.positionCount = 2;
-            lineRenderer.material = DefaultSpriteMaterial;
-            lineRenderer.startColor = new Color(1f, 0.5f, 0f, 0.6f); // Orange
-            lineRenderer.endColor = new Color(1f, 0.5f, 0f, 0f);
-
-            lineRenderer.SetPosition(0, start);
-            lineRenderer.SetPosition(1, end);
-
-            yield return new WaitForSeconds(0.1f);
-            Destroy(lineObj);
-        }
-
-        /// <summary>
-        /// Draw chain effect line between targets.
-        /// </summary>
-        private void DrawChainEffect(Vector3 from, Vector3 to)
-        {
-            StartCoroutine(ChainEffectCoroutine(from, to));
-        }
-
-        private System.Collections.IEnumerator ChainEffectCoroutine(Vector3 start, Vector3 end)
-        {
-            GameObject lineObj = new GameObject("ChainEffect");
-            lineObj.transform.SetParent(transform);
-            LineRenderer lineRenderer = lineObj.AddComponent<LineRenderer>();
-
-            lineRenderer.startWidth = 0.04f;
-            lineRenderer.endWidth = 0.04f;
-            lineRenderer.positionCount = 2;
-            lineRenderer.material = DefaultSpriteMaterial;
-            lineRenderer.startColor = new Color(0.5f, 0.5f, 1f, 0.8f); // Electric blue
-            lineRenderer.endColor = new Color(0.5f, 0.5f, 1f, 0.8f);
-
-            lineRenderer.SetPosition(0, start);
-            lineRenderer.SetPosition(1, end);
-
-            yield return new WaitForSeconds(0.15f);
-            Destroy(lineObj);
-        }
-
-        /// <summary>
-        /// Draw a missile/laser effect from start to end position.
-        /// </summary>
-        private void DrawMissileEffect(Vector3 start, Vector3 end)
-        {
-            StartCoroutine(MissileEffectCoroutine(start, end));
-        }
-
-        /// <summary>
-        /// Coroutine to animate a missile/laser line effect.
-        /// </summary>
-        private System.Collections.IEnumerator MissileEffectCoroutine(Vector3 start, Vector3 end)
-        {
-            // Create a temporary GameObject for the line (parented to unit for auto-cleanup on sell/destroy)
-            GameObject lineObj = new GameObject("MissileEffect");
-            lineObj.transform.SetParent(transform);
-            LineRenderer lineRenderer = lineObj.AddComponent<LineRenderer>();
-
-            // Configure line renderer
-            lineRenderer.startWidth = 0.05f;
-            lineRenderer.endWidth = 0.05f;
-            lineRenderer.positionCount = 2;
-            lineRenderer.material = DefaultSpriteMaterial;
-
-            // Set color based on unit rarity
-            Color missileColor = GetMissileColor();
-            lineRenderer.startColor = missileColor;
-            lineRenderer.endColor = missileColor;
-
-            // Animate the missile
-            float duration = 0.15f; // Fast missile
-            float elapsed = 0f;
-
-            while (elapsed < duration)
-            {
-                elapsed += Time.deltaTime;
-                float t = elapsed / duration;
-
-                // Interpolate position
-                Vector3 currentPos = Vector3.Lerp(start, end, t);
-                lineRenderer.SetPosition(0, start);
-                lineRenderer.SetPosition(1, currentPos);
-
-                yield return null;
-            }
-
-            // Fade out
-            float fadeDuration = 0.1f;
-            elapsed = 0f;
-
-            while (elapsed < fadeDuration)
-            {
-                elapsed += Time.deltaTime;
-                float alpha = 1f - (elapsed / fadeDuration);
-
-                Color fadeColor = missileColor;
-                fadeColor.a = alpha;
-                lineRenderer.startColor = fadeColor;
-                lineRenderer.endColor = fadeColor;
-
-                yield return null;
-            }
-
-            // Clean up
-            Destroy(lineObj);
-        }
-
-        /// <summary>
-        /// Get missile color based on unit rarity.
-        /// </summary>
-        private Color GetMissileColor()
-        {
-            if (Data == null) return Color.white;
-
-            switch (Data.rarity)
-            {
-                case Rarity.Normal: return new Color(0.6f, 0.8f, 1f); // Light blue
-                case Rarity.Rare: return new Color(0.4f, 0.6f, 1f); // Blue
-                case Rarity.Epic: return new Color(0.7f, 0.3f, 1f); // Purple
-                case Rarity.Legendary: return new Color(1f, 0.8f, 0.2f); // Gold
-                default: return Color.white;
-            }
         }
 
         /// <summary>
@@ -837,8 +710,10 @@ namespace LottoDefense.Units
                 // Apply skill effect
                 ApplySkillEffect(skillToActivate);
 
-                // Visual feedback
-                LottoDefense.VFX.VFXManager.Instance?.ShowUpgradeEffect(transform.position, Data.rarity);
+                // Visual feedback for skill activation (single unit only)
+                LottoDefense.VFX.VFXManager.Instance?.ShowFloatingText(
+                    transform.position + Vector3.up * 0.5f, skillToActivate.skillName,
+                    UnitData.GetRarityColor(Data.rarity));
 
                 // Reset mana to 0 after using skill
                 CurrentMana = 0f;
@@ -1049,7 +924,7 @@ namespace LottoDefense.Units
                 float compensate = parentScale > 0.001f ? 1f / parentScale : 1f;
                 rangeIndicator.transform.localScale = Vector3.one * compensate;
 
-                Color rangeColor = GetRarityColor(Data.rarity);
+                Color rangeColor = UnitData.GetRarityColor(Data.rarity);
                 float radius = Data.attackRange;
 
                 // Filled gradient circle
@@ -1101,32 +976,6 @@ namespace LottoDefense.Units
             }
         }
 
-        private Color GetRarityColor(Rarity rarity)
-        {
-            switch (rarity)
-            {
-                case Rarity.Normal: return new Color(0.7f, 0.7f, 0.7f);
-                case Rarity.Rare: return new Color(0.3f, 0.6f, 1f);
-                case Rarity.Epic: return new Color(0.7f, 0.3f, 1f);
-                case Rarity.Legendary: return new Color(1f, 0.8f, 0.2f);
-                default: return Color.white;
-            }
-        }
-
-        /// <summary>
-        /// Get color for unit sprite based on rarity (slightly brighter for visibility).
-        /// </summary>
-        private Color GetRarityColorForUnit(Rarity rarity)
-        {
-            switch (rarity)
-            {
-                case Rarity.Normal: return new Color(0.6f, 0.8f, 1f); // Light blue
-                case Rarity.Rare: return new Color(0.4f, 0.6f, 1f); // Blue
-                case Rarity.Epic: return new Color(0.7f, 0.3f, 1f); // Purple
-                case Rarity.Legendary: return new Color(1f, 0.84f, 0f); // Gold
-                default: return Color.white;
-            }
-        }
         #endregion
 
         #region Utility

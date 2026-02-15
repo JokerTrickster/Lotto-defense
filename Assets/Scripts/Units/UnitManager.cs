@@ -67,6 +67,10 @@ namespace LottoDefense.Units
         [SerializeField] private int maxInventorySize = 50;
         #endregion
 
+        #region Cached Lists
+        private readonly List<Unit> cachedPlacedUnits = new List<Unit>(GridManager.GRID_WIDTH * GridManager.GRID_HEIGHT);
+        #endregion
+
         #region Properties
         /// <summary>
         /// Current units in player's inventory.
@@ -479,15 +483,14 @@ namespace LottoDefense.Units
         /// <returns>List of all placed Unit components</returns>
         public List<Unit> GetPlacedUnits()
         {
-            List<Unit> placedUnits = new List<Unit>();
+            cachedPlacedUnits.Clear();
 
             if (GridManager.Instance == null)
             {
                 Debug.LogWarning("[UnitManager] GetPlacedUnits: GridManager is null!");
-                return placedUnits;
+                return cachedPlacedUnits;
             }
 
-            // Iterate through all grid cells to find placed units
             for (int x = 0; x < GridManager.GRID_WIDTH; x++)
             {
                 for (int y = 0; y < GridManager.GRID_HEIGHT; y++)
@@ -495,18 +498,29 @@ namespace LottoDefense.Units
                     Unit unit = GridManager.Instance.GetUnitAt(x, y);
                     if (unit != null)
                     {
-                        placedUnits.Add(unit);
+                        cachedPlacedUnits.Add(unit);
                     }
                 }
             }
 
-            return placedUnits;
+            return cachedPlacedUnits;
         }
 
         /// <summary>
-        /// Number of units currently placed on the grid.
+        /// Number of units currently placed on the grid. Counts directly without list allocation.
         /// </summary>
-        public int PlacedUnitCount => GetPlacedUnits().Count;
+        public int PlacedUnitCount
+        {
+            get
+            {
+                if (GridManager.Instance == null) return 0;
+                int count = 0;
+                for (int x = 0; x < GridManager.GRID_WIDTH; x++)
+                    for (int y = 0; y < GridManager.GRID_HEIGHT; y++)
+                        if (GridManager.Instance.GetUnitAt(x, y) != null) count++;
+                return count;
+            }
+        }
 
         /// <summary>
         /// Place a unit on the grid at the specified position.

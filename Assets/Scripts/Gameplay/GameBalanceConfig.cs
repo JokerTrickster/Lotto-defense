@@ -439,7 +439,7 @@ namespace LottoDefense.Gameplay
         {
             [Header("라운드 설정")]
             [Tooltip("최대 라운드 수")]
-            public int maxRounds = 5;
+            public int maxRounds = 10;
 
             [Header("스케일링 커브")]
             [Tooltip("라운드별 체력 배율 (X: 0~1 정규화된 라운드, Y: 배율)")]
@@ -452,7 +452,7 @@ namespace LottoDefense.Gameplay
         [Header("=== 난이도 밸런스 ===")]
         public DifficultyBalance difficulty = new DifficultyBalance
         {
-            maxRounds = 30
+            maxRounds = 10
         };
         #endregion
 
@@ -647,10 +647,10 @@ namespace LottoDefense.Gameplay
         [Header("=== 게임 결과 보상 ===")]
         public List<GameResultReward> gameResultRewards = new List<GameResultReward>
         {
-            new GameResultReward { minRound = 0, maxRound = 9, goldReward = 10 },
-            new GameResultReward { minRound = 10, maxRound = 19, goldReward = 30 },
-            new GameResultReward { minRound = 20, maxRound = 29, goldReward = 60 },
-            new GameResultReward { minRound = 30, maxRound = 999, goldReward = 100 }
+            new GameResultReward { minRound = 0, maxRound = 3, goldReward = 10 },
+            new GameResultReward { minRound = 4, maxRound = 6, goldReward = 30 },
+            new GameResultReward { minRound = 7, maxRound = 9, goldReward = 60 },
+            new GameResultReward { minRound = 10, maxRound = 999, goldReward = 100 }
         };
 
         public int GetGameResultGold(int roundReached)
