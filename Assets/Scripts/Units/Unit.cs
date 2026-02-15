@@ -379,14 +379,15 @@ namespace LottoDefense.Units
             // Update cooldown
             currentCooldown -= tickInterval;
 
+            // Update skill cooldowns BEFORE mana regen so cooldown reaches 0
+            // on the same tick that mana reaches max (preventing TryActivate failure)
+            UpdateSkillCooldowns(tickInterval);
+
             // Regenerate mana over time (only if unit has skills)
             if (HasSkill)
             {
                 RegenerateMana(tickInterval);
             }
-
-            // Update skill cooldowns
-            UpdateSkillCooldowns(tickInterval);
 
             // Find or validate target
             if (CurrentTarget == null || !CurrentTarget.IsActive)
@@ -703,17 +704,18 @@ namespace LottoDefense.Units
         /// <param name="deltaTime">Time elapsed since last tick</param>
         private void RegenerateMana(float deltaTime)
         {
-            if (CurrentMana >= MaxMana) return; // Already full
+            if (CurrentMana < MaxMana)
+            {
+                float manaGain = ManaRegenPerSecond * deltaTime;
+                CurrentMana = Mathf.Min(CurrentMana + manaGain, MaxMana);
 
-            float previousMana = CurrentMana;
-            float manaGain = ManaRegenPerSecond * deltaTime;
-            CurrentMana = Mathf.Min(CurrentMana + manaGain, MaxMana);
+                // Fire mana changed event
+                OnManaChanged?.Invoke(CurrentMana, MaxMana);
+            }
 
-            // Fire mana changed event
-            OnManaChanged?.Invoke(CurrentMana, MaxMana);
-
-            // Auto-trigger skill when mana reaches max
-            if (previousMana < MaxMana && CurrentMana >= MaxMana)
+            // Auto-trigger skill when mana is full
+            // Retries each tick in case skill cooldown wasn't ready on the previous tick
+            if (CurrentMana >= MaxMana)
             {
                 TriggerSkill();
             }

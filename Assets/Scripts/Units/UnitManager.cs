@@ -68,7 +68,6 @@ namespace LottoDefense.Units
         #endregion
 
         #region Cached Lists
-        private readonly List<Unit> cachedPlacedUnits = new List<Unit>(GridManager.GRID_WIDTH * GridManager.GRID_HEIGHT);
         #endregion
 
         #region Properties
@@ -478,17 +477,17 @@ namespace LottoDefense.Units
         #region Placed Units Query
         /// <summary>
         /// Get all units currently placed on the grid.
-        /// Used by CombatManager for combat tick processing.
+        /// Returns a new list each call to prevent collection modification during iteration.
         /// </summary>
-        /// <returns>List of all placed Unit components</returns>
+        /// <returns>New list of all placed Unit components</returns>
         public List<Unit> GetPlacedUnits()
         {
-            cachedPlacedUnits.Clear();
+            var result = new List<Unit>();
 
             if (GridManager.Instance == null)
             {
                 Debug.LogWarning("[UnitManager] GetPlacedUnits: GridManager is null!");
-                return cachedPlacedUnits;
+                return result;
             }
 
             for (int x = 0; x < GridManager.GRID_WIDTH; x++)
@@ -498,12 +497,12 @@ namespace LottoDefense.Units
                     Unit unit = GridManager.Instance.GetUnitAt(x, y);
                     if (unit != null)
                     {
-                        cachedPlacedUnits.Add(unit);
+                        result.Add(unit);
                     }
                 }
             }
 
-            return cachedPlacedUnits;
+            return result;
         }
 
         /// <summary>
