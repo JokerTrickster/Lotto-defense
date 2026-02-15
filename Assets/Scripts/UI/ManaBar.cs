@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using LottoDefense.Units;
+using LottoDefense.Gameplay;
 
 namespace LottoDefense.UI
 {
@@ -77,6 +78,12 @@ namespace LottoDefense.UI
                 Hide();
             }
 
+            // Subscribe to game state changes to hide on game end
+            if (GameplayManager.Instance != null)
+            {
+                GameplayManager.Instance.OnStateChanged += HandleGameStateChanged;
+            }
+
             isInitialized = true;
             Debug.Log($"[ManaBar] Initialized for {ownerUnit.Data.GetDisplayName()}");
         }
@@ -148,6 +155,17 @@ namespace LottoDefense.UI
         private void HandleManaChanged(float currentMana, float maxMana)
         {
             UpdateBar(currentMana, maxMana);
+        }
+
+        /// <summary>
+        /// Hide mana bar when game ends (Victory/Defeat).
+        /// </summary>
+        private void HandleGameStateChanged(GameState oldState, GameState newState)
+        {
+            if (newState == GameState.Victory || newState == GameState.Defeat)
+            {
+                Hide();
+            }
         }
         #endregion
 
@@ -224,6 +242,10 @@ namespace LottoDefense.UI
             if (ownerUnit != null)
             {
                 ownerUnit.OnManaChanged -= HandleManaChanged;
+            }
+            if (GameplayManager.Instance != null)
+            {
+                GameplayManager.Instance.OnStateChanged -= HandleGameStateChanged;
             }
         }
         #endregion

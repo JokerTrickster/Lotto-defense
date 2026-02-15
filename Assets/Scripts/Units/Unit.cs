@@ -234,7 +234,7 @@ namespace LottoDefense.Units
             // Initialize mana system (시간 기반 마나 재생)
             CurrentMana = 0f;
             MaxMana = 100f;
-            ManaRegenPerSecond = 10f; // 초당 10 마나 재생 (10초에 100 마나 = 스킬 발동)
+            ManaRegenPerSecond = 10f; // 기본값 (스킬 없을 때 fallback)
 
             // Initialize skills
             if (unitData.skills != null && unitData.skills.Length > 0)
@@ -243,7 +243,15 @@ namespace LottoDefense.Units
                 {
                     skill.Initialize();
                 }
-                Debug.Log($"[Unit] Initialized {unitData.skills.Length} skills for {Data.GetDisplayName()}");
+
+                // 첫 번째 Active 스킬의 cooldownDuration에 맞춰 마나 재생 속도 설정
+                // 마나가 정확히 cooldownDuration 초 후에 가득 차서 스킬이 자동 발동됨
+                float skillCooldown = unitData.skills[0].cooldownDuration;
+                if (skillCooldown > 0f)
+                {
+                    ManaRegenPerSecond = MaxMana / skillCooldown;
+                }
+                Debug.Log($"[Unit] Initialized {unitData.skills.Length} skills for {Data.GetDisplayName()} (cooldown={skillCooldown}s, manaRegen={ManaRegenPerSecond:F1}/s)");
 
                 // Create mana bar for units with skills
                 CreateManaBar();

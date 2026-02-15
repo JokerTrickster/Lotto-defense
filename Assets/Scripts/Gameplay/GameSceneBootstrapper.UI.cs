@@ -1208,6 +1208,12 @@ namespace LottoDefense.Gameplay
             rect.offsetMin = Vector2.zero;
             rect.offsetMax = Vector2.zero;
 
+            // Override sorting to render above mana bars and other dynamic UI
+            Canvas overrideCanvas = resultObj.AddComponent<Canvas>();
+            overrideCanvas.overrideSorting = true;
+            overrideCanvas.sortingOrder = 200;
+            resultObj.AddComponent<GraphicRaycaster>();
+
             CanvasGroup canvasGroup = resultObj.AddComponent<CanvasGroup>();
             canvasGroup.alpha = 0f;
             canvasGroup.interactable = false;
