@@ -101,6 +101,19 @@ namespace LottoDefense.Units
         private const int MAX_OUT_OF_RANGE_TICKS = 20; // 2 seconds before target switch
         private float activeDamageBuff = 1f;
         private float activeSpeedBuff = 1f;
+
+        /// <summary>
+        /// Attack range converted from grid units to world-space units.
+        /// attackRange is defined in grid cells, but distance checks use world coordinates.
+        /// </summary>
+        private float WorldAttackRange
+        {
+            get
+            {
+                float cellSize = GridManager.Instance != null ? GridManager.Instance.CellSize : 1f;
+                return Data.attackRange * cellSize;
+            }
+        }
         #endregion
 
         #region Mana & Skill System
@@ -374,14 +387,14 @@ namespace LottoDefense.Units
                 outOfRangeTicks = 0;
                 if (CurrentTarget != null)
                 {
-                    Debug.Log($"[Unit] {Data.GetDisplayName()} acquired target: {CurrentTarget.Data.monsterName} at distance {Vector3.Distance(transform.position, CurrentTarget.transform.position):F2} (range={Data.attackRange})");
+                    Debug.Log($"[Unit] {Data.GetDisplayName()} acquired target: {CurrentTarget.Data.monsterName} at distance {Vector3.Distance(transform.position, CurrentTarget.transform.position):F2} (worldRange={WorldAttackRange:F2})");
                 }
                 else if (combatTickCount % 30 == 1)
                 {
                     // Periodic diagnostic: log when no target found
                     int monsterCount = LottoDefense.Monsters.MonsterManager.Instance != null
                         ? LottoDefense.Monsters.MonsterManager.Instance.ActiveMonsterCount : -1;
-                    Debug.Log($"[Unit] {Data.GetDisplayName()} no target found (pos={transform.position}, range={Data.attackRange}, monsters={monsterCount})");
+                    Debug.Log($"[Unit] {Data.GetDisplayName()} no target found (pos={transform.position}, worldRange={WorldAttackRange:F2}, monsters={monsterCount})");
                 }
             }
 
@@ -390,7 +403,7 @@ namespace LottoDefense.Units
             {
                 float distance = Vector3.Distance(transform.position, CurrentTarget.transform.position);
 
-                if (distance <= Data.attackRange)
+                if (distance <= WorldAttackRange)
                 {
                     outOfRangeTicks = 0;
                     ExecuteAttack();
@@ -430,7 +443,7 @@ namespace LottoDefense.Units
                 if (!monster.IsActive) continue;
 
                 float distance = Vector3.Distance(transform.position, monster.transform.position);
-                if (distance <= Data.attackRange && distance < nearestDistance)
+                if (distance <= WorldAttackRange && distance < nearestDistance)
                 {
                     nearest = monster;
                     nearestDistance = distance;
@@ -444,7 +457,7 @@ namespace LottoDefense.Units
             // Diagnostic: log when monsters exist but none in range (once per 50 ticks)
             if (nearest == null && activeMonsters.Count > 0 && combatTickCount % 50 == 1)
             {
-                Debug.Log($"[Unit] {Data.GetDisplayName()} has {activeMonsters.Count} monsters but nearest is {closestOutOfRange:F2} away (range={Data.attackRange})");
+                Debug.Log($"[Unit] {Data.GetDisplayName()} has {activeMonsters.Count} monsters but nearest is {closestOutOfRange:F2} away (worldRange={WorldAttackRange:F2})");
             }
 
             return nearest;
@@ -589,7 +602,7 @@ namespace LottoDefense.Units
                 Vector3 toMonster = monster.transform.position - transform.position;
                 float distance = toMonster.magnitude;
 
-                if (distance <= Data.attackRange)
+                if (distance <= WorldAttackRange)
                 {
                     float angle = Vector3.Angle(direction, toMonster.normalized);
                     if (angle < 15f) // Within 15 degree cone
@@ -943,7 +956,7 @@ namespace LottoDefense.Units
                 rangeIndicator.transform.localScale = Vector3.one * compensate;
 
                 Color rangeColor = UnitData.GetRarityColor(Data.rarity);
-                float radius = Data.attackRange;
+                float radius = WorldAttackRange;
 
                 // Filled gradient circle
                 GameObject fillObj = new GameObject("Fill");

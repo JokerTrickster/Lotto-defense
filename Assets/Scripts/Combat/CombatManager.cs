@@ -208,12 +208,14 @@ namespace LottoDefense.Combat
 
             // Log combat start with participant info
             List<Unit> units = GetActiveUnits();
-            Debug.Log($"[CombatManager] Combat started - {units.Count} units ready, tickInterval={combatTickInterval}s");
+            float cellSize = LottoDefense.Grid.GridManager.Instance != null ? LottoDefense.Grid.GridManager.Instance.CellSize : -1f;
+            Debug.Log($"[CombatManager] Combat started - {units.Count} units ready, tickInterval={combatTickInterval}s, CellSize={cellSize:F3}");
             foreach (Unit unit in units)
             {
                 if (unit != null && unit.Data != null)
                 {
-                    Debug.Log($"[CombatManager]   Unit: {unit.Data.GetDisplayName()} at {unit.transform.position} (ATK={unit.CurrentAttack}, Range={unit.Data.attackRange}, Speed={unit.CurrentAttackSpeed})");
+                    float worldRange = unit.Data.attackRange * Mathf.Max(cellSize, 1f);
+                    Debug.Log($"[CombatManager]   Unit: {unit.Data.GetDisplayName()} at {unit.transform.position} (ATK={unit.CurrentAttack}, Range={unit.Data.attackRange}→WorldRange={worldRange:F2}, Speed={unit.CurrentAttackSpeed})");
                 }
             }
         }
