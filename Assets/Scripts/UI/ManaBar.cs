@@ -144,11 +144,19 @@ namespace LottoDefense.UI
             fillImage.fillMethod = Image.FillMethod.Horizontal;
             fillImage.fillOrigin = (int)Image.OriginHorizontal.Left;
             fillImage.fillAmount = 0f;
+            fillImage.enabled = true;
+            
+            Debug.Log($"[ManaBar] SetupUI: fillImage configured - color={fillImage.color}, fillAmount={fillImage.fillAmount}, enabled={fillImage.enabled}");
 
-            // Setup rect transform
+            // Setup rect transform (only if not already set by Unit.cs)
             if (rectTransform != null)
             {
-                rectTransform.sizeDelta = new Vector2(barSize.x * 100f, barSize.y * 100f);
+                // Keep existing size if already set, otherwise use default
+                if (rectTransform.sizeDelta == Vector2.zero)
+                {
+                    rectTransform.sizeDelta = new Vector2(barSize.x * 100f, barSize.y * 100f);
+                }
+                Debug.Log($"[ManaBar] SetupUI: rectTransform sizeDelta={rectTransform.sizeDelta}");
             }
         }
         #endregion
@@ -193,6 +201,10 @@ namespace LottoDefense.UI
             }
 
             float fillAmount = maxMana > 0f ? currentMana / maxMana : 0f;
+            
+            // BEFORE update
+            float oldFillAmount = fillImage.fillAmount;
+            
             fillImage.fillAmount = fillAmount;
 
             // Change color when full
@@ -209,7 +221,7 @@ namespace LottoDefense.UI
             int percentNow = Mathf.FloorToInt(fillAmount * 10f);
             if (percentNow % 3 == 0) // Log at 0%, 30%, 60%, 90%
             {
-                Debug.Log($"[ManaBar] {ownerUnit?.Data?.GetDisplayName()}: fillAmount={fillAmount:F2} ({currentMana:F1}/{maxMana:F0})");
+                Debug.Log($"[ManaBar] {ownerUnit?.Data?.GetDisplayName()}: fillAmount {oldFillAmount:F2}→{fillAmount:F2} ({currentMana:F1}/{maxMana:F0}) enabled={fillImage.enabled} active={fillImage.gameObject.activeSelf}");
             }
         }
 
