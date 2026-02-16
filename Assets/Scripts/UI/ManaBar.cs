@@ -227,11 +227,8 @@ namespace LottoDefense.UI
             // CRITICAL: Force UI update to ensure visual changes are reflected immediately
             fillImage.SetAllDirty();
             
-            // Also force canvas update
-            if (canvas != null)
-            {
-                Canvas.ForceUpdateCanvases();
-            }
+            // Force canvas update (static method, no instance needed)
+            Canvas.ForceUpdateCanvases();
             
             // Debug log only at important milestones (0%, 50%, 100%)
             int percentNow = Mathf.FloorToInt(fillAmount * 100f);
