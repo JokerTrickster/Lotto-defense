@@ -300,24 +300,12 @@ namespace LottoDefense.Combat
                 Debug.Log($"[CombatManager] Tick #{combatTickCount}: Units={activeUnits.Count}, Monsters={activeMonsters.Count}, isCombatActive={isCombatActive}");
             }
 
-            // Early exit if no units or monsters
-            if (activeUnits.Count == 0 || activeMonsters.Count == 0)
-            {
-                // Log periodically while waiting for participants
-                if (combatTickCount <= 3 || combatTickCount % 50 == 0)
-                {
-                    Debug.Log($"[CombatManager] Waiting for participants - Units={activeUnits.Count}, Monsters={activeMonsters.Count} (tick #{combatTickCount})");
-                }
-                return;
-            }
-
-            // Process each unit's combat behavior
+            // Always tick units (mana regen, skill cooldowns) even without monsters
             foreach (Unit unit in activeUnits)
             {
                 if (unit == null || unit.Data == null)
                     continue;
 
-                // Execute unit combat tick
                 unit.CombatTick();
             }
 

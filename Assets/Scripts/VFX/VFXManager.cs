@@ -1344,33 +1344,43 @@ namespace LottoDefense.VFX
             if (sr == null) yield break;
 
             Color originalColor = sr.color;
-            Color brightColor = Color.Lerp(originalColor, Color.white, 0.7f);
+            Vector3 originalScale = unit.transform.localScale;
+            Vector3 bigScale = originalScale * 1.3f;
 
-            // Flash bright
-            float flashDuration = 0.15f;
-            float elapsed = 0f;
-            while (elapsed < flashDuration)
+            // Flash to rarity color + scale up (2 pulses for visibility)
+            for (int pulse = 0; pulse < 2; pulse++)
             {
-                if (unit == null || sr == null) yield break;
-                float t = elapsed / flashDuration;
-                sr.color = Color.Lerp(originalColor, brightColor, t);
-                elapsed += Time.deltaTime;
-                yield return null;
-            }
+                // Scale up + color flash
+                float flashDuration = 0.2f;
+                float elapsed = 0f;
+                while (elapsed < flashDuration)
+                {
+                    if (unit == null || sr == null) yield break;
+                    float t = elapsed / flashDuration;
+                    sr.color = Color.Lerp(originalColor, pulseColor, t);
+                    unit.transform.localScale = Vector3.Lerp(originalScale, bigScale, t);
+                    elapsed += Time.deltaTime;
+                    yield return null;
+                }
 
-            // Return to original
-            elapsed = 0f;
-            while (elapsed < flashDuration)
-            {
-                if (unit == null || sr == null) yield break;
-                float t = elapsed / flashDuration;
-                sr.color = Color.Lerp(brightColor, originalColor, t);
-                elapsed += Time.deltaTime;
-                yield return null;
+                // Return to original
+                elapsed = 0f;
+                while (elapsed < flashDuration)
+                {
+                    if (unit == null || sr == null) yield break;
+                    float t = elapsed / flashDuration;
+                    sr.color = Color.Lerp(pulseColor, originalColor, t);
+                    unit.transform.localScale = Vector3.Lerp(bigScale, originalScale, t);
+                    elapsed += Time.deltaTime;
+                    yield return null;
+                }
             }
 
             if (unit != null && sr != null)
+            {
                 sr.color = originalColor;
+                unit.transform.localScale = originalScale;
+            }
         }
         #endregion
     }

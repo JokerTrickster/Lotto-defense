@@ -455,7 +455,13 @@ namespace LottoDefense.Units
             }
 
             unitData.skills = skills;
-            Debug.Log($"[UnitManager] Assigned {skills.Length} skills to '{unitData.unitName}'");
+
+            // Apply attack pattern from balance config
+            unitData.attackPattern = unitBalance.attackPattern;
+            unitData.splashRadius = unitBalance.splashRadius;
+            unitData.maxTargets = unitBalance.maxTargets;
+
+            Debug.Log($"[UnitManager] Assigned {skills.Length} skills + pattern={unitBalance.attackPattern} to '{unitData.unitName}'");
         }
 
         /// <summary>

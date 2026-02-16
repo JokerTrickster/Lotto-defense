@@ -259,7 +259,10 @@ namespace LottoDefense.Units
                         attackSpeedMultiplier = unitData.skills[i].attackSpeedMultiplier,
                         effectDuration = unitData.skills[i].effectDuration,
                         targetCount = unitData.skills[i].targetCount,
-                        aoeRadius = unitData.skills[i].aoeRadius
+                        aoeRadius = unitData.skills[i].aoeRadius,
+                        slowMultiplier = unitData.skills[i].slowMultiplier,
+                        freezeDuration = unitData.skills[i].freezeDuration,
+                        ccDuration = unitData.skills[i].ccDuration
                     });
                     instanceSkills[i].Initialize();
                 }
@@ -725,6 +728,19 @@ namespace LottoDefense.Units
             currentCooldown = 0f;
             combatTickCount = 0;
             outOfRangeTicks = 0;
+
+            // Reset mana and update UI
+            CurrentMana = 0f;
+            OnManaChanged?.Invoke(CurrentMana, MaxMana);
+
+            // Reset skill cooldowns
+            if (instanceSkills != null)
+            {
+                foreach (var skill in instanceSkills)
+                {
+                    skill.ResetCooldown();
+                }
+            }
         }
         #endregion
 
@@ -821,14 +837,46 @@ namespace LottoDefense.Units
                 StartCoroutine(ApplyTemporaryAttackSpeedBuff(skill.attackSpeedMultiplier, skill.effectDuration));
             }
 
+            // Apply crowd control to all active monsters in range
+            if (skill.slowMultiplier > 0f || skill.freezeDuration > 0f)
+            {
+                ApplyCrowdControl(skill);
+            }
+
             // Visual effect
             if (skill.vfxPrefab != null)
             {
                 GameObject vfx = Instantiate(skill.vfxPrefab, transform.position, Quaternion.identity);
-                Destroy(vfx, 2f); // Clean up after 2 seconds
+                Destroy(vfx, 2f);
             }
 
-            Debug.Log($"[Unit] Applied skill effect: {skill.skillName} (DMG×{skill.damageMultiplier}, AS×{skill.attackSpeedMultiplier}, Duration: {skill.effectDuration}s)");
+            Debug.Log($"[Unit] Applied skill effect: {skill.skillName} (DMG×{skill.damageMultiplier}, AS×{skill.attackSpeedMultiplier}, Slow={skill.slowMultiplier}, Freeze={skill.freezeDuration}s, Duration: {skill.effectDuration}s)");
+        }
+
+        /// <summary>
+        /// Apply crowd control (slow/freeze) to all active monsters within attack range.
+        /// </summary>
+        private void ApplyCrowdControl(UnitSkill skill)
+        {
+            if (MonsterManager.Instance == null) return;
+
+            var monsters = MonsterManager.Instance.GetActiveMonstersList();
+            foreach (var monster in monsters)
+            {
+                if (monster == null || !monster.IsActive) continue;
+
+                float distance = Vector3.Distance(transform.position, monster.transform.position);
+                if (distance > WorldAttackRange) continue;
+
+                if (skill.freezeDuration > 0f)
+                {
+                    monster.ApplyFreeze(skill.freezeDuration);
+                }
+                else if (skill.slowMultiplier > 0f)
+                {
+                    monster.ApplySlow(skill.slowMultiplier, skill.ccDuration);
+                }
+            }
         }
 
         /// <summary>

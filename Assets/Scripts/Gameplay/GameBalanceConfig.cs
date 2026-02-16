@@ -34,6 +34,16 @@ namespace LottoDefense.Gameplay
             [Tooltip("업그레이드 비용")]
             public int upgradeCost = 5;
 
+            [Header("공격 패턴")]
+            [Tooltip("공격 패턴 (SingleTarget, Splash, AOE, Pierce, Chain)")]
+            public Units.AttackPattern attackPattern = Units.AttackPattern.SingleTarget;
+
+            [Tooltip("스플래시/AOE 범위 (0 = 없음)")]
+            public float splashRadius = 0f;
+
+            [Tooltip("최대 타격 대상 수 (Pierce/Chain용)")]
+            public int maxTargets = 1;
+
             [Header("스킬")]
             [Tooltip("이 유닛의 스킬 ID 목록 (스킬 프리셋 섹션 참조)")]
             public List<string> skillIds = new List<string>();
@@ -73,12 +83,22 @@ namespace LottoDefense.Gameplay
 
             [Tooltip("AOE 범위 (0 = AOE 없음)")]
             public float aoeRadius = 0f;
+
+            [Header("군중 제어")]
+            [Tooltip("이동속도 감소 배율 (0.5 = 50% 느리게, 0 = 슬로우 없음)")]
+            public float slowMultiplier = 0f;
+
+            [Tooltip("동결 지속시간 (초, 0 = 동결 없음)")]
+            public float freezeDuration = 0f;
+
+            [Tooltip("슬로우/동결 지속시간 (초)")]
+            public float ccDuration = 0f;
         }
 
         [Header("=== 유닛 밸런스 ===")]
         public List<UnitBalance> units = new List<UnitBalance>
         {
-            // Normal 유닛 - Warrior (근접 전사)
+            // Normal 유닛 - Warrior (근접 전사, 단일 공격)
             new UnitBalance
             {
                 unitName = "Warrior",
@@ -86,11 +106,12 @@ namespace LottoDefense.Gameplay
                 attack = 10,
                 attackSpeed = 1.0f,
                 attackRange = 1.5f,
+                attackPattern = Units.AttackPattern.SingleTarget,
                 upgradeCost = 5,
                 skillIds = new List<string> { "battle_frenzy", "critical_strike", "war_cry" }
             },
 
-            // Rare 유닛 - Archer (원거리 궁수)
+            // Rare 유닛 - Archer (원거리 궁수, 관통 공격)
             new UnitBalance
             {
                 unitName = "Archer",
@@ -98,11 +119,13 @@ namespace LottoDefense.Gameplay
                 attack = 15,
                 attackSpeed = 1.2f,
                 attackRange = 3.0f,
+                attackPattern = Units.AttackPattern.Pierce,
+                maxTargets = 2,
                 upgradeCost = 10,
                 skillIds = new List<string> { "double_shot", "sniper", "arrow_rain" }
             },
 
-            // Epic 유닛 - Mage (광역 마법사)
+            // Epic 유닛 - Mage (광역 마법사, AOE 공격)
             new UnitBalance
             {
                 unitName = "Mage",
@@ -110,11 +133,13 @@ namespace LottoDefense.Gameplay
                 attack = 25,
                 attackSpeed = 0.8f,
                 attackRange = 4.0f,
+                attackPattern = Units.AttackPattern.AOE,
+                splashRadius = 1.5f,
                 upgradeCost = 20,
                 skillIds = new List<string> { "area_attack", "chain_lightning", "meteor" }
             },
 
-            // Legendary 유닛 - Dragon Knight (전설 기사)
+            // Legendary 유닛 - Dragon Knight (전설 기사, 스플래시 공격)
             new UnitBalance
             {
                 unitName = "Dragon Knight",
@@ -122,11 +147,13 @@ namespace LottoDefense.Gameplay
                 attack = 40,
                 attackSpeed = 0.7f,
                 attackRange = 2.0f,
+                attackPattern = Units.AttackPattern.Splash,
+                splashRadius = 1.0f,
                 upgradeCost = 50,
                 skillIds = new List<string> { "berserker", "area_attack", "rapid_fire", "dragon_fury" }
             },
 
-            // Legendary 유닛 - Phoenix (불사조)
+            // Legendary 유닛 - Phoenix (불사조, 연쇄 공격)
             new UnitBalance
             {
                 unitName = "Phoenix",
@@ -134,6 +161,9 @@ namespace LottoDefense.Gameplay
                 attack = 50,
                 attackSpeed = 0.6f,
                 attackRange = 5.0f,
+                attackPattern = Units.AttackPattern.Chain,
+                splashRadius = 2.0f,
+                maxTargets = 4,
                 upgradeCost = 60,
                 skillIds = new List<string> { "area_attack", "chain_lightning", "critical_strike", "phoenix_flame" }
             }
@@ -297,11 +327,13 @@ namespace LottoDefense.Gameplay
                 skill = new SkillBalance
                 {
                     skillName = "화살 비",
-                    description = "4초간 공격속도 2배",
+                    description = "4초간 공격속도 2배 + 적 이동속도 50% 감소",
                     skillType = SkillType.Active,
                     cooldownDuration = 12f,
                     attackSpeedMultiplier = 2.0f,
-                    effectDuration = 4f
+                    effectDuration = 4f,
+                    slowMultiplier = 0.5f,
+                    ccDuration = 3f
                 }
             },
             new SkillPreset
@@ -310,11 +342,13 @@ namespace LottoDefense.Gameplay
                 skill = new SkillBalance
                 {
                     skillName = "메테오",
-                    description = "5초간 공격력 3배",
+                    description = "5초간 공격력 3배 + 적 2초 동결",
                     skillType = SkillType.Active,
                     cooldownDuration = 15f,
                     damageMultiplier = 3.0f,
-                    effectDuration = 5f
+                    effectDuration = 5f,
+                    freezeDuration = 2f,
+                    ccDuration = 2f
                 }
             },
             new SkillPreset

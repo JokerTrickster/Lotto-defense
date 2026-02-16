@@ -69,6 +69,14 @@ namespace LottoDefense.Monsters
         private GameObject hpBarContainer;
         private SpriteRenderer hpBarBackground;
         private SpriteRenderer hpBarFill;
+
+        // Crowd control
+        private float baseSpeed;
+        private float slowTimer;
+        private float slowMultiplier = 1f;
+        private float freezeTimer;
+        private bool isFrozen;
+        private Color originalColor;
         #endregion
 
         #region Unity Lifecycle
@@ -79,13 +87,18 @@ namespace LottoDefense.Monsters
 
         private void Update()
         {
-            if (IsActive && waypoints != null && waypoints.Count > 0)
+            if (!IsActive) return;
+
+            // Update CC timers
+            UpdateCrowdControl();
+
+            if (!isFrozen && waypoints != null && waypoints.Count > 0)
             {
                 Move();
             }
 
             // Update HP bar position to follow monster (compensate for parent scale)
-            if (hpBarContainer != null && IsActive)
+            if (hpBarContainer != null)
             {
                 // Keep HP bar at consistent world scale regardless of monster scale
                 hpBarContainer.transform.localPosition = new Vector3(0f, 0.6f, 0f);
@@ -132,7 +145,12 @@ namespace LottoDefense.Monsters
             CurrentHealth = MaxHealth;
             Defense = data.GetScaledDefense(round);
             moveSpeed = data.moveSpeed;
+            baseSpeed = data.moveSpeed;
             goldReward = data.goldReward;
+            slowTimer = 0f;
+            slowMultiplier = 1f;
+            freezeTimer = 0f;
+            isFrozen = false;
 
             // Setup visuals
             if (spriteRenderer != null)
@@ -182,7 +200,7 @@ namespace LottoDefense.Monsters
             }
 
             Vector3 targetPosition = waypoints[CurrentWaypointIndex];
-            float step = moveSpeed * Time.deltaTime;
+            float step = moveSpeed * slowMultiplier * Time.deltaTime;
 
             // Move towards target waypoint
             transform.position = Vector3.MoveTowards(transform.position, targetPosition, step);
@@ -449,6 +467,82 @@ namespace LottoDefense.Monsters
             texture.SetPixel(0, 0, Color.white);
             texture.Apply();
             return Sprite.Create(texture, new Rect(0, 0, 1, 1), new Vector2(0.5f, 0.5f), 1f);
+        }
+        #endregion
+
+        #region Crowd Control
+        /// <summary>
+        /// Apply slow effect (reduce movement speed).
+        /// </summary>
+        public void ApplySlow(float multiplier, float duration)
+        {
+            if (!IsActive || duration <= 0f) return;
+
+            slowMultiplier = Mathf.Min(slowMultiplier, multiplier);
+            slowTimer = Mathf.Max(slowTimer, duration);
+
+            // Visual: tint blue for slow
+            if (spriteRenderer != null)
+            {
+                if (originalColor == default) originalColor = spriteRenderer.color;
+                spriteRenderer.color = new Color(0.5f, 0.5f, 1f);
+            }
+        }
+
+        /// <summary>
+        /// Apply freeze effect (completely stop movement).
+        /// </summary>
+        public void ApplyFreeze(float duration)
+        {
+            if (!IsActive || duration <= 0f) return;
+
+            isFrozen = true;
+            freezeTimer = Mathf.Max(freezeTimer, duration);
+
+            // Visual: tint cyan for freeze
+            if (spriteRenderer != null)
+            {
+                if (originalColor == default) originalColor = spriteRenderer.color;
+                spriteRenderer.color = new Color(0.3f, 0.8f, 1f);
+            }
+        }
+
+        /// <summary>
+        /// Update crowd control timers.
+        /// </summary>
+        private void UpdateCrowdControl()
+        {
+            // Update freeze
+            if (isFrozen)
+            {
+                freezeTimer -= Time.deltaTime;
+                if (freezeTimer <= 0f)
+                {
+                    isFrozen = false;
+                    freezeTimer = 0f;
+                    // Restore color (might still be slowed)
+                    if (slowTimer <= 0f && spriteRenderer != null && originalColor != default)
+                    {
+                        spriteRenderer.color = originalColor;
+                    }
+                }
+            }
+
+            // Update slow
+            if (slowTimer > 0f)
+            {
+                slowTimer -= Time.deltaTime;
+                if (slowTimer <= 0f)
+                {
+                    slowMultiplier = 1f;
+                    slowTimer = 0f;
+                    // Restore color if not frozen
+                    if (!isFrozen && spriteRenderer != null && originalColor != default)
+                    {
+                        spriteRenderer.color = originalColor;
+                    }
+                }
+            }
         }
         #endregion
 

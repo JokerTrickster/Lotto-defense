@@ -59,6 +59,16 @@ namespace LottoDefense.Units
         [Tooltip("Area of effect radius (0 = no AOE)")]
         public float aoeRadius = 0f;
 
+        [Header("Crowd Control")]
+        [Tooltip("Slow multiplier (0.5 = 50% slower, 0 = no slow)")]
+        public float slowMultiplier = 0f;
+
+        [Tooltip("Freeze duration in seconds (0 = no freeze)")]
+        public float freezeDuration = 0f;
+
+        [Tooltip("CC duration in seconds")]
+        public float ccDuration = 0f;
+
         [Header("Visual Settings")]
         [Tooltip("Skill icon (optional)")]
         public Sprite skillIcon;
@@ -214,7 +224,10 @@ namespace LottoDefense.Units
                 attackSpeedMultiplier = balance.attackSpeedMultiplier,
                 effectDuration = balance.effectDuration,
                 targetCount = balance.targetCount,
-                aoeRadius = balance.aoeRadius
+                aoeRadius = balance.aoeRadius,
+                slowMultiplier = balance.slowMultiplier,
+                freezeDuration = balance.freezeDuration,
+                ccDuration = balance.ccDuration
             };
         }
         #endregion
