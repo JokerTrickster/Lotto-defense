@@ -1160,6 +1160,7 @@ namespace LottoDefense.Units
             fillImage.type = UnityEngine.UI.Image.Type.Filled;
             fillImage.fillMethod = UnityEngine.UI.Image.FillMethod.Horizontal;
             fillImage.fillOrigin = (int)UnityEngine.UI.Image.OriginHorizontal.Left;
+            fillImage.fillAmount = 0f; // Start empty (mana starts at 0)
 
             // Setup rect transform for fill
             RectTransform fillRect = fillObj.GetComponent<RectTransform>();

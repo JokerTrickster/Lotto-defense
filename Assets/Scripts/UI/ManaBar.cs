@@ -154,6 +154,12 @@ namespace LottoDefense.UI
         /// </summary>
         private void HandleManaChanged(float currentMana, float maxMana)
         {
+            if (fillImage == null)
+            {
+                Debug.LogError($"[ManaBar] fillImage is NULL for {ownerUnit?.Data?.GetDisplayName() ?? "unknown"}!");
+                return;
+            }
+            
             UpdateBar(currentMana, maxMana);
         }
 
@@ -175,7 +181,11 @@ namespace LottoDefense.UI
         /// </summary>
         private void UpdateBar(float currentMana, float maxMana)
         {
-            if (fillImage == null) return;
+            if (fillImage == null)
+            {
+                Debug.LogError($"[ManaBar] UpdateBar: fillImage is NULL!");
+                return;
+            }
 
             float fillAmount = maxMana > 0f ? currentMana / maxMana : 0f;
             fillImage.fillAmount = fillAmount;
@@ -188,6 +198,13 @@ namespace LottoDefense.UI
             else
             {
                 fillImage.color = manaColor;
+            }
+            
+            // Debug log every 10% change (reduce log spam)
+            int percentNow = Mathf.FloorToInt(fillAmount * 10f);
+            if (percentNow % 3 == 0) // Log at 0%, 30%, 60%, 90%
+            {
+                Debug.Log($"[ManaBar] {ownerUnit?.Data?.GetDisplayName()}: fillAmount={fillAmount:F2} ({currentMana:F1}/{maxMana:F0})");
             }
         }
 
