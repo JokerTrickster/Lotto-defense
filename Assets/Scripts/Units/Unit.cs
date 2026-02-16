@@ -242,6 +242,7 @@ namespace LottoDefense.Units
             ManaRegenPerSecond = 10f; // 기본값 (스킬 없을 때 fallback)
 
             // Clone skills per-unit to prevent shared cooldown state between same-type units
+            Debug.LogError($"[SKILL-DEBUG] Unit.Initialize '{unitData.unitName}': unitData.skills={(unitData.skills != null ? unitData.skills.Length.ToString() : "NULL")}");
             if (unitData.skills != null && unitData.skills.Length > 0)
             {
                 instanceSkills = new UnitSkill[unitData.skills.Length];
@@ -418,6 +419,12 @@ namespace LottoDefense.Units
             // on the same tick that mana reaches max (preventing TryActivate failure)
             UpdateSkillCooldowns(tickInterval);
 
+            // CRITICAL: Log skill status on first 3 ticks to diagnose mana issue
+            if (combatTickCount <= 3)
+            {
+                Debug.LogError($"[SKILL-DEBUG] Tick#{combatTickCount} {Data.GetDisplayName()} HasSkill={HasSkill}, instanceSkills={(instanceSkills != null ? instanceSkills.Length.ToString() : "NULL")}, Data.skills={(Data.skills != null ? Data.skills.Length.ToString() : "NULL")}, mana={CurrentMana:F1}/{MaxMana}, regen={ManaRegenPerSecond:F1}/s");
+            }
+
             // Regenerate mana over time (only if unit has skills)
             if (HasSkill)
             {
@@ -429,9 +436,9 @@ namespace LottoDefense.Units
                     Debug.Log($"[Unit] {Data.GetDisplayName()} mana={CurrentMana:F1}/{MaxMana} ({GetManaPercentage()*100:F0}%) regenRate={ManaRegenPerSecond:F1}/s skills={instanceSkills?.Length ?? 0}");
                 }
             }
-            else if (combatTickCount == 1)
+            else if (combatTickCount <= 3)
             {
-                Debug.LogWarning($"[Unit] {Data.GetDisplayName()} HasSkill=false (instanceSkills={instanceSkills?.Length ?? -1}, Data.skills={Data.skills?.Length ?? -1})");
+                Debug.LogError($"[SKILL-DEBUG] {Data.GetDisplayName()} HasSkill=false! instanceSkills={(instanceSkills != null ? instanceSkills.Length.ToString() : "NULL")}, Data.skills={(Data.skills != null ? Data.skills.Length.ToString() : "NULL")}");
             }
 
             // Find or validate target

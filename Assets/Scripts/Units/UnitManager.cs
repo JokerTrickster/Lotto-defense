@@ -133,13 +133,22 @@ namespace LottoDefense.Units
             balanceConfig = Resources.Load<GameBalanceConfig>("GameBalanceConfig");
             if (balanceConfig == null)
             {
-                Debug.LogWarning("[UnitManager] GameBalanceConfig not found! Using default values.");
+                Debug.LogWarning("[UnitManager] GameBalanceConfig.asset not found in Resources! Creating runtime instance.");
                 balanceConfig = ScriptableObject.CreateInstance<GameBalanceConfig>();
+                // Verify runtime instance has data
+                Debug.LogError($"[SKILL-DEBUG] Runtime GameBalanceConfig: units={balanceConfig.units?.Count ?? 0}, skillPresets={balanceConfig.skillPresets?.Count ?? 0}");
+                if (balanceConfig.skillPresets == null || balanceConfig.skillPresets.Count == 0)
+                {
+                    Debug.LogError("[SKILL-DEBUG] CRITICAL: skillPresets is EMPTY after CreateInstance! Skills will not work!");
+                }
             }
             else
             {
-                Debug.Log("[UnitManager] GameBalanceConfig loaded successfully");
+                Debug.Log($"[UnitManager] GameBalanceConfig loaded from asset (units={balanceConfig.units?.Count ?? 0}, skillPresets={balanceConfig.skillPresets?.Count ?? 0})");
             }
+
+            // Verify config has skill presets
+            Debug.Log($"[UnitManager] Config state: units={balanceConfig.units?.Count ?? 0}, skillPresets={balanceConfig.skillPresets?.Count ?? 0}");
 
             // Set gacha cost from config
             gachaCost = balanceConfig.gameRules.summonCost;
@@ -149,6 +158,16 @@ namespace LottoDefense.Units
                 epicUnits.Count == 0 && legendaryUnits.Count == 0)
             {
                 LoadUnitsFromResources();
+            }
+
+            // Verify skills were assigned
+            var allPools = new[] { normalUnits, rareUnits, epicUnits, legendaryUnits };
+            foreach (var pool in allPools)
+            {
+                foreach (var unit in pool)
+                {
+                    Debug.Log($"[UnitManager] VERIFY: '{unit.unitName}' skills={unit.skills?.Length ?? 0}, pattern={unit.attackPattern}");
+                }
             }
 
             ValidateUnitPools();
@@ -433,19 +452,32 @@ namespace LottoDefense.Units
         /// </summary>
         private void AssignSkillsFromConfig(UnitData unitData)
         {
-            if (balanceConfig == null || unitData == null) return;
+            if (balanceConfig == null || unitData == null)
+            {
+                Debug.LogWarning($"[UnitManager] AssignSkillsFromConfig: balanceConfig={balanceConfig != null}, unitData={unitData != null}");
+                return;
+            }
 
             // Find matching UnitBalance by name
             var unitBalance = balanceConfig.units.Find(u => u.unitName == unitData.unitName);
             if (unitBalance == null)
             {
-                Debug.LogWarning($"[UnitManager] No balance config found for unit '{unitData.unitName}'");
+                Debug.LogWarning($"[UnitManager] No balance config found for unit '{unitData.unitName}' (config has {balanceConfig.units?.Count ?? 0} units)");
                 return;
             }
 
+            // Always apply attack pattern from balance config (independent of skills)
+            unitData.attackPattern = unitBalance.attackPattern;
+            unitData.splashRadius = unitBalance.splashRadius;
+            unitData.maxTargets = unitBalance.maxTargets;
+
             // Get skills from balance config
             var skillBalances = balanceConfig.GetUnitSkills(unitBalance);
-            if (skillBalances == null || skillBalances.Count == 0) return;
+            if (skillBalances == null || skillBalances.Count == 0)
+            {
+                Debug.LogWarning($"[UnitManager] No skills found for '{unitData.unitName}' (skillIds={unitBalance.skillIds?.Count ?? 0}, presets={balanceConfig.skillPresets?.Count ?? 0})");
+                return;
+            }
 
             // Convert to UnitSkill array
             var skills = new UnitSkill[skillBalances.Count];
@@ -456,12 +488,13 @@ namespace LottoDefense.Units
 
             unitData.skills = skills;
 
-            // Apply attack pattern from balance config
-            unitData.attackPattern = unitBalance.attackPattern;
-            unitData.splashRadius = unitBalance.splashRadius;
-            unitData.maxTargets = unitBalance.maxTargets;
-
-            Debug.Log($"[UnitManager] Assigned {skills.Length} skills + pattern={unitBalance.attackPattern} to '{unitData.unitName}'");
+            // Log skill details
+            string skillInfo = "";
+            foreach (var s in skills)
+            {
+                skillInfo += $"{s.skillName}({s.skillType},cd={s.cooldownDuration}s) ";
+            }
+            Debug.Log($"[UnitManager] Assigned {skills.Length} skills + pattern={unitBalance.attackPattern} to '{unitData.unitName}': {skillInfo}");
         }
 
         /// <summary>
