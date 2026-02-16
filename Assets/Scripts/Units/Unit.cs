@@ -426,17 +426,12 @@ namespace LottoDefense.Units
             {
                 CurrentTarget = FindNearestMonster();
                 outOfRangeTicks = 0;
-                if (CurrentTarget != null)
-                {
-                    Debug.Log($"[Unit] {Data.GetDisplayName()} acquired target: {CurrentTarget.Data.monsterName} at distance {Vector3.Distance(transform.position, CurrentTarget.transform.position):F2} (worldRange={WorldAttackRange:F2})");
-                }
-                else if (combatTickCount % 30 == 1)
-                {
-                    // Periodic diagnostic: log when no target found
-                    int monsterCount = LottoDefense.Monsters.MonsterManager.Instance != null
-                        ? LottoDefense.Monsters.MonsterManager.Instance.ActiveMonsterCount : -1;
-                    Debug.Log($"[Unit] {Data.GetDisplayName()} no target found (pos={transform.position}, worldRange={WorldAttackRange:F2}, monsters={monsterCount})");
-                }
+                
+                // 로그는 첫 번째 타겟 획득 시에만 (디버그용)
+                // if (CurrentTarget != null)
+                // {
+                //     Debug.Log($"[Unit] {Data.GetDisplayName()} acquired target: {CurrentTarget.Data.monsterName}");
+                // }
             }
 
             // Attack if ready and has target
@@ -495,11 +490,12 @@ namespace LottoDefense.Units
                 }
             }
 
-            // Diagnostic: log when monsters exist but none in range (once per 50 ticks)
-            if (nearest == null && activeMonsters.Count > 0 && combatTickCount % 50 == 1)
-            {
-                Debug.Log($"[Unit] {Data.GetDisplayName()} has {activeMonsters.Count} monsters but nearest is {closestOutOfRange:F2} away (worldRange={WorldAttackRange:F2})");
-            }
+            // Diagnostic: log when monsters exist but none in range
+            // (주석 처리 - 게임 정상 작동 시 불필요)
+            // if (nearest == null && activeMonsters.Count > 0 && combatTickCount % 50 == 1)
+            // {
+            //     Debug.Log($"[Unit] {Data.GetDisplayName()} has {activeMonsters.Count} monsters but nearest is {closestOutOfRange:F2} away");
+            // }
 
             return nearest;
         }
