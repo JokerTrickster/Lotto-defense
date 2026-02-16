@@ -89,20 +89,8 @@ namespace LottoDefense.UI
         /// </summary>
         public void TryStartGame()
         {
-            // Read ticket count directly from PlayerPrefs (works even without LobbyDataManager instance)
-            int tickets = PlayerPrefs.GetInt("entry_tickets", 0);
-
-            if (tickets < 1)
-            {
-                ShowInsufficientTicketsPopup();
-                return;
-            }
-
-            // Deduct ticket
-            PlayerPrefs.SetInt("entry_tickets", tickets - 1);
-            PlayerPrefs.Save();
-
-            Debug.Log($"[SceneNavigator] Starting game - Tickets: {tickets} -> {tickets - 1}");
+            // Free entry for testing - skip ticket check
+            Debug.Log("[SceneNavigator] Starting game (free entry mode)");
             SceneManager.LoadScene("GameScene");
         }
 
