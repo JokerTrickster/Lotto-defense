@@ -218,10 +218,17 @@ namespace LottoDefense.VFX
         /// <param name="color">Text color</param>
         public void ShowFloatingText(Vector3 worldPosition, string message, Color color)
         {
+            Debug.Log($"[VFXManager] 🎯 ShowFloatingText called: message='{message}'");
+            
             FloatingTextController controller = GetFloatingText();
             if (controller != null)
             {
+                Debug.Log($"[VFXManager] ✅ Got FloatingTextController, calling Show");
                 controller.Show(worldPosition, message, color);
+            }
+            else
+            {
+                Debug.LogError($"[VFXManager] ❌ FloatingTextController is NULL! Cannot show message: '{message}'");
             }
         }
 
@@ -449,6 +456,7 @@ namespace LottoDefense.VFX
             // Add Canvas
             Canvas canvas = prefab.AddComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            canvas.sortingOrder = 10000; // Very high to be above everything
 
             // Add CanvasGroup
             CanvasGroup canvasGroup = prefab.AddComponent<CanvasGroup>();

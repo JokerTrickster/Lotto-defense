@@ -44,8 +44,10 @@ namespace LottoDefense.VFX
             if (canvas != null)
             {
                 canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-                canvas.sortingOrder = 1001; // Above damage numbers
+                canvas.sortingOrder = 10000; // Very high - above all UI
             }
+            
+            Debug.Log($"[FloatingText] Awake: canvas={canvas != null}, sortingOrder={canvas?.sortingOrder}");
         }
         #endregion
 
@@ -58,6 +60,8 @@ namespace LottoDefense.VFX
         /// <param name="color">Text color</param>
         public void Show(Vector3 worldPosition, string message, Color color)
         {
+            Debug.Log($"[FloatingText] 🎯 Show called: message='{message}', worldPos={worldPosition}, color={color}");
+            
             if (messageText == null)
             {
                 Debug.LogError("[FloatingTextController] Text component missing!");
@@ -83,6 +87,8 @@ namespace LottoDefense.VFX
             // Position at world location (converted to screen space)
             Vector3 screenPosition = Camera.main.WorldToScreenPoint(worldPosition);
             rectTransform.position = screenPosition;
+            
+            Debug.Log($"[FloatingText] 📍 Position: world={worldPosition}, screen={screenPosition}, rectPos={rectTransform.position}");
 
             // Setup text
             messageText.text = message;
@@ -128,6 +134,8 @@ namespace LottoDefense.VFX
                 StopCoroutine(animationCoroutine);
 
             animationCoroutine = StartCoroutine(AnimateCoroutine());
+            
+            Debug.Log($"[FloatingText] ✅ Displayed: '{message}' fontSize={messageText.fontSize} active={gameObject.activeSelf} alpha={canvasGroup.alpha}");
         }
         #endregion
 
