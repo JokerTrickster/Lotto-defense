@@ -230,6 +230,35 @@ namespace LottoDefense.Units
                 ccDuration = balance.ccDuration
             };
         }
+
+        /// <summary>
+        /// Create a deep copy of this skill (prevents shared cooldown state between units).
+        /// </summary>
+        public UnitSkill Clone()
+        {
+            return new UnitSkill
+            {
+                skillName = this.skillName,
+                description = this.description,
+                skillType = this.skillType,
+                cooldownDuration = this.cooldownDuration,
+                initialCooldown = this.initialCooldown,
+                damageMultiplier = this.damageMultiplier,
+                rangeMultiplier = this.rangeMultiplier,
+                attackSpeedMultiplier = this.attackSpeedMultiplier,
+                effectDuration = this.effectDuration,
+                targetCount = this.targetCount,
+                aoeRadius = this.aoeRadius,
+                slowMultiplier = this.slowMultiplier,
+                freezeDuration = this.freezeDuration,
+                ccDuration = this.ccDuration,
+                skillIcon = this.skillIcon,
+                vfxPrefab = this.vfxPrefab,
+                vfxColor = this.vfxColor,
+                // Runtime state is NOT copied (starts fresh)
+                currentCooldown = this.initialCooldown
+            };
+        }
         #endregion
     }
 }

@@ -242,48 +242,38 @@ namespace LottoDefense.Units
             ManaRegenPerSecond = 10f; // 기본값 (스킬 없을 때 fallback)
 
             // Clone skills per-unit to prevent shared cooldown state between same-type units
-            Debug.LogError($"[SKILL-DEBUG] Unit.Initialize '{unitData.unitName}': unitData.skills={(unitData.skills != null ? unitData.skills.Length.ToString() : "NULL")}");
             if (unitData.skills != null && unitData.skills.Length > 0)
             {
                 instanceSkills = new UnitSkill[unitData.skills.Length];
                 for (int i = 0; i < unitData.skills.Length; i++)
                 {
-                    instanceSkills[i] = UnitSkill.FromBalance(new Gameplay.GameBalanceConfig.SkillBalance
-                    {
-                        skillName = unitData.skills[i].skillName,
-                        description = unitData.skills[i].description,
-                        skillType = unitData.skills[i].skillType,
-                        cooldownDuration = unitData.skills[i].cooldownDuration,
-                        initialCooldown = unitData.skills[i].initialCooldown,
-                        damageMultiplier = unitData.skills[i].damageMultiplier,
-                        rangeMultiplier = unitData.skills[i].rangeMultiplier,
-                        attackSpeedMultiplier = unitData.skills[i].attackSpeedMultiplier,
-                        effectDuration = unitData.skills[i].effectDuration,
-                        targetCount = unitData.skills[i].targetCount,
-                        aoeRadius = unitData.skills[i].aoeRadius,
-                        slowMultiplier = unitData.skills[i].slowMultiplier,
-                        freezeDuration = unitData.skills[i].freezeDuration,
-                        ccDuration = unitData.skills[i].ccDuration
-                    });
+                    // Use Clone() to create a deep copy of each skill
+                    instanceSkills[i] = unitData.skills[i].Clone();
                     instanceSkills[i].Initialize();
                 }
-
+                
                 // Active 스킬의 cooldownDuration에 맞춰 마나 재생 속도 설정
                 // 마나가 정확히 cooldownDuration 초 후에 가득 차서 스킬이 자동 발동됨
                 float skillCooldown = 0f;
                 foreach (var skill in instanceSkills)
                 {
+                    Debug.Log($"  - {skill.skillName} ({skill.skillType}): CD={skill.cooldownDuration}s, DMG×{skill.damageMultiplier}, AS×{skill.attackSpeedMultiplier}");
+                    
                     if (skill.skillType == SkillType.Active && skill.cooldownDuration > 0f)
                     {
                         skillCooldown = skill.cooldownDuration;
-                        break;
                     }
                 }
+                
                 if (skillCooldown > 0f)
                 {
                     ManaRegenPerSecond = MaxMana / skillCooldown;
+                    Debug.Log($"[Unit] {Data.GetDisplayName()} mana config: cooldown={skillCooldown}s → regen={ManaRegenPerSecond:F1}/s");
                 }
-                Debug.Log($"[Unit] Initialized {instanceSkills.Length} skills for {Data.GetDisplayName()} (activeSkillCooldown={skillCooldown}s, manaRegen={ManaRegenPerSecond:F1}/s)");
+                else
+                {
+                    Debug.LogWarning($"[Unit] {Data.GetDisplayName()} has skills but no Active skill with cooldown!");
+                }
 
                 // Create mana bar for units with skills
                 CreateManaBar();
@@ -419,26 +409,16 @@ namespace LottoDefense.Units
             // on the same tick that mana reaches max (preventing TryActivate failure)
             UpdateSkillCooldowns(tickInterval);
 
-            // CRITICAL: Log skill status on first 3 ticks to diagnose mana issue
-            if (combatTickCount <= 3)
-            {
-                Debug.LogError($"[SKILL-DEBUG] Tick#{combatTickCount} {Data.GetDisplayName()} HasSkill={HasSkill}, instanceSkills={(instanceSkills != null ? instanceSkills.Length.ToString() : "NULL")}, Data.skills={(Data.skills != null ? Data.skills.Length.ToString() : "NULL")}, mana={CurrentMana:F1}/{MaxMana}, regen={ManaRegenPerSecond:F1}/s");
-            }
-
             // Regenerate mana over time (only if unit has skills)
             if (HasSkill)
             {
                 RegenerateMana(tickInterval);
 
-                // Diagnostic: log mana progress every 50 ticks (5 seconds)
-                if (combatTickCount % 50 == 1)
+                // Diagnostic: log mana progress every 100 ticks (10 seconds)
+                if (combatTickCount % 100 == 1)
                 {
-                    Debug.Log($"[Unit] {Data.GetDisplayName()} mana={CurrentMana:F1}/{MaxMana} ({GetManaPercentage()*100:F0}%) regenRate={ManaRegenPerSecond:F1}/s skills={instanceSkills?.Length ?? 0}");
+                    Debug.Log($"[Unit] {Data.GetDisplayName()} mana={CurrentMana:F1}/{MaxMana} ({GetManaPercentage()*100:F0}%), regen={ManaRegenPerSecond:F1}/s");
                 }
-            }
-            else if (combatTickCount <= 3)
-            {
-                Debug.LogError($"[SKILL-DEBUG] {Data.GetDisplayName()} HasSkill=false! instanceSkills={(instanceSkills != null ? instanceSkills.Length.ToString() : "NULL")}, Data.skills={(Data.skills != null ? Data.skills.Length.ToString() : "NULL")}");
             }
 
             // Find or validate target
