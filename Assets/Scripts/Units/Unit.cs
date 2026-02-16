@@ -422,6 +422,16 @@ namespace LottoDefense.Units
             if (HasSkill)
             {
                 RegenerateMana(tickInterval);
+
+                // Diagnostic: log mana progress every 50 ticks (5 seconds)
+                if (combatTickCount % 50 == 1)
+                {
+                    Debug.Log($"[Unit] {Data.GetDisplayName()} mana={CurrentMana:F1}/{MaxMana} ({GetManaPercentage()*100:F0}%) regenRate={ManaRegenPerSecond:F1}/s skills={instanceSkills?.Length ?? 0}");
+                }
+            }
+            else if (combatTickCount == 1)
+            {
+                Debug.LogWarning($"[Unit] {Data.GetDisplayName()} HasSkill=false (instanceSkills={instanceSkills?.Length ?? -1}, Data.skills={Data.skills?.Length ?? -1})");
             }
 
             // Find or validate target
@@ -785,10 +795,14 @@ namespace LottoDefense.Units
             UnitSkill skillToActivate = null;
             foreach (var skill in instanceSkills)
             {
-                if (skill.skillType == SkillType.Active && skill.TryActivate())
+                if (skill.skillType == SkillType.Active)
                 {
-                    skillToActivate = skill;
-                    break;
+                    Debug.Log($"[Unit] {Data.GetDisplayName()} trying Active skill '{skill.skillName}' (onCooldown={skill.IsOnCooldown}, cd={skill.currentCooldown:F1})");
+                    if (skill.TryActivate())
+                    {
+                        skillToActivate = skill;
+                        break;
+                    }
                 }
             }
 
