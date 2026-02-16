@@ -800,10 +800,15 @@ namespace LottoDefense.Units
                 // Apply skill effect
                 ApplySkillEffect(skillToActivate);
 
-                // Visual feedback for skill activation (single unit only)
-                LottoDefense.VFX.VFXManager.Instance?.ShowFloatingText(
-                    transform.position + Vector3.up * 0.5f, skillToActivate.skillName,
-                    UnitData.GetRarityColor(Data.rarity));
+                // Visual feedback for skill activation - bright and high above unit
+                Vector3 effectPos = transform.position + Vector3.up * 1.2f; // Higher position
+                Color effectColor = UnitData.GetRarityColor(Data.rarity);
+                effectColor = Color.Lerp(effectColor, Color.white, 0.4f); // Brighter color
+                
+                LottoDefense.VFX.VFXManager.Instance?.ShowFloatingText(effectPos, 
+                    $"⚡ {skillToActivate.skillName} ⚡", effectColor);
+                
+                Debug.Log($"[Unit] 🌟 {Data.GetDisplayName()} activated skill: {skillToActivate.skillName} at {effectPos}");
 
                 // Reset mana to 0 after using skill
                 CurrentMana = 0f;
@@ -1135,7 +1140,7 @@ namespace LottoDefense.Units
             {
                 manaBarRect = manaBarObj.AddComponent<RectTransform>();
             }
-            manaBarRect.sizeDelta = new Vector2(80f, 8f); // 80 pixels wide, 8 pixels tall
+            manaBarRect.sizeDelta = new Vector2(120f, 15f); // 120 pixels wide, 15 pixels tall (increased size for visibility)
 
             // Create background image
             GameObject bgObj = new GameObject("Background");

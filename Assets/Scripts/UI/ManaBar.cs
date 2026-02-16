@@ -72,10 +72,12 @@ namespace LottoDefense.UI
             {
                 UpdateBar(ownerUnit.CurrentMana, ownerUnit.MaxMana);
                 Show();
+                Debug.Log($"[ManaBar] Showing mana bar for {ownerUnit.Data.GetDisplayName()} (HasSkill=true)");
             }
             else
             {
                 Hide();
+                Debug.LogWarning($"[ManaBar] Hiding mana bar for {ownerUnit.Data.GetDisplayName()} (HasSkill=false)");
             }
 
             // Subscribe to game state changes to hide on game end
@@ -85,7 +87,10 @@ namespace LottoDefense.UI
             }
 
             isInitialized = true;
-            Debug.Log($"[ManaBar] Initialized for {ownerUnit.Data.GetDisplayName()}");
+            
+            // Debug: log canvas info
+            Canvas parentCanvas = GetComponentInParent<Canvas>();
+            Debug.Log($"[ManaBar] Initialized for {ownerUnit.Data.GetDisplayName()} - Canvas: {parentCanvas?.name}, RenderMode: {parentCanvas?.renderMode}, Active: {gameObject.activeSelf}, Alpha: {canvasGroup?.alpha}");
         }
 
         /// <summary>
@@ -219,6 +224,12 @@ namespace LottoDefense.UI
             float unitHalfHeight = ownerUnit.transform.localScale.y * 0.5f;
             Vector3 worldPos = ownerUnit.transform.position + Vector3.up * (unitHalfHeight + heightPadding);
             if (cachedCamera == null) cachedCamera = Camera.main;
+            if (cachedCamera == null)
+            {
+                Debug.LogError("[ManaBar] Camera.main is NULL!");
+                return;
+            }
+            
             Vector3 screenPos = cachedCamera.WorldToScreenPoint(worldPos);
 
             // Update rect transform position

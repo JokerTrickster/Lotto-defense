@@ -87,6 +87,32 @@ namespace LottoDefense.VFX
             // Setup text
             messageText.text = message;
             messageText.color = color;
+            
+            // Make skill effects bigger and more visible
+            if (message.Contains("⚡"))
+            {
+                messageText.fontSize = 48; // Larger for skill names
+                messageText.fontStyle = FontStyle.Bold;
+                
+                // Add outline for better visibility
+                var outline = messageText.gameObject.GetComponent<Outline>();
+                if (outline == null)
+                    outline = messageText.gameObject.AddComponent<Outline>();
+                outline.effectColor = Color.black;
+                outline.effectDistance = new Vector2(3, -3);
+            }
+            else
+            {
+                messageText.fontSize = 32; // Normal size for other text
+                messageText.fontStyle = FontStyle.Normal;
+                
+                // Smaller outline for normal text
+                var outline = messageText.gameObject.GetComponent<Outline>();
+                if (outline == null)
+                    outline = messageText.gameObject.AddComponent<Outline>();
+                outline.effectColor = Color.black;
+                outline.effectDistance = new Vector2(2, -2);
+            }
 
             // Reset alpha
             canvasGroup.alpha = 1f;
