@@ -1146,6 +1146,13 @@ namespace LottoDefense.Units
             GameObject bgObj = new GameObject("Background");
             bgObj.transform.SetParent(manaBarObj.transform, false);
             UnityEngine.UI.Image bgImage = bgObj.AddComponent<UnityEngine.UI.Image>();
+            
+            // Background also needs a sprite
+            Texture2D bgTex = new Texture2D(1, 1);
+            bgTex.SetPixel(0, 0, Color.white);
+            bgTex.Apply();
+            bgImage.sprite = Sprite.Create(bgTex, new Rect(0, 0, 1, 1), new Vector2(0.5f, 0.5f));
+            
             bgImage.color = new Color(0.2f, 0.2f, 0.2f, 0.8f); // Dark background
             bgImage.raycastTarget = false; // Don't block clicks on units
 
@@ -1160,6 +1167,13 @@ namespace LottoDefense.Units
             GameObject fillObj = new GameObject("Fill");
             fillObj.transform.SetParent(manaBarObj.transform, false);
             UnityEngine.UI.Image fillImage = fillObj.AddComponent<UnityEngine.UI.Image>();
+            
+            // CRITICAL: Filled type requires a sprite
+            Texture2D fillTex = new Texture2D(1, 1);
+            fillTex.SetPixel(0, 0, Color.white);
+            fillTex.Apply();
+            fillImage.sprite = Sprite.Create(fillTex, new Rect(0, 0, 1, 1), new Vector2(0.5f, 0.5f));
+            
             fillImage.color = new Color(0.2f, 0.5f, 1f, 1f); // Blue mana color
             fillImage.raycastTarget = false; // Don't block clicks on units
             fillImage.type = UnityEngine.UI.Image.Type.Filled;

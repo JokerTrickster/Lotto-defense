@@ -72,12 +72,10 @@ namespace LottoDefense.UI
             {
                 UpdateBar(ownerUnit.CurrentMana, ownerUnit.MaxMana);
                 Show();
-                Debug.Log($"[ManaBar] Showing mana bar for {ownerUnit.Data.GetDisplayName()} (HasSkill=true)");
             }
             else
             {
                 Hide();
-                Debug.LogWarning($"[ManaBar] Hiding mana bar for {ownerUnit.Data.GetDisplayName()} (HasSkill=false)");
             }
 
             // Subscribe to game state changes to hide on game end
@@ -88,9 +86,7 @@ namespace LottoDefense.UI
 
             isInitialized = true;
             
-            // Debug: log canvas info
-            Canvas parentCanvas = GetComponentInParent<Canvas>();
-            Debug.Log($"[ManaBar] Initialized for {ownerUnit.Data.GetDisplayName()} - Canvas: {parentCanvas?.name}, RenderMode: {parentCanvas?.renderMode}, Active: {gameObject.activeSelf}, Alpha: {canvasGroup?.alpha}");
+            Debug.Log($"[ManaBar] ✅ Initialized for {ownerUnit.Data.GetDisplayName()} (size: {rectTransform?.sizeDelta}, sprite: {fillImage?.sprite != null})");
         }
 
         /// <summary>
@@ -146,7 +142,19 @@ namespace LottoDefense.UI
             fillImage.fillAmount = 0f;
             fillImage.enabled = true;
             
-            Debug.Log($"[ManaBar] SetupUI: fillImage configured - color={fillImage.color}, fillAmount={fillImage.fillAmount}, enabled={fillImage.enabled}");
+            // Ensure sprite is set (required for Filled type)
+            if (fillImage.sprite == null)
+            {
+                // Create a white sprite as default
+                Texture2D whiteTex = new Texture2D(1, 1);
+                whiteTex.SetPixel(0, 0, Color.white);
+                whiteTex.Apply();
+                fillImage.sprite = Sprite.Create(whiteTex, new Rect(0, 0, 1, 1), new Vector2(0.5f, 0.5f));
+                Debug.LogWarning("[ManaBar] Created default white sprite for fillImage");
+            }
+            
+            // Force UI update
+            fillImage.SetAllDirty();
 
             // Setup rect transform (only if not already set by Unit.cs)
             if (rectTransform != null)
@@ -156,7 +164,6 @@ namespace LottoDefense.UI
                 {
                     rectTransform.sizeDelta = new Vector2(barSize.x * 100f, barSize.y * 100f);
                 }
-                Debug.Log($"[ManaBar] SetupUI: rectTransform sizeDelta={rectTransform.sizeDelta}");
             }
         }
         #endregion
@@ -217,11 +224,30 @@ namespace LottoDefense.UI
                 fillImage.color = manaColor;
             }
             
-            // Debug log every 10% change (reduce log spam)
-            int percentNow = Mathf.FloorToInt(fillAmount * 10f);
-            if (percentNow % 3 == 0) // Log at 0%, 30%, 60%, 90%
+            // CRITICAL: Force UI update to ensure visual changes are reflected immediately
+            fillImage.SetAllDirty();
+            
+            // Also force canvas update
+            if (canvas != null)
             {
-                Debug.Log($"[ManaBar] {ownerUnit?.Data?.GetDisplayName()}: fillAmount {oldFillAmount:F2}→{fillAmount:F2} ({currentMana:F1}/{maxMana:F0}) enabled={fillImage.enabled} active={fillImage.gameObject.activeSelf}");
+                Canvas.ForceUpdateCanvases();
+            }
+            
+            // Debug log only at important milestones (0%, 50%, 100%)
+            int percentNow = Mathf.FloorToInt(fillAmount * 100f);
+            int percentOld = Mathf.FloorToInt(oldFillAmount * 100f);
+            
+            if (percentNow == 0 && percentOld > 0) // Reset to 0 (skill used)
+            {
+                Debug.Log($"[ManaBar] 💙 {ownerUnit?.Data?.GetDisplayName()}: RESET {percentOld}%→0% (skill used!)");
+            }
+            else if (percentNow >= 50 && percentOld < 50) // 50% milestone
+            {
+                Debug.Log($"[ManaBar] 💙 {ownerUnit?.Data?.GetDisplayName()}: 50% reached ({currentMana:F1}/{maxMana:F0})");
+            }
+            else if (percentNow >= 100 && percentOld < 100) // 100% milestone
+            {
+                Debug.Log($"[ManaBar] 💙 {ownerUnit?.Data?.GetDisplayName()}: 100% FULL! ({currentMana:F1}/{maxMana:F0})");
             }
         }
 
