@@ -30,7 +30,6 @@ namespace LottoDefense.UI
             ui.balanceConfig = Resources.Load<GameBalanceConfig>("GameBalanceConfig");
             if (ui.balanceConfig == null)
             {
-                Debug.LogWarning("[UnitShopUI] GameBalanceConfig asset not found, using code defaults");
                 ui.balanceConfig = ScriptableObject.CreateInstance<GameBalanceConfig>();
             }
             ui.BuildUI();
