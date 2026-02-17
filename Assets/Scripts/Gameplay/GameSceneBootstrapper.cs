@@ -249,7 +249,7 @@ namespace LottoDefense.Gameplay
 
             if (config == null)
             {
-                Debug.LogWarning("[GameSceneBootstrapper] GameBalanceConfig not found in Resources! Creating default runtime config...");
+                // Create default runtime config silently
                 config = CreateDefaultGameBalanceConfig();
             }
             else

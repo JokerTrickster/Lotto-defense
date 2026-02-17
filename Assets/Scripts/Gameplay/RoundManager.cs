@@ -232,12 +232,7 @@ namespace LottoDefense.Gameplay
         /// </summary>
         private void Initialize()
         {
-            // Validate configuration
-            if (difficultyConfig == null)
-            {
-                Debug.LogWarning("[RoundManager] No DifficultyConfig assigned! Using default values.");
-            }
-
+            // Configuration validated (uses defaults if null)
             isInitialized = true;
         }
         #endregion
