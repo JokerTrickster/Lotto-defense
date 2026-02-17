@@ -750,23 +750,42 @@ namespace LottoDefense.Units
             {
                 float manaGain = ManaRegenPerSecond * deltaTime;
                 float oldMana = CurrentMana;
-                CurrentMana = Mathf.Min(CurrentMana + manaGain, MaxMana);
+                float newMana = CurrentMana + manaGain;
+                
+                // CRITICAL: Active 스킬이 아직 쿨다운 중이면 마나를 99.9%로 제한
+                // 쿨다운이 끝나면 100%로 올라가서 즉시 발동
+                bool hasActiveSkillOnCooldown = false;
+                if (instanceSkills != null)
+                {
+                    foreach (var skill in instanceSkills)
+                    {
+                        if (skill.skillType == SkillType.Active && skill.IsOnCooldown)
+                        {
+                            hasActiveSkillOnCooldown = true;
+                            break;
+                        }
+                    }
+                }
+                
+                // 쿨다운 중이면 99.9%까지만, 아니면 100%까지
+                float maxAllowed = hasActiveSkillOnCooldown ? (MaxMana * 0.999f) : MaxMana;
+                CurrentMana = Mathf.Min(newMana, maxAllowed);
 
                 // 로그: 마나 재생 확인 (10% 단위로)
                 if ((int)(oldMana / 10f) < (int)(CurrentMana / 10f))
                 {
-                    Debug.Log($"[Unit] {Data.GetDisplayName()} mana: {CurrentMana:F1}/{MaxMana} ({GetManaPercentage()*100:F0}%), regen={ManaRegenPerSecond:F1}/s");
+                    string cdStatus = hasActiveSkillOnCooldown ? " [CD중]" : "";
+                    Debug.Log($"[Unit] {Data.GetDisplayName()} mana: {CurrentMana:F1}/{MaxMana} ({GetManaPercentage()*100:F0}%){cdStatus}");
                 }
 
                 // Fire mana changed event
                 OnManaChanged?.Invoke(CurrentMana, MaxMana);
             }
 
-            // Auto-trigger skill when mana is full
-            // Retries each tick in case skill cooldown wasn't ready on the previous tick
+            // Auto-trigger skill when mana is full (쿨다운 끝났을 때만 100%가 됨)
             if (CurrentMana >= MaxMana)
             {
-                Debug.Log($"[Unit] {Data.GetDisplayName()} mana FULL! Triggering skill...");
+                Debug.Log($"[Unit] {Data.GetDisplayName()} mana 100% + CD ready! Triggering skill...");
                 TriggerSkill();
             }
         }
