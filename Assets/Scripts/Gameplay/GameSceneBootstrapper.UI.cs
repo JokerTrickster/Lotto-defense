@@ -147,7 +147,6 @@ namespace LottoDefense.Gameplay
             SetField(component, "roundText", roundText);
             SetField(component, "canvasGroup", canvasGroup);
 
-            Debug.Log("[GameSceneBootstrapper] Created RoundStartUI");
         }
         #endregion
 
@@ -207,7 +206,6 @@ namespace LottoDefense.Gameplay
             // Start panel hidden (container stays active)
             selectionPanelObj.SetActive(false);
 
-            Debug.Log("[GameSceneBootstrapper] Created UnitSelectionUI with floating name tag");
         }
 
         private Text CreateInfoStatText(Transform parent, string placeholder)
@@ -567,7 +565,6 @@ namespace LottoDefense.Gameplay
             bottomPanelObj.SetActive(true);
             component.EnsureListeners();
 
-            Debug.Log("[GameSceneBootstrapper] Created GameBottomUI with 2-column command panel layout");
         }
 
         private GameObject CreateCommandButton(Transform parent, string name, string text, Color bgColor, Color borderColor)
@@ -1333,7 +1330,6 @@ namespace LottoDefense.Gameplay
             SetField(resultUIComponent, "confirmButtonText", btnText);
             SetField(resultUIComponent, "rewardText", rewardText);
 
-            Debug.Log("[GameSceneBootstrapper] Created GameResultUI");
         }
         #endregion
 
@@ -1518,7 +1514,6 @@ namespace LottoDefense.Gameplay
                 return;
 
             OpponentStatusUI.CreateOnCanvas(mainCanvas, defaultFont);
-            Debug.Log("[GameSceneBootstrapper] Created OpponentStatusUI for multiplayer");
         }
         #endregion
     }
