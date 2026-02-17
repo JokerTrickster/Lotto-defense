@@ -83,6 +83,10 @@ namespace LottoDefense.VFX
                 return;
             }
 
+            // CRITICAL FIX: Detach from pool parent so Canvas works independently
+            transform.SetParent(null);
+            DontDestroyOnLoad(gameObject);
+
             // Position at world location (converted to screen space)
             Vector3 screenPosition = Camera.main.WorldToScreenPoint(worldPosition);
             rectTransform.position = screenPosition;
@@ -175,9 +179,10 @@ namespace LottoDefense.VFX
 
             gameObject.SetActive(false);
 
-            // Notify VFXManager to return this to pool
+            // Return to pool parent
             if (VFXManager.Instance != null)
             {
+                transform.SetParent(VFXManager.Instance.transform.Find("VFX_Pool"));
                 VFXManager.Instance.ReturnDamageNumber(this);
             }
         }
