@@ -92,7 +92,6 @@ namespace LottoDefense.Monsters
             // Expand pool if needed
             if (availableMonsters.Count == 0)
             {
-                Debug.LogWarning($"[MonsterPool] Pool exhausted, expanding by {EXPAND_SIZE}");
                 ExpandPool(EXPAND_SIZE);
             }
 
