@@ -749,7 +749,14 @@ namespace LottoDefense.Units
             if (CurrentMana < MaxMana)
             {
                 float manaGain = ManaRegenPerSecond * deltaTime;
+                float oldMana = CurrentMana;
                 CurrentMana = Mathf.Min(CurrentMana + manaGain, MaxMana);
+
+                // 로그: 마나 재생 확인 (10% 단위로)
+                if ((int)(oldMana / 10f) < (int)(CurrentMana / 10f))
+                {
+                    Debug.Log($"[Unit] {Data.GetDisplayName()} mana: {CurrentMana:F1}/{MaxMana} ({GetManaPercentage()*100:F0}%), regen={ManaRegenPerSecond:F1}/s");
+                }
 
                 // Fire mana changed event
                 OnManaChanged?.Invoke(CurrentMana, MaxMana);
@@ -759,6 +766,7 @@ namespace LottoDefense.Units
             // Retries each tick in case skill cooldown wasn't ready on the previous tick
             if (CurrentMana >= MaxMana)
             {
+                Debug.Log($"[Unit] {Data.GetDisplayName()} mana FULL! Triggering skill...");
                 TriggerSkill();
             }
         }
@@ -797,14 +805,18 @@ namespace LottoDefense.Units
                 // Apply skill effect
                 ApplySkillEffect(skillToActivate);
 
-                // Visual feedback for skill activation - bright and high above unit
-                Vector3 effectPos = transform.position + Vector3.up * 0.8f; // Position above unit
+                // 화려한 스킬 이펙트 - 유닛 이름 + 스킬 이름 표시
+                Vector3 effectPos = transform.position + Vector3.up * 0.8f; // 유닛 위에 표시
                 Color effectColor = UnitData.GetRarityColor(Data.rarity);
-                effectColor = Color.Lerp(effectColor, Color.white, 0.4f); // Brighter color
+                effectColor = Color.Lerp(effectColor, Color.white, 0.3f); // 밝게
                 
-                // Use SimpleFloatingText with 3D TextMesh for guaranteed visibility
-                LottoDefense.VFX.SimpleFloatingText.Show(effectPos, 
-                    skillToActivate.skillName, effectColor, 0.15f); // 0.15 = world size
+                // SkillEffectUI 사용 (화려한 애니메이션)
+                LottoDefense.VFX.SkillEffectUI.Show(
+                    effectPos,
+                    Data.GetDisplayName(), // 유닛 이름
+                    skillToActivate.skillName, // 스킬 이름
+                    effectColor
+                );
                 
                 Debug.Log($"[Unit] 🌟 {Data.GetDisplayName()} activated skill: {skillToActivate.skillName} at {effectPos}");
 
