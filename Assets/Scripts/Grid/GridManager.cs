@@ -7,19 +7,19 @@ namespace LottoDefense.Grid
 {
     /// <summary>
     /// Singleton manager that handles grid generation, cell management, and coordinate conversion.
-    /// Manages the 6x10 grid system optimized for portrait orientation (9:16 aspect ratio).
+    /// Manages the 8x4 grid system (8 rows x 4 columns).
     /// </summary>
     public class GridManager : MonoBehaviour
     {
         #region Constants
-        public const int GRID_WIDTH = 8;  // Changed from 4 to 8
-        public const int GRID_HEIGHT = 4; // Changed from 8 to 4
-        private const float SCREEN_WIDTH_USAGE = 0.82f; // Use 82% of screen width (room for monster path margin)
+        public const int GRID_WIDTH = 4;  // 4 columns
+        public const int GRID_HEIGHT = 8; // 8 rows
+        private const float SCREEN_WIDTH_USAGE = 0.90f; // Use 90% of screen width for larger cells
         private const float HUD_TOP_RESERVE = 0.10f;    // Reserve 10% top for compact HUD
         private const float BUTTON_BOTTOM_RESERVE = 0.14f; // Reserve 14% bottom for buttons
         private const float CELL_BORDER_WIDTH = 0.02f;
-        private const float PATH_MARGIN = 0.3f; // Reduced from 1.2 to 0.3 - monsters closer to grid
-        private const int PATH_POINTS_PER_SIDE = 6; // Waypoints per side for smooth movement
+        private const float PATH_MARGIN = 0.3f; // Monsters path margin from grid
+        private const int PATH_POINTS_PER_SIDE = 8; // More waypoints for 8 rows
         #endregion
 
         #region Singleton
@@ -713,15 +713,15 @@ namespace LottoDefense.Grid
         #region Monster Path Waypoints
         /// <summary>
         /// Get waypoints for the top path (enters from top, exits at bottom).
-        /// Uses x=2 column (left side of center).
+        /// Uses x=1 column (left side of center) for 4-column grid.
         /// </summary>
         /// <returns>List of world positions for monster movement</returns>
         public List<Vector3> GetTopPathWaypoints()
         {
             List<Vector3> waypoints = new List<Vector3>();
-            int pathX = GRID_WIDTH / 2 - 1; // x=2 for 6-width grid
+            int pathX = GRID_WIDTH / 2 - 1; // x=1 for 4-column grid
 
-            // Start from top (y = GRID_HEIGHT - 1) to bottom (y = 0)
+            // Start from top (y = 7) to bottom (y = 0) - 8 rows
             for (int y = GRID_HEIGHT - 1; y >= 0; y--)
             {
                 waypoints.Add(GridToWorld(new Vector2Int(pathX, y)));
@@ -732,15 +732,15 @@ namespace LottoDefense.Grid
 
         /// <summary>
         /// Get waypoints for the bottom path (enters from bottom, exits at top).
-        /// Uses x=3 column (right side of center).
+        /// Uses x=2 column (right side of center) for 4-column grid.
         /// </summary>
         /// <returns>List of world positions for monster movement</returns>
         public List<Vector3> GetBottomPathWaypoints()
         {
             List<Vector3> waypoints = new List<Vector3>();
-            int pathX = GRID_WIDTH / 2; // x=3 for 6-width grid
+            int pathX = GRID_WIDTH / 2; // x=2 for 4-column grid
 
-            // Start from bottom (y = 0) to top (y = GRID_HEIGHT - 1)
+            // Start from bottom (y = 0) to top (y = 7) - 8 rows
             for (int y = 0; y < GRID_HEIGHT; y++)
             {
                 waypoints.Add(GridToWorld(new Vector2Int(pathX, y)));
