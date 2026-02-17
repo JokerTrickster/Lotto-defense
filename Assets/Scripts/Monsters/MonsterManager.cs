@@ -88,6 +88,7 @@ namespace LottoDefense.Monsters
         private MonsterPool monsterPool;
         private bool isSpawning = false;
         private int monstersSpawnedThisRound = 0;
+        private int totalMonstersKilled = 0; // Total kills for backend stats
         private Coroutine spawnCoroutine;
         private Coroutine subscribeCoroutine;
         private GameHUD cachedGameHUD;
@@ -104,6 +105,11 @@ namespace LottoDefense.Monsters
         /// Whether spawning is currently active.
         /// </summary>
         public bool IsSpawning => isSpawning;
+
+        /// <summary>
+        /// Total number of monsters killed in this game (for backend stats).
+        /// </summary>
+        public int TotalMonstersKilled => totalMonstersKilled;
         #endregion
 
         #region Events
@@ -461,6 +467,8 @@ namespace LottoDefense.Monsters
             if (monster == null)
                 return;
 
+            // Increment kill counter for backend stats
+            totalMonstersKilled++;
 
             // Award gold
             if (GameplayManager.Instance != null)

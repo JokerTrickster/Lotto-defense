@@ -9,6 +9,8 @@ using LottoDefense.Units;
 using LottoDefense.VFX;
 using LottoDefense.Quests;
 using LottoDefense.Networking;
+using LottoDefense.Backend;
+using LottoDefense.Backend.Models;
 
 namespace LottoDefense.Gameplay
 {
@@ -215,6 +217,11 @@ namespace LottoDefense.Gameplay
             GameState oldState = CurrentState;
             CurrentState = newState;
 
+            // Send game result to backend if game ended
+            if (newState == GameState.Victory || newState == GameState.Defeat)
+            {
+                SendGameResultToBackend(newState == GameState.Victory);
+            }
 
             OnStateChanged?.Invoke(oldState, newState);
         }
@@ -345,6 +352,44 @@ namespace LottoDefense.Gameplay
         public void NextRound()
         {
             SetRound(CurrentRound + 1);
+        }
+        #endregion
+
+        #region Backend Integration
+        /// <summary>
+        /// Sends game result to backend server (if logged in).
+        /// </summary>
+        private void SendGameResultToBackend(bool isVictory)
+        {
+            // Skip if not logged in
+            if (!APIManager.Instance.IsLoggedIn)
+            {
+                Debug.Log("[GameplayManager] Not logged in, skipping result upload");
+                return;
+            }
+
+            // Calculate stats
+            int roundsReached = CurrentRound;
+            int monstersKilled = MonsterManager.Instance != null ? MonsterManager.Instance.TotalMonstersKilled : 0;
+            int goldEarned = CurrentGold; // Approximate, could track separately
+            string result = isVictory ? "victory" : "defeat";
+
+            Debug.Log($"[GameplayManager] Sending result: Round {roundsReached}, Kills {monstersKilled}, Gold {goldEarned}, Result {result}");
+
+            APIManager.Instance.SaveGameResult(
+                roundsReached,
+                monstersKilled,
+                goldEarned,
+                result,
+                (GameResultResponse response) =>
+                {
+                    Debug.Log($"[GameplayManager] Result saved! Game ID: {response.game_id}, New highest round: {response.new_highest_round}");
+                },
+                (string error) =>
+                {
+                    Debug.LogError($"[GameplayManager] Failed to save result: {error}");
+                }
+            );
         }
         #endregion
 
