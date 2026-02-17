@@ -108,7 +108,6 @@ namespace LottoDefense.UI
                 }
             }
 
-            Debug.Log($"[UnitSelectionUI] Showing UI for {unit.Data.GetDisplayName()}");
         }
 
         public void HideUI()
@@ -164,7 +163,6 @@ namespace LottoDefense.UI
 
             if (activeSynthesisButtons.Count > 0)
             {
-                Debug.Log($"[UnitSelectionUI] Showing {activeSynthesisButtons.Count} synthesis button(s)");
             }
         }
 
