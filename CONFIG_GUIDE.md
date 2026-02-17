@@ -1,432 +1,362 @@
-# Lotto Defense - Config 설정 가이드
+# 🎮 Lotto-Defense Config 수정 가이드
 
-게임 밸런스를 조정하고 라운드를 설정하는 방법을 설명합니다.
+**중요:** 이 게임은 **Config 기반 시스템**으로 설계되어 있습니다!  
+**코드 수정 없이** Unity 에디터에서 `.asset` 파일만 수정하면 됩니다.
 
 ---
 
 ## 📁 Config 파일 위치
 
-모든 Config 에셋 파일은 `Assets/Resources/` 폴더에 위치해야 합니다:
-
+### 1️⃣  **라운드 & 몬스터 설정**
 ```
-Assets/Resources/
-├── GameBalanceConfig.asset     ✅ 이미 생성됨 (업데이트됨)
-├── RoundConfig.asset            ✅ 이미 생성됨
-├── Units/                       (유닛 데이터)
-│   ├── Archer.asset
-│   ├── Warrior.asset
-│   └── ...
-└── Monsters/                    (몬스터 데이터)
-    ├── SlimeMonster.asset
-    ├── Goblin.asset
-    └── ...
+Assets/Resources/RoundConfig.asset
 ```
+- 라운드 수
+- 각 라운드별 몬스터 종류
+- 스폰 수, 간격, 지속시간
 
----
+### 2️⃣  **게임 밸런스 설정**
+```
+Assets/Data/GameBalanceConfig.asset
+```
+- 유닛 스탯 (공격력, 공속, 사거리)
+- 스킬 밸런스 (쿨다운, 데미지 배율)
+- 몬스터 스탯
+- 소환 확률
+- 합성 레시피
+- 보상 설정
 
-## 1️⃣ UnitData - 유닛별 스탯 및 업그레이드 설정
-
-### 📍 경로
-- **파일**: `Assets/Resources/Units/*.asset` (각 유닛별 에셋)
-- **스크립트**: `Assets/Scripts/Units/UnitData.cs`
-
-### 🎮 설정 가능한 항목
-
-#### ✅ 기본 스탯
-```yaml
-attack: 10              # 기본 공격력
-attackSpeed: 1.0        # 초당 공격 횟수
-attackRange: 1.5        # 공격 사거리 (그리드 단위)
+### 3️⃣  **유닛 데이터**
+```
+Assets/Resources/Units/
+├── Warrior.asset
+├── Archer.asset
+├── Mage.asset
+├── DragonKnight.asset
+└── Phoenix.asset
 ```
 
-#### ✅ 공격 패턴 (NEW!)
-```yaml
-attackPattern: SingleTarget    # 공격 유형
-  - SingleTarget: 단일 대상 공격 (기본)
-  - Splash: 범위 공격 (주 대상 + 주변 적)
-  - AOE: 광역 공격 (범위 내 모든 적)
-  - Pierce: 관통 공격 (일직선상 적 관통)
-  - Chain: 연쇄 공격 (적에서 적으로 튕김)
-
-splashRadius: 1.5             # 스플래시/AOE 반경 (0 = 없음)
-maxTargets: 3                 # 최대 타겟 수 (Pierce/Chain용, 0 = 무제한)
-splashDamageFalloff: 50       # 범위 끝 데미지 비율 (%, 100 = 감쇠 없음)
+### 4️⃣  **몬스터 데이터**
 ```
-
-**공격 패턴 예시:**
-
-1. **단일 공격 궁수**
-   ```yaml
-   attackPattern: SingleTarget
-   maxTargets: 1
-   splashRadius: 0
-   ```
-
-2. **스플래시 공격 법사**
-   ```yaml
-   attackPattern: Splash
-   splashRadius: 2.0           # 2.0 범위 내 추가 피해
-   splashDamageFalloff: 50     # 범위 끝에서 50% 데미지
-   ```
-
-3. **광역 공격 포병**
-   ```yaml
-   attackPattern: AOE
-   splashRadius: 3.0           # 3.0 범위 내 모든 적
-   splashDamageFalloff: 30     # 범위 끝에서 30% 데미지
-   ```
-
-4. **관통 공격 저격수**
-   ```yaml
-   attackPattern: Pierce
-   maxTargets: 5               # 최대 5명 관통
-   attackRange: 5.0            # 긴 사거리
-   ```
-
-5. **연쇄 공격 번개 마법사**
-   ```yaml
-   attackPattern: Chain
-   maxTargets: 4               # 4번 튕김
-   splashRadius: 2.5           # 튕김 범위 2.5
-   ```
-
-#### ✅ 업그레이드 설정 (NEW!)
-```yaml
-baseUpgradeCost: 5               # 첫 업그레이드 기본 비용
-attackUpgradePercent: 10         # 업그레이드당 공격력 증가율 (%)
-attackSpeedUpgradePercent: 8     # 업그레이드당 공격속도 증가율 (%)
-maxUpgradeLevel: 10              # 최대 업그레이드 레벨
-```
-
-**예시: Normal 등급 유닛**
-- 기본 비용: 5 골드
-- 레벨 1 업그레이드: 5 * (1 + 0 * 0.5) = 5 골드
-- 레벨 2 업그레이드: 5 * (1 + 1 * 0.5) = 7 골드
-- 레벨 3 업그레이드: 5 * (1 + 2 * 0.5) = 10 골드
-
-**예시: Legendary 등급 유닛**
-- 기본 비용: 50 골드로 설정하면
-- 레벨 1: 50 골드
-- 레벨 2: 75 골드
-- 레벨 3: 100 골드
-
-### 🔧 Unity 에디터에서 수정하는 방법
-
-1. `Assets/Resources/Units/` 폴더에서 유닛 에셋 선택 (예: Archer.asset)
-2. Inspector 창에서 수정:
-   - **Combat Stats**: 공격력, 공격속도, 사거리
-   - **Upgrade Settings**: 업그레이드 비용, 증가율, 최대 레벨
-3. Ctrl+S (Cmd+S) 저장
-
----
-
-## 2️⃣ GameBalanceConfig - 게임 밸런스 설정
-
-### 📍 경로
-- **파일**: `Assets/Resources/GameBalanceConfig.asset`
-- **스크립트**: `Assets/Scripts/Gameplay/GameBalanceConfig.cs`
-
-### 🎮 설정 가능한 항목
-
-#### ✅ 유닛 판매 (이미 설정됨)
-```yaml
-unitSellGold: 3  # 유닛 판매 시 획득하는 골드
-```
-
-#### ✅ 유닛 조합 레시피 (이미 설정됨)
-```yaml
-synthesisRecipes:
-  - sourceUnitName: "기본 궁수"       # 재료 유닛 이름
-    resultUnitName: "강화 궁수"       # 결과 유닛 이름
-    synthesisGoldCost: 0              # 조합 비용 (골드)
-```
-
-**현재 설정된 조합 체인:**
-```
-Normal (0성) → Rare (1성)
-├─ 기본 궁수 x3 → 강화 궁수
-└─ 검사 x3 → 마법사
-
-Rare (1성) → Epic (2성)
-├─ 강화 궁수 x3 → 저격수
-└─ 마법사 x3 → 대마법사
-
-Epic (2성) → Legendary (3성)
-├─ 저격수 x3 → 드래곤 아처
-└─ 대마법사 x3 → 대현자
-```
-
-### 🔧 Unity 에디터에서 수정하는 방법
-
-1. Unity 에디터에서 `Assets/Resources/GameBalanceConfig.asset` 선택
-2. Inspector 창에서 수정:
-   - **유닛 판매 골드**: `Unit Sell Gold` 값 변경
-   - **조합 레시피 추가**:
-     1. `Synthesis Recipes` 펼치기
-     2. `+` 버튼 클릭
-     3. 재료/결과 유닛 이름 입력
-     4. 조합 비용 설정
-3. Ctrl+S (Cmd+S) 저장
-
-### 💻 코드에서 사용하는 방법
-
-```csharp
-// 1. 자동 로드 (UnitSelectionUI, SynthesisManager에서 이미 사용 중)
-balanceConfig = Resources.Load<GameBalanceConfig>("GameBalanceConfig");
-
-// 2. 조합 레시피 확인
-var recipe = balanceConfig.GetSynthesisRecipe("기본 궁수");
-if (recipe != null) {
-    Debug.Log($"{recipe.sourceUnitName} x3 → {recipe.resultUnitName}");
-}
-
-// 3. 판매 골드 확인
-int sellGold = balanceConfig.unitSellGold; // 3
+Assets/Resources/Monsters/
+├── Goblin.asset
+├── SlimeMonster.asset
+├── ArmoredOgre.asset
+├── SpeedDemon.asset
+└── DragonBoss.asset
 ```
 
 ---
 
-## 3️⃣ 조합 가이드 UI (NEW!)
+## ⚙️ Unity 에디터에서 수정하는 방법
 
-### 📍 기능
-- 게임 중 **책 모양 버튼**(왼쪽 하단)을 클릭하면 조합 가이드 열람
-- 페이지를 넘기며 모든 조합 레시피 확인 가능
-- 각 페이지에 표시되는 정보:
-  - 소스 유닛 (3개 필요)
-  - 결과 유닛
-  - 각 유닛의 스탯 (공격력, 공격속도, 사거리, DPS)
-  - 조합 비용
+### 📋 **1. 라운드 설정 변경**
 
-### 🎮 사용 방법
-1. 게임 플레이 중 왼쪽 하단의 📖 버튼 클릭
-2. ◀/▶ 버튼으로 페이지 넘기기
-3. X 버튼으로 닫기
+1. Unity 프로젝트 열기
+2. **Project 창** → `Assets/Resources/RoundConfig.asset` 클릭
+3. **Inspector 창**에서 수정:
+
+```
+총 라운드 수 (Total Rounds): 30
+
+Round Configs:
+  - Round Number: 1
+    Monster Data: Goblin ← 드래그 앤 드롭으로 변경 가능
+    Total Monsters: 30
+    Spawn Interval: 0.5
+    Spawn Duration: 15
+    
+  - Round Number: 2
+    Monster Data: SlimeMonster
+    Total Monsters: 40
+    ...
+```
+
+**우클릭 메뉴:**
+- `Auto-Generate Round Configs` - 자동으로 라운드 생성
+- `Sort Rounds by Number` - 라운드 번호 순으로 정렬
 
 ---
 
-## 4️⃣ RoundConfig - 라운드별 몬스터 설정
+### 🎯 **2. 유닛 스탯 변경**
 
-### 📍 경로
-- **파일**: `Assets/Resources/RoundConfig.asset`
-- **스크립트**: `Assets/Scripts/Gameplay/RoundConfig.cs`
+1. **Project 창** → `Assets/Data/GameBalanceConfig.asset` 클릭
+2. **Inspector 창** → `Units` 섹션 펼치기
+3. 원하는 유닛 선택 (예: Warrior)
 
-### 🎮 설정 가능한 항목
-
-```yaml
-totalRounds: 30  # 총 라운드 수
-
-roundConfigs:    # 각 라운드 설정
-  - roundNumber: 1               # 라운드 번호
-    monsterData: SlimeMonster    # 이 라운드에 나올 몬스터
-    totalMonsters: 10            # 스폰할 총 몬스터 수
-    spawnInterval: 1.0           # 스폰 간격 (초)
-    spawnDuration: 10.0          # 스폰 지속 시간 (초)
+```
+Unit Name: Warrior
+Rarity: Normal
+Attack: 10          ← 공격력
+Attack Speed: 1.0   ← 공격속도 (초당 공격 횟수)
+Attack Range: 1.5   ← 사거리
+Attack Pattern: SingleTarget  ← 공격 패턴
+Upgrade Cost: 5     ← 업그레이드 비용
+Skill Ids:          ← 스킬 ID 리스트
+  - battle_frenzy
+  - critical_strike
+  - war_cry
 ```
 
-**현재 설정된 라운드 진행:**
+**공격 패턴 종류:**
+- `SingleTarget` - 단일 공격
+- `Splash` - 범위 공격 (splashRadius 설정 필요)
+- `AOE` - 광역 공격
+- `Pierce` - 관통 공격 (maxTargets 설정 필요)
+- `Chain` - 연쇄 공격
+
+---
+
+### ⚡ **3. 스킬 밸런스 변경**
+
+**GameBalanceConfig.asset** → `Skill Presets` 섹션:
+
 ```
-Round 1-2:  SlimeMonster (슬라임)    - 10~15마리
-Round 3-4:  Goblin (고블린)          - 20~25마리
-Round 5-6:  SpeedDemon (빠른 악마)   - 30마리
-Round 7-9:  ArmoredOgre (방어 오우거) - 30마리
-Round 10+:  DragonBoss (드래곤 보스)  - 30마리 (라운드 11~30은 기본값 사용)
+Skill Id: arrow_rain
+Skill:
+  Skill Name: 화살 비
+  Skill Type: Active
+  Cooldown Duration: 12       ← 쿨다운 (초)
+  Damage Multiplier: 1.0      ← 데미지 배율
+  Attack Speed Multiplier: 2.0 ← 공속 배율
+  Effect Duration: 4          ← 효과 지속시간
+  Slow Multiplier: 0.5        ← 슬로우 (0.5 = 50% 느리게)
+  CC Duration: 3              ← CC 지속시간
 ```
 
-### 🔧 Unity 에디터에서 수정하는 방법
+**스킬 타입:**
+- `Active` - 마나 충전 후 자동 발동
+- `Passive` - 항상 적용
+- `OnHit` - 공격 시 발동
+- `OnKill` - 처치 시 발동
 
-#### 방법 1: Inspector에서 직접 수정
-1. `Assets/Resources/RoundConfig.asset` 선택
-2. Inspector에서 수정:
-   - `Total Rounds`: 총 라운드 수
-   - `Round Configs` 펼치기
-   - 각 라운드별로:
-     - Round Number: 라운드 번호
-     - Monster Data: 드래그 앤 드롭으로 몬스터 선택
-     - Total Monsters: 스폰할 수
-     - Spawn Interval: 스폰 간격
-     - Spawn Duration: 스폰 지속 시간
+---
 
-#### 방법 2: Context Menu 사용
-1. RoundConfig 에셋 우클릭
-2. `Auto-Generate Round Configs` 선택 → 기본 설정으로 30라운드 자동 생성
-3. `Sort Rounds by Number` 선택 → 라운드 번호 순으로 정렬
+### 👾 **4. 몬스터 스탯 변경**
 
-### 📋 Manager에 연결하는 방법
+**GameBalanceConfig.asset** → `Monsters` 섹션:
 
-RoundConfig를 사용하려면 Manager 오브젝트에 연결해야 합니다:
-
-1. **Hierarchy**에서 `RoundManager` 오브젝트 선택
-2. **Inspector**에서 `Round Config` 필드에 `RoundConfig.asset` 드래그 앤 드롭
-3. **Hierarchy**에서 `MonsterManager` 오브젝트 선택
-4. **Inspector**에서 `Round Config` 필드에 `RoundConfig.asset` 드래그 앤 드롭
-
-### 💻 코드에서 사용하는 방법
-
-```csharp
-// 1. RoundManager/MonsterManager의 Inspector에서 할당
-[SerializeField] private RoundConfig roundConfig;
-
-// 2. 특정 라운드 설정 가져오기
-RoundMonsterConfig config = roundConfig.GetRoundConfig(5); // 5라운드
-Debug.Log($"Round 5: {config.monsterData.monsterName}");
-
-// 3. 스폰 설정 확인
-int count = config.totalMonsters;      // 30
-float interval = config.spawnInterval; // 0.5
-float duration = config.spawnDuration; // 15
-
-// 4. 총 라운드 수 확인
-int maxRounds = roundConfig.TotalRounds; // 30
+```
+Monster Name: 기본 몬스터
+Type: Normal
+Max Health: 100           ← 체력
+Defense: 5                ← 방어력
+Move Speed: 2.0           ← 이동속도
+Gold Reward: 10           ← 처치 골드
+Health Scaling: 1.1       ← 라운드당 체력 증가율 (10%)
+Defense Scaling: 1.05     ← 라운드당 방어력 증가율 (5%)
 ```
 
 ---
 
-## 5️⃣ 실제 동작 예시
+### 🎲 **5. 소환 확률 변경**
 
-### ✅ 유닛 조합 시나리오
+**GameBalanceConfig.asset** → `Spawn Rates` 섹션:
 
-1. 플레이어가 "기본 궁수" 3개를 그리드에 배치
-2. 준비 페이즈에서 "기본 궁수" 중 하나 클릭
-3. UI에 "조합 → 강화 궁수" 버튼 활성화
-4. 버튼 클릭 → SynthesisManager가 작동:
-   - "기본 궁수" 3개 제거
-   - "강화 궁수" 1개 생성 (랜덤 빈 칸에 배치)
-   - 조합 비용 차감 (현재 0골드)
+```
+Normal Rate: 25      ← Normal 등급 확률 (%)
+Rare Rate: 25        ← Rare 등급 확률
+Epic Rate: 25        ← Epic 등급 확률
+Legendary Rate: 25   ← Legendary 등급 확률
 
-### ✅ 라운드 진행 시나리오
-
-1. **Round 1 시작** (RoundConfig 확인)
-   - MonsterManager: "SlimeMonster 10마리, 1초 간격, 10초 동안"
-   - 10초 동안 슬라임 10마리 스폰
-   - 모두 처치 → Round 2로 진행
-
-2. **Round 5 시작**
-   - RoundConfig: SpeedDemon 설정 확인
-   - 15초 동안 30마리 스폰 (0.5초 간격)
-   - 더 빠르고 강한 몬스터 등장
-
-3. **Round 11+ (설정 없음)**
-   - RoundConfig에 11라운드 설정이 없음
-   - defaultMonster (SlimeMonster) 사용
-   - defaultTotalMonsters (30마리) 사용
-   - 자동으로 fallback 동작
+※ 합계가 100%여야 함!
+```
 
 ---
 
-## 🔍 동작 확인 방법
+### 🔄 **6. 합성 레시피 변경**
 
-### 1. 컴파일 에러 없는지 확인
-```bash
-# Unity 에디터에서 Console 확인
-0 errors, 0 warnings ✅
+**GameBalanceConfig.asset** → `Synthesis Recipes` 섹션:
+
 ```
+Synthesis Recipes:
+  - Source Unit Name: Warrior      ← 재료 유닛 (2개 필요)
+    Result Unit Name: Archer       ← 결과 유닛
+    Synthesis Gold Cost: 0         ← 합성 비용
 
-### 2. 로딩 확인
-```csharp
-// Unity 실행 시 Console 로그 확인
-[UnitSelectionUI] GameBalanceConfig loaded ✅
-[MonsterManager] Round 1 from config: SlimeMonster (x10, 1s interval) ✅
-[RoundManager] Round 1/30 ✅
+  - Source Unit Name: Archer
+    Result Unit Name: Mage
+    Synthesis Gold Cost: 0
 ```
-
-### 3. 실제 플레이 테스트
-1. GameScene 실행
-2. 준비 페이즈에서 유닛 배치
-3. 같은 유닛 3개 → 조합 버튼 활성화 확인
-4. 전투 페이즈 시작 → RoundConfig에 설정한 몬스터 스폰 확인
-5. 라운드 진행 → 설정한 대로 몬스터 변경 확인
 
 ---
 
-## ⚙️ 고급 설정
+### 💰 **7. 보상 설정**
 
-### 라운드별 다른 난이도 설정
+#### **게임 결과 보상**
+**GameBalanceConfig.asset** → `Game Result Rewards`:
+
+```
+Min Round: 0
+Max Round: 3
+Gold Reward: 10   ← 라운드 0-3 도달 시 10골드
+
+Min Round: 4
+Max Round: 6
+Gold Reward: 30   ← 라운드 4-6 도달 시 30골드
+```
+
+#### **일일 보상**
+**GameBalanceConfig.asset** → `Daily Reward Stages`:
+
+```
+Required Clears: 1    ← 1회 클리어
+Gold Reward: 50
+Ticket Reward: 0
+
+Required Clears: 3    ← 3회 클리어
+Gold Reward: 0
+Ticket Reward: 1      ← 입장권 1개
+```
+
+---
+
+## 🎯 빠른 밸런스 조정 가이드
+
+### **게임이 너무 쉬울 때:**
+1. 몬스터 체력 증가 (`Max Health` ↑)
+2. 몬스터 방어력 증가 (`Defense` ↑)
+3. 유닛 공격력 감소 (`Attack` ↓)
+4. 스킬 쿨다운 증가 (`Cooldown Duration` ↑)
+
+### **게임이 너무 어려울 때:**
+1. 유닛 공격력 증가 (`Attack` ↑)
+2. 유닛 공격속도 증가 (`Attack Speed` ↑)
+3. 스킬 데미지 배율 증가 (`Damage Multiplier` ↑)
+4. 시작 골드 증가 (`Starting Gold` ↑)
+
+### **특정 라운드 난이도 조정:**
+1. `RoundConfig.asset` 열기
+2. 해당 라운드의 `Total Monsters` 조정
+3. `Spawn Interval` 조정 (짧을수록 빠르게 등장)
+
+---
+
+## 🆕 새 유닛/몬스터 추가하는 방법
+
+### **새 유닛 추가:**
+
+1. **유닛 데이터 생성**
+   - Project 창 우클릭
+   - `Create > Lotto Defense > Unit Data`
+   - 이름 설정 (예: `Wizard.asset`)
+
+2. **GameBalanceConfig에 추가**
+   - `GameBalanceConfig.asset` 열기
+   - `Units` 리스트에 새 항목 추가
+   - 모든 스탯 설정
+
+3. **스프라이트 추가** (선택)
+   - `Assets/Resources/Sprites/Units/Wizard.png`
+
+### **새 몬스터 추가:**
+
+1. **몬스터 데이터 생성**
+   - Project 창 우클릭
+   - `Create > Lotto Defense > Monster Data`
+   - 이름 설정
+
+2. **GameBalanceConfig에 추가**
+   - `Monsters` 리스트에 새 항목 추가
+
+3. **RoundConfig에서 사용**
+   - 원하는 라운드의 `Monster Data`에 드래그
+
+---
+
+## ⚠️ 주의사항
+
+### ✅ **권장:**
+- Unity 에디터에서 `.asset` 파일만 수정
+- 수정 후 `Ctrl+S`로 저장
+- 플레이 모드에서 바로 테스트
+- Git으로 버전 관리
+
+### ❌ **비추천:**
+- 코드 직접 수정 (불필요함)
+- 텍스트 에디터로 `.asset` 파일 수정
+- 플레이 모드에서 값 수정 (저장 안 됨)
+
+---
+
+## 🚀 빠른 테스트 방법
+
+1. Config 수정
+2. Unity에서 `Ctrl+S` (저장)
+3. 플레이 모드 시작 (Cmd+P 또는 ▶️)
+4. 바로 게임에서 확인
+5. 문제 있으면 다시 수정 → 반복
+
+**실시간 적용됨!** 재시작 불필요!
+
+---
+
+## 📖 추가 정보
+
+### **스킬 ID 목록 (재사용 가능)**
+
+**Active (마나 충전 스킬):**
+- `war_cry` - 전사의 함성 (공격력 2배, 3초)
+- `arrow_rain` - 화살 비 (공속 2배 + 슬로우, 4초)
+- `meteor` - 메테오 (공격력 3배 + 동결, 5초)
+- `dragon_fury` - 용의 분노 (공격력 2.5배 + 공속 1.5배, 5초)
+- `phoenix_flame` - 불사조의 불꽃 (공격력 3배 + 공속 2배, 6초)
+
+**Passive (항상 적용):**
+- `sniper` - 저격수 (사거리 +50%)
+- `berserker` - 버서커 (공격력 +30%)
+- `rapid_fire` - 속사 (공속 +50%)
+- `area_attack` - 광역 공격 (범위 1.5)
+
+**OnHit (공격 시):**
+- `critical_strike` - 크리티컬 (2배 데미지)
+- `double_shot` - 더블 샷 (추가 공격)
+- `piercing_arrow` - 관통 화살 (2명 관통)
+
+**OnKill (처치 시):**
+- `chain_lightning` - 연쇄 번개 (주변 3명에게 50% 데미지)
+- `battle_frenzy` - 전투 광기 (공속 +50%, 3초)
+- `gold_rush` - 골드 러시 (+3골드)
+
+---
+
+## 🎓 예제: 강력한 커스텀 유닛 만들기
+
+**GameBalanceConfig.asset** → Units에 추가:
 
 ```yaml
-# Round 1-5: Easy (슬라임, 고블린)
-- roundNumber: 1
-  totalMonsters: 10
-  spawnInterval: 1.0
-
-# Round 6-10: Medium (빠른 악마, 오우거)
-- roundNumber: 6
-  totalMonsters: 20
-  spawnInterval: 0.7
-
-# Round 11+: Hard (드래곤 보스)
-- roundNumber: 11
-  totalMonsters: 30
-  spawnInterval: 0.5
+Unit Name: Super Mage
+Rarity: Legendary
+Attack: 100              # 엄청 강함
+Attack Speed: 2.0        # 빠른 공격
+Attack Range: 6.0        # 긴 사거리
+Attack Pattern: AOE      # 광역 공격
+Splash Radius: 3.0       # 넓은 범위
+Upgrade Cost: 100
+Skill Ids:
+  - area_attack          # 광역 공격 패시브
+  - rapid_fire           # 공속 증가 패시브
+  - meteor               # 메테오 액티브
 ```
 
-### 보스 라운드 설정
-
-```yaml
-# Round 10, 20, 30: 보스 등장
-- roundNumber: 10
-  monsterData: DragonBoss
-  totalMonsters: 1      # 보스 1마리만
-  spawnInterval: 0
-  spawnDuration: 0.1
-
-- roundNumber: 20
-  monsterData: DragonBoss
-  totalMonsters: 2      # 보스 2마리
-  spawnInterval: 5      # 5초 간격
-  spawnDuration: 10
-```
-
-### 조합 비용 추가
-
-```yaml
-synthesisRecipes:
-  - sourceUnitName: "드래곤 아처"
-    resultUnitName: "궁극 드래곤"
-    synthesisGoldCost: 50  # 조합 시 50골드 필요
-```
+이렇게 하면 **코드 수정 없이** 새로운 강력한 유닛 완성! 🎉
 
 ---
 
-## 🚨 주의사항
+## 📞 문제 해결
 
-### ❌ 하면 안 되는 것
+### "수정했는데 게임에 반영 안 돼요"
+→ Unity에서 `Ctrl+S` 눌렀는지 확인
 
-1. **Resources 폴더 밖에 Config 파일 생성**
-   - `Resources.Load()`는 Resources 폴더만 검색합니다
+### "Asset 파일을 찾을 수 없어요"
+→ Project 창에서 검색 (돋보기 아이콘)
 
-2. **유닛/몬스터 이름 오타**
-   - 조합 레시피의 이름이 실제 UnitData 이름과 정확히 일치해야 합니다
+### "합성이 안 돼요"
+→ `Synthesis Recipes`에 레시피가 있는지 확인
 
-3. **RoundConfig를 Manager에 연결하지 않음**
-   - Inspector에서 드래그 앤 드롭으로 연결 필수
-
-4. **라운드 번호 중복**
-   - 같은 라운드 번호를 2번 설정하면 경고 발생
-
-### ✅ 권장 사항
-
-1. **설정 후 Unity 재시작**
-   - Config 변경 후 Play 모드 재시작 권장
-
-2. **Git 커밋**
-   - Config 에셋 파일도 버전 관리에 포함
-
-3. **백업**
-   - 중요한 밸런스 설정은 별도 백업 권장
+### "새 스킬을 만들고 싶어요"
+→ `Skill Presets`에 새 항목 추가 → `skillId` 부여 → 유닛의 `Skill Ids`에 추가
 
 ---
 
-## 📚 참고 파일
-
-- **GameBalanceConfig.cs**: `Assets/Scripts/Gameplay/GameBalanceConfig.cs`
-- **RoundConfig.cs**: `Assets/Scripts/Gameplay/RoundConfig.cs`
-- **SynthesisManager.cs**: `Assets/Scripts/Units/SynthesisManager.cs`
-- **MonsterManager.cs**: `Assets/Scripts/Monsters/MonsterManager.cs`
-- **RoundManager.cs**: `Assets/Scripts/Gameplay/RoundManager.cs`
-
----
-
-## ✅ 완료!
-
-이제 Unity 에디터에서 Config 파일을 열고 원하는 대로 수정하면 됩니다.
-모든 설정은 실시간으로 반영되며, 코드 수정 없이 밸런스 조정이 가능합니다! 🎮
+**✨ 코드 없이 게임 밸런스를 자유롭게 조정하세요! ✨**
