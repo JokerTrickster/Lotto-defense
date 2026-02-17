@@ -14,7 +14,7 @@ namespace LottoDefense.Grid
         #region Constants
         public const int GRID_WIDTH = 4;  // 4 columns
         public const int GRID_HEIGHT = 8; // 8 rows
-        private const float SCREEN_WIDTH_USAGE = 0.90f; // Use 90% of screen width for larger cells
+        private const float SCREEN_WIDTH_USAGE = 0.45f; // Use 45% of screen width (half size)
         private const float HUD_TOP_RESERVE = 0.10f;    // Reserve 10% top for compact HUD
         private const float BUTTON_BOTTOM_RESERVE = 0.14f; // Reserve 14% bottom for buttons
         private const float CELL_BORDER_WIDTH = 0.02f;
