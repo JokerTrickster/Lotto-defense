@@ -797,12 +797,13 @@ namespace LottoDefense.Units
                 ApplySkillEffect(skillToActivate);
 
                 // Visual feedback for skill activation - bright and high above unit
-                Vector3 effectPos = transform.position + Vector3.up * 1.2f; // Higher position
+                Vector3 effectPos = transform.position + Vector3.up * 0.8f; // Position above unit
                 Color effectColor = UnitData.GetRarityColor(Data.rarity);
                 effectColor = Color.Lerp(effectColor, Color.white, 0.4f); // Brighter color
                 
-                LottoDefense.VFX.VFXManager.Instance?.ShowFloatingText(effectPos, 
-                    $"⚡ {skillToActivate.skillName} ⚡", effectColor);
+                // Use SimpleFloatingText for guaranteed visibility
+                LottoDefense.VFX.SimpleFloatingText.Show(effectPos, 
+                    skillToActivate.skillName, effectColor, 64f);
                 
                 Debug.Log($"[Unit] 🌟 {Data.GetDisplayName()} activated skill: {skillToActivate.skillName} at {effectPos}");
 
