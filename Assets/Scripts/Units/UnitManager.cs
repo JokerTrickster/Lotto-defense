@@ -133,17 +133,8 @@ namespace LottoDefense.Units
             balanceConfig = Resources.Load<GameBalanceConfig>("GameBalanceConfig");
             if (balanceConfig == null)
             {
-                Debug.LogWarning("[UnitManager] GameBalanceConfig.asset not found in Resources! Creating runtime instance.");
+                // Create runtime instance silently
                 balanceConfig = ScriptableObject.CreateInstance<GameBalanceConfig>();
-                // Verify runtime instance has data
-                Debug.LogError($"[SKILL-DEBUG] Runtime GameBalanceConfig: units={balanceConfig.units?.Count ?? 0}, skillPresets={balanceConfig.skillPresets?.Count ?? 0}");
-                if (balanceConfig.skillPresets == null || balanceConfig.skillPresets.Count == 0)
-                {
-                    Debug.LogError("[SKILL-DEBUG] CRITICAL: skillPresets is EMPTY after CreateInstance! Skills will not work!");
-                }
-            }
-            else
-            {
             }
 
             // Verify config has skill presets
