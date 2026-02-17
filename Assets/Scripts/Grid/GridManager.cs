@@ -712,48 +712,10 @@ namespace LottoDefense.Grid
 
         #region Monster Path Waypoints
         /// <summary>
-        /// Get waypoints for the top path (enters from top, exits at bottom).
-        /// Uses x=1 column (left side of center) for 4-column grid.
-        /// </summary>
-        /// <returns>List of world positions for monster movement</returns>
-        public List<Vector3> GetTopPathWaypoints()
-        {
-            List<Vector3> waypoints = new List<Vector3>();
-            int pathX = GRID_WIDTH / 2 - 1; // x=1 for 4-column grid
-
-            // Start from top (y = 7) to bottom (y = 0) - 8 rows
-            for (int y = GRID_HEIGHT - 1; y >= 0; y--)
-            {
-                waypoints.Add(GridToWorld(new Vector2Int(pathX, y)));
-            }
-
-            return waypoints;
-        }
-
-        /// <summary>
-        /// Get waypoints for the bottom path (enters from bottom, exits at top).
-        /// Uses x=2 column (right side of center) for 4-column grid.
-        /// </summary>
-        /// <returns>List of world positions for monster movement</returns>
-        public List<Vector3> GetBottomPathWaypoints()
-        {
-            List<Vector3> waypoints = new List<Vector3>();
-            int pathX = GRID_WIDTH / 2; // x=2 for 4-column grid
-
-            // Start from bottom (y = 0) to top (y = 7) - 8 rows
-            for (int y = 0; y < GRID_HEIGHT; y++)
-            {
-                waypoints.Add(GridToWorld(new Vector2Int(pathX, y)));
-            }
-
-            return waypoints;
-        }
-
-        /// <summary>
-        /// Get waypoints for a square loop around the grid boundary.
-        /// Monsters run along the rectangle with intermediate points for smooth movement.
+        /// Get waypoints for the square loop around the grid boundary.
+        /// All monsters use this path - they run around the rectangle clockwise.
         /// (bottom-left → bottom-right → top-right → top-left → loop).
-        /// Use with Monster.Initialize(..., loopPath: true).
+        /// Path includes intermediate waypoints for smooth movement.
         /// </summary>
         /// <returns>List of world positions forming a closed rectangle with intermediate waypoints</returns>
         public List<Vector3> GetSquareLoopWaypoints()

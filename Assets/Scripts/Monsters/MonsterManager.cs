@@ -14,9 +14,7 @@ namespace LottoDefense.Monsters
     /// </summary>
     public enum PathType
     {
-        Top,
-        Bottom,
-        /// <summary>Monsters run in a loop around the square (grid boundary).</summary>
+        /// <summary>Monsters run in a loop around the grid boundary (only path type used).</summary>
         SquareLoop
     }
 
@@ -588,17 +586,8 @@ namespace LottoDefense.Monsters
                 return null;
             }
 
-            switch (pathType)
-            {
-                case PathType.Top:
-                    return GridManager.Instance.GetTopPathWaypoints();
-                case PathType.Bottom:
-                    return GridManager.Instance.GetBottomPathWaypoints();
-                case PathType.SquareLoop:
-                    return GridManager.Instance.GetSquareLoopWaypoints();
-                default:
-                    return GridManager.Instance.GetSquareLoopWaypoints();
-            }
+            // All monsters use square loop path around grid boundary
+            return GridManager.Instance.GetSquareLoopWaypoints();
         }
         #endregion
 
