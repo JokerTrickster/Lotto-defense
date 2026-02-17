@@ -77,7 +77,6 @@ namespace LottoDefense.Quests
             {
                 quests.Add(new QuestInstance(def));
             }
-            Debug.Log($"[QuestManager] Initialized {quests.Count} quests");
         }
         #endregion
 
