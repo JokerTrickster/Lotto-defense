@@ -261,11 +261,8 @@ namespace LottoDefense.Monsters
             int actualDamage = Mathf.Max(1, rawDamage - Defense);
             CurrentHealth -= actualDamage;
 
-            // Show damage number VFX
-            if (VFXManager.Instance != null)
-            {
-                VFXManager.Instance.ShowDamageNumber(transform.position, actualDamage, false);
-            }
+            // Show damage number VFX (간단한 3D TextMesh 사용)
+            LottoDefense.VFX.SimpleDamageNumber.Show(transform.position, actualDamage, false);
 
             // Update HP bar
             UpdateHPBar();

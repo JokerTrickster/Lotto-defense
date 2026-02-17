@@ -9,7 +9,7 @@ namespace LottoDefense.VFX
     /// </summary>
     public class SimpleFloatingText : MonoBehaviour
     {
-        public static void Show(Vector3 worldPosition, string message, Color color, float fontSize = 0.05f)
+        public static void Show(Vector3 worldPosition, string message, Color color, float fontSize = 0.025f)
         {
             Debug.Log($"[SimpleFloatingText] 🎯 Creating: '{message}' at {worldPosition}");
             
