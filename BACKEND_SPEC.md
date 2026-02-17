@@ -1812,16 +1812,37 @@ func (r *Room) handleUnitPlaced(action Action) {
 
 ## 기술 스택 (Go)
 
-### 추천 라이브러리
+### 프레임워크 선택
+
+**Echo Framework**
+- 고성능 HTTP 프레임워크
+- 빠른 라우팅 (최적화된 radix tree)
+- 미들웨어 지원 (JWT, CORS, Logger 등)
+- WebSocket 통합 용이
+- 간결한 API
+- 높은 생산성
+
+**GORM (ORM)**
+- Go 표준 ORM
+- Auto Migration 지원
+- Association (관계) 처리 용이
+- PostgreSQL 완벽 지원
+- Hook 시스템 (BeforeCreate, AfterUpdate 등)
+- Preload/Joins 최적화
+
+---
+
+### 라이브러리
 
 ```go
 // HTTP 프레임워크
-"github.com/gin-gonic/gin"
+"github.com/labstack/echo/v4"
+"github.com/labstack/echo/v4/middleware"
 
 // WebSocket
 "github.com/gorilla/websocket"
 
-// 데이터베이스
+// ORM (데이터베이스)
 "gorm.io/gorm"
 "gorm.io/driver/postgres"
 
@@ -1840,6 +1861,24 @@ func (r *Room) handleUnitPlaced(action Action) {
 // 로깅
 "github.com/sirupsen/logrus"
 ```
+
+### Echo vs 다른 프레임워크
+
+| 특징 | Echo | Gin | Fiber |
+|------|------|-----|-------|
+| 성능 | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
+| 미들웨어 | 풍부함 | 풍부함 | 풍부함 |
+| WebSocket | 우수 | 보통 | 우수 |
+| 문서화 | 매우 좋음 | 좋음 | 좋음 |
+| 커뮤니티 | 큼 | 매우 큼 | 성장 중 |
+| 학습 곡선 | 낮음 | 낮음 | 중간 |
+
+**Echo 선택 이유:**
+- WebSocket 통합이 깔끔함
+- 미들웨어 체인이 직관적
+- 에러 핸들링이 우수
+- 성능과 생산성 균형
+
 
 ---
 
@@ -1895,6 +1934,144 @@ lotto-defense-backend/
 ├── go.sum
 ├── .env.example
 └── README.md
+```
+
+---
+
+### Echo 프레임워크 서버 시작 예제
+
+**main.go:**
+```go
+package main
+
+import (
+    "github.com/labstack/echo/v4"
+    "github.com/labstack/echo/v4/middleware"
+    "gorm.io/driver/postgres"
+    "gorm.io/gorm"
+)
+
+func main() {
+    // Echo 인스턴스 생성
+    e := echo.New()
+    
+    // 미들웨어 설정
+    e.Use(middleware.Logger())
+    e.Use(middleware.Recover())
+    e.Use(middleware.CORS())
+    
+    // 데이터베이스 연결 (GORM)
+    dsn := "host=localhost user=admin password=secret dbname=lottodefense port=5432 sslmode=disable"
+    db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+    if err != nil {
+        e.Logger.Fatal("Failed to connect database:", err)
+    }
+    
+    // Auto Migration
+    db.AutoMigrate(&User{}, &Room{}, &Quest{}, &GameResult{})
+    
+    // 라우트 설정
+    setupRoutes(e, db)
+    
+    // 서버 시작
+    e.Logger.Fatal(e.Start(":8080"))
+}
+
+func setupRoutes(e *echo.Echo, db *gorm.DB) {
+    // API 그룹
+    api := e.Group("/v1")
+    
+    // 인증
+    auth := api.Group("/auth")
+    auth.POST("/register", registerHandler)
+    auth.POST("/login", loginHandler)
+    auth.POST("/logout", logoutHandler)
+    
+    // 유저 (JWT 필수)
+    users := api.Group("/users")
+    users.Use(jwtMiddleware())
+    users.GET("/me", getMeHandler)
+    users.GET("/me/stats", getStatsHandler)
+    
+    // 게임
+    game := api.Group("/game")
+    game.Use(jwtMiddleware())
+    game.POST("/single/result", saveSingleResultHandler)
+    game.GET("/history", getGameHistoryHandler)
+    
+    // 퀘스트
+    quests := api.Group("/quests")
+    quests.Use(jwtMiddleware())
+    quests.GET("", getQuestsHandler)
+    quests.POST("/:id/progress", updateQuestProgressHandler)
+    quests.POST("/:id/claim", claimQuestHandler)
+    
+    // 협동 플레이
+    coop := api.Group("/coop")
+    coop.Use(jwtMiddleware())
+    coop.POST("/rooms", createRoomHandler)
+    coop.POST("/rooms/join", joinRoomHandler)
+    coop.POST("/matchmaking/random", randomMatchmakingHandler)
+    coop.GET("/rooms/:id", getRoomHandler)
+    coop.POST("/rooms/:id/leave", leaveRoomHandler)
+    coop.POST("/rooms/:id/ready", setReadyHandler)
+    
+    // WebSocket
+    e.GET("/ws/coop/:room_id", handleWebSocket)
+}
+```
+
+**Handler 예제 (Echo 스타일):**
+```go
+// 회원가입
+func registerHandler(c echo.Context) error {
+    var req RegisterRequest
+    if err := c.Bind(&req); err != nil {
+        return echo.NewHTTPError(http.StatusBadRequest, "Invalid request")
+    }
+    
+    // 비즈니스 로직...
+    user, err := authService.Register(req.Username, req.Email, req.Password)
+    if err != nil {
+        return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+    }
+    
+    return c.JSON(http.StatusCreated, map[string]interface{}{
+        "success": true,
+        "data": user,
+    })
+}
+
+// JWT 미들웨어
+func jwtMiddleware() echo.MiddlewareFunc {
+    return middleware.JWTWithConfig(middleware.JWTConfig{
+        SigningKey: []byte("your-secret-key"),
+        TokenLookup: "header:Authorization",
+        AuthScheme: "Bearer",
+    })
+}
+
+// GORM 사용 예제
+func getUserByID(db *gorm.DB, userID int64) (*User, error) {
+    var user User
+    result := db.First(&user, userID)
+    if result.Error != nil {
+        return nil, result.Error
+    }
+    return &user, nil
+}
+
+// 게임 결과 저장 (GORM)
+func saveGameResult(db *gorm.DB, result *GameResult) error {
+    return db.Create(result).Error
+}
+
+// 퀘스트 목록 조회 (GORM)
+func getActiveQuests(db *gorm.DB, userID int64) ([]Quest, error) {
+    var quests []Quest
+    err := db.Where("user_id = ? AND status = ?", userID, "active").Find(&quests).Error
+    return quests, err
+}
 ```
 
 ---
