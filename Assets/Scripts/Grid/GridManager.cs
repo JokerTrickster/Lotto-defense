@@ -7,19 +7,19 @@ namespace LottoDefense.Grid
 {
     /// <summary>
     /// Singleton manager that handles grid generation, cell management, and coordinate conversion.
-    /// Manages the 8x4 grid system (8 rows x 4 columns).
+    /// Manages the 5x4 grid system (5 rows x 4 columns).
     /// </summary>
     public class GridManager : MonoBehaviour
     {
         #region Constants
         public const int GRID_WIDTH = 4;  // 4 columns
-        public const int GRID_HEIGHT = 8; // 8 rows
-        private const float SCREEN_WIDTH_USAGE = 0.45f; // Use 45% of screen width (half size)
+        public const int GRID_HEIGHT = 5; // 5 rows
+        private const float SCREEN_WIDTH_USAGE = 0.50f; // Use 50% of screen width
         private const float HUD_TOP_RESERVE = 0.10f;    // Reserve 10% top for compact HUD
         private const float BUTTON_BOTTOM_RESERVE = 0.14f; // Reserve 14% bottom for buttons
         private const float CELL_BORDER_WIDTH = 0.02f;
         private const float PATH_MARGIN = 0.3f; // Monsters path margin from grid
-        private const int PATH_POINTS_PER_SIDE = 8; // More waypoints for 8 rows
+        private const int PATH_POINTS_PER_SIDE = 6; // Waypoints for smooth movement
         #endregion
 
         #region Singleton
