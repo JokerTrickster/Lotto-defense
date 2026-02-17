@@ -9,7 +9,7 @@ namespace LottoDefense.VFX
     /// </summary>
     public class SimpleFloatingText : MonoBehaviour
     {
-        public static void Show(Vector3 worldPosition, string message, Color color, float fontSize = 0.12f)
+        public static void Show(Vector3 worldPosition, string message, Color color, float fontSize = 0.05f)
         {
             Debug.Log($"[SimpleFloatingText] 🎯 Creating: '{message}' at {worldPosition}");
             
@@ -21,7 +21,7 @@ namespace LottoDefense.VFX
             TextMesh textMesh = textObj.AddComponent<TextMesh>();
             textMesh.text = message;
             textMesh.fontSize = 80; // High resolution
-            textMesh.characterSize = fontSize; // World size
+            textMesh.characterSize = fontSize; // World size (작게 조정: 0.12 → 0.05)
             textMesh.color = color;
             textMesh.anchor = TextAnchor.MiddleCenter;
             textMesh.alignment = TextAlignment.Center;

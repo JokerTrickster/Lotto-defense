@@ -810,9 +810,9 @@ namespace LottoDefense.Units
                 Color effectColor = UnitData.GetRarityColor(Data.rarity);
                 effectColor = Color.Lerp(effectColor, Color.white, 0.3f);
                 
-                // 심플한 텍스트: "[유닛] 스킬이름"
+                // 심플한 텍스트: "[유닛] 스킬이름" (작은 크기)
                 string displayText = $"{Data.GetDisplayName()}\n{skillToActivate.skillName}";
-                LottoDefense.VFX.SimpleFloatingText.Show(effectPos, displayText, effectColor, 0.12f);
+                LottoDefense.VFX.SimpleFloatingText.Show(effectPos, displayText, effectColor);
                 
                 Debug.Log($"[Unit] 🌟 {Data.GetDisplayName()} activated skill: {skillToActivate.skillName} at {effectPos}");
 
