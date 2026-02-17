@@ -251,7 +251,6 @@ namespace LottoDefense.VFX
             }
 
             // Pool exhausted, create new one
-            Debug.LogWarning("[VFXManager] Floating text pool exhausted, creating new instance");
             GameObject obj = Instantiate(floatingTextPrefab, poolParent);
             return obj.GetComponent<FloatingTextController>();
         }

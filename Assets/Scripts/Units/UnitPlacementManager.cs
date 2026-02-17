@@ -190,7 +190,6 @@ namespace LottoDefense.Units
             else
             {
                 string reason = "No empty cells available!";
-                Debug.LogWarning($"[UnitPlacementManager] {reason}");
                 OnPlacementFailed?.Invoke(reason);
             }
         }
