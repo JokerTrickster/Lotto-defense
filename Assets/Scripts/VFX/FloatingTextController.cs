@@ -47,7 +47,6 @@ namespace LottoDefense.VFX
                 canvas.sortingOrder = 10000; // Very high - above all UI
             }
             
-            Debug.Log($"[FloatingText] Awake: canvas={canvas != null}, sortingOrder={canvas?.sortingOrder}");
         }
         #endregion
 
@@ -60,7 +59,6 @@ namespace LottoDefense.VFX
         /// <param name="color">Text color</param>
         public void Show(Vector3 worldPosition, string message, Color color)
         {
-            Debug.Log($"[FloatingText] 🎯 Show called: message='{message}', worldPos={worldPosition}, color={color}");
             
             if (messageText == null)
             {
@@ -92,7 +90,6 @@ namespace LottoDefense.VFX
             Vector3 screenPosition = Camera.main.WorldToScreenPoint(worldPosition);
             rectTransform.position = screenPosition;
             
-            Debug.Log($"[FloatingText] 📍 Position: world={worldPosition}, screen={screenPosition}, rectPos={rectTransform.position}");
 
             // Setup text
             messageText.text = message;
@@ -139,7 +136,6 @@ namespace LottoDefense.VFX
 
             animationCoroutine = StartCoroutine(AnimateCoroutine());
             
-            Debug.Log($"[FloatingText] ✅ Displayed: '{message}' fontSize={messageText.fontSize} active={gameObject.activeSelf} alpha={canvasGroup.alpha}");
         }
         #endregion
 

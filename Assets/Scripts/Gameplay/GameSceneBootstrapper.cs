@@ -24,8 +24,6 @@ namespace LottoDefense.Gameplay
 
         private void Awake()
         {
-            Debug.Log($"[GameSceneBootstrapper] Awake called on GameObject: {gameObject.name}");
-            Debug.Log("[GameSceneBootstrapper] Starting game scene initialization...");
 
             // Unity 2022+ uses LegacyRuntime.ttf instead of Arial.ttf
             defaultFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
@@ -38,16 +36,12 @@ namespace LottoDefense.Gameplay
             if (defaultFont == null)
                 Debug.LogError("[GameSceneBootstrapper] Failed to load default font!");
             else
-                Debug.Log($"[GameSceneBootstrapper] Font loaded successfully: {defaultFont.name}");
 
             // Load or create game balance config (CENTRAL CONFIG)
             balanceConfig = LoadOrCreateGameBalanceConfig();
-            Debug.Log("[GameSceneBootstrapper] Game balance config loaded");
 
-            Debug.Log("[GameSceneBootstrapper] Creating main canvas...");
             EnsureMainCanvas();
             EnsureEventSystem();
-            Debug.Log("[GameSceneBootstrapper] Main canvas created");
 
             EnsureGridManager();
             EnsureMonsterManager();
@@ -68,7 +62,6 @@ namespace LottoDefense.Gameplay
             EnsureGameResultUI();
             EnsureOpponentStatusUI();
 
-            Debug.Log("[GameSceneBootstrapper] Game scene initialization complete");
         }
 
         private void Start()
@@ -88,7 +81,6 @@ namespace LottoDefense.Gameplay
             if (GameplayManager.Instance != null &&
                 GameplayManager.Instance.CurrentState == GameState.Countdown)
             {
-                Debug.Log("[GameSceneBootstrapper] Safety net: triggering countdown");
                 GameplayManager.Instance.StartCountdown();
             }
         }
@@ -148,7 +140,6 @@ namespace LottoDefense.Gameplay
                 GameObject esObj = new GameObject("EventSystem");
                 esObj.AddComponent<EventSystem>();
                 esObj.AddComponent<StandaloneInputModule>();
-                Debug.Log("[GameSceneBootstrapper] Created EventSystem");
             }
         }
 
@@ -176,19 +167,16 @@ namespace LottoDefense.Gameplay
             }
 
             SetField(manager, "monsterDataPool", monsterData);
-            Debug.Log($"[GameSceneBootstrapper] Created {monsterData.Length} monster types from GameBalanceConfig");
 
             // Set spawn rate from balance config
             float spawnInterval = 1f / balanceConfig.gameRules.spawnRate;
             SetField(manager, "spawnInterval", spawnInterval);
-            Debug.Log($"[GameSceneBootstrapper] Set spawn interval to {spawnInterval:F2}s ({balanceConfig.gameRules.spawnRate} monsters/sec)");
 
             // Load and pass RoundConfig so MonsterManager can use per-round monster configs
             RoundConfig roundConfig = Resources.Load<RoundConfig>("RoundConfig");
             if (roundConfig != null)
             {
                 SetField(manager, "roundConfig", roundConfig);
-                Debug.Log("[GameSceneBootstrapper] Passed RoundConfig to MonsterManager");
             }
         }
 
@@ -204,19 +192,16 @@ namespace LottoDefense.Gameplay
             // Create DifficultyConfig from central balance config
             DifficultyConfig config = CreateDifficultyConfigFromConfig(balanceConfig.difficulty);
             SetField(manager, "difficultyConfig", config);
-            Debug.Log("[GameSceneBootstrapper] Created DifficultyConfig from GameBalanceConfig");
 
             // Pass phase timing from GameBalanceConfig game rules
             SetField(manager, "preparationDuration", (float)balanceConfig.gameRules.preparationTime);
             SetField(manager, "combatDuration", (float)balanceConfig.gameRules.combatTime);
-            Debug.Log($"[GameSceneBootstrapper] Set RoundManager timing - Prep: {balanceConfig.gameRules.preparationTime}s, Combat: {balanceConfig.gameRules.combatTime}s");
 
             // Load and pass RoundConfig so RoundManager can use per-round definitions
             RoundConfig roundConfig = Resources.Load<RoundConfig>("RoundConfig");
             if (roundConfig != null)
             {
                 SetField(manager, "roundConfig", roundConfig);
-                Debug.Log($"[GameSceneBootstrapper] Passed RoundConfig to RoundManager (totalRounds={roundConfig.TotalRounds})");
             }
         }
 
@@ -244,7 +229,6 @@ namespace LottoDefense.Gameplay
             {
                 GameObject obj = new GameObject("CombatManager");
                 obj.AddComponent<LottoDefense.Combat.CombatManager>();
-                Debug.Log("[GameSceneBootstrapper] Created CombatManager");
             }
         }
 
@@ -254,7 +238,6 @@ namespace LottoDefense.Gameplay
             {
                 GameObject obj = new GameObject("VFXManager");
                 obj.AddComponent<LottoDefense.VFX.VFXManager>();
-                Debug.Log("[GameSceneBootstrapper] Created VFXManager");
             }
         }
         #endregion
@@ -271,7 +254,6 @@ namespace LottoDefense.Gameplay
             }
             else
             {
-                Debug.Log("[GameSceneBootstrapper] GameBalanceConfig loaded from Resources");
             }
 
             return config;
@@ -282,7 +264,6 @@ namespace LottoDefense.Gameplay
             GameBalanceConfig config = ScriptableObject.CreateInstance<GameBalanceConfig>();
 
             // Default values are set in GameBalanceConfig class
-            Debug.Log("[GameSceneBootstrapper] Created default GameBalanceConfig");
 
             return config;
         }

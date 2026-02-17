@@ -136,7 +136,6 @@ namespace LottoDefense.UI
             UpdateMonsterCount(0);
             UpdateUnitCount(0);
 
-            Debug.Log("[GameHUD] Initialized with GameplayManager values");
         }
         #endregion
 

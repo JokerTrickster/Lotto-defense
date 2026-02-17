@@ -108,7 +108,6 @@ namespace LottoDefense.Gameplay
         {
             if (scene.name == "GameScene" && _instance == null && !_isCleaningUp)
             {
-                Debug.Log("[GameplayManager] Auto-initializing for GameScene");
                 var _ = Instance;
             }
         }
@@ -117,26 +116,21 @@ namespace LottoDefense.Gameplay
         #region Unity Lifecycle
         private void Awake()
         {
-            Debug.Log($"[GameplayManager] Awake called - _instance={_instance}, this={this}");
 
             if (_instance != null && _instance != this)
             {
-                Debug.Log("[GameplayManager] Duplicate instance detected, destroying self");
                 Destroy(gameObject);
                 return;
             }
 
             _instance = this;
             DontDestroyOnLoad(gameObject);
-            Debug.Log("[GameplayManager] Set as singleton instance and marked DontDestroyOnLoad");
 
             Initialize();
 
             // Create bootstrapper immediately in Awake (not Start) to avoid
             // timing issues with DontDestroyOnLoad objects during sceneLoaded callbacks
-            Debug.Log("[GameplayManager] About to call EnsureGameSystemsBootstrapped");
             EnsureGameSystemsBootstrapped();
-            Debug.Log("[GameplayManager] Finished EnsureGameSystemsBootstrapped");
         }
 
         private void Start()
@@ -164,23 +158,18 @@ namespace LottoDefense.Gameplay
         /// </summary>
         private void EnsureGameSystemsBootstrapped()
         {
-            Debug.Log("[GameplayManager] EnsureGameSystemsBootstrapped - Searching for existing bootstrapper...");
 
             // Check if bootstrapper already exists
             GameSceneBootstrapper bootstrapper = FindFirstObjectByType<GameSceneBootstrapper>();
 
             if (bootstrapper == null)
             {
-                Debug.Log("[GameplayManager] No bootstrapper found, creating new one");
                 GameObject bootstrapperObj = new GameObject("GameSceneBootstrapper");
-                Debug.Log($"[GameplayManager] Created GameObject: {bootstrapperObj.name}");
 
                 var component = bootstrapperObj.AddComponent<GameSceneBootstrapper>();
-                Debug.Log($"[GameplayManager] Added GameSceneBootstrapper component: {component}");
             }
             else
             {
-                Debug.Log($"[GameplayManager] Bootstrapper already exists: {bootstrapper.gameObject.name}");
             }
         }
         #endregion
@@ -200,7 +189,6 @@ namespace LottoDefense.Gameplay
             int startingGold = balanceConfig != null ? balanceConfig.gameRules.startingGold : 30;
             CurrentGold = startingGold;
 
-            Debug.Log($"[GameplayManager] Initialized - Round: {CurrentRound}, Life: {CurrentLife}, Gold: {CurrentGold}");
         }
         #endregion
 
@@ -227,7 +215,6 @@ namespace LottoDefense.Gameplay
             GameState oldState = CurrentState;
             CurrentState = newState;
 
-            Debug.Log($"[GameplayManager] State changed: {oldState} -> {newState}");
 
             OnStateChanged?.Invoke(oldState, newState);
         }
@@ -271,7 +258,6 @@ namespace LottoDefense.Gameplay
         /// </summary>
         public void StartCountdown()
         {
-            Debug.Log("[GameplayManager] Starting countdown sequence");
 
             // CountdownUI will handle the animation and notify when complete
             CountdownUI countdownUI = FindFirstObjectByType<CountdownUI>();
@@ -293,7 +279,6 @@ namespace LottoDefense.Gameplay
         /// </summary>
         private void OnCountdownComplete()
         {
-            Debug.Log("[GameplayManager] Countdown complete, transitioning to Preparation");
             ChangeState(GameState.Preparation);
         }
         #endregion
@@ -311,7 +296,6 @@ namespace LottoDefense.Gameplay
             }
 
             CurrentRound = round;
-            Debug.Log($"[GameplayManager] Round updated: {CurrentRound}");
             OnGameValueChanged?.Invoke("Round", CurrentRound);
         }
 
@@ -321,7 +305,6 @@ namespace LottoDefense.Gameplay
         public void SetLife(int life)
         {
             CurrentLife = Mathf.Max(0, life);
-            Debug.Log($"[GameplayManager] Life updated: {CurrentLife}");
             OnGameValueChanged?.Invoke("Life", CurrentLife);
 
             // Automatic defeat when life reaches 0
@@ -345,7 +328,6 @@ namespace LottoDefense.Gameplay
         public void SetGold(int gold)
         {
             CurrentGold = Mathf.Max(0, gold);
-            Debug.Log($"[GameplayManager] Gold updated: {CurrentGold}");
             OnGameValueChanged?.Invoke("Gold", CurrentGold);
         }
 
@@ -375,7 +357,6 @@ namespace LottoDefense.Gameplay
         /// </summary>
         public static void CleanupAllGameplaySingletons()
         {
-            Debug.Log("[GameplayManager] Cleaning up all gameplay singletons");
             _isCleaningUp = true;
 
             DestroyIfExists<LottoDefense.Grid.GridManager>();
@@ -398,7 +379,6 @@ namespace LottoDefense.Gameplay
             if (gameCanvas != null)
             {
                 Destroy(gameCanvas);
-                Debug.Log("[GameplayManager] Destroyed GameCanvas");
             }
 
             // Destroy self last
@@ -406,12 +386,10 @@ namespace LottoDefense.Gameplay
             {
                 Destroy(_instance.gameObject);
                 _instance = null;
-                Debug.Log("[GameplayManager] Destroyed self");
             }
 
             _isCleaningUp = false;
 
-            Debug.Log("[GameplayManager] Cleanup complete");
         }
 
         private static void DestroyIfExists<T>() where T : MonoBehaviour

@@ -168,7 +168,6 @@ namespace LottoDefense.Monsters
             {
                 GameplayManager.Instance.OnStateChanged -= HandleStateChanged;
                 GameplayManager.Instance.OnStateChanged += HandleStateChanged;
-                Debug.Log("[MonsterManager] Subscribed to GameplayManager state changes");
             }
         }
 
@@ -198,7 +197,6 @@ namespace LottoDefense.Monsters
             monsterPool = poolObj.AddComponent<MonsterPool>();
             monsterPool.Initialize();
 
-            Debug.Log("[MonsterManager] Initialized");
         }
         #endregion
 
@@ -208,7 +206,6 @@ namespace LottoDefense.Monsters
         /// </summary>
         private void HandleStateChanged(GameState oldState, GameState newState)
         {
-            Debug.Log($"[MonsterManager] State changed: {oldState} -> {newState}");
 
             switch (newState)
             {
@@ -253,7 +250,6 @@ namespace LottoDefense.Monsters
                 spawnInterval = config.spawnInterval;
                 spawnDuration = config.spawnDuration;
 
-                Debug.Log($"[MonsterManager] Round {currentRound} from config: {currentRoundMonsterType.monsterName} (x{maxSpawnsPerRound}, {spawnInterval}s interval)");
             }
             // RoundConfig가 없으면 기존 방식 (랜덤)
             else
@@ -266,11 +262,9 @@ namespace LottoDefense.Monsters
 
                 // 라운드 시작 시 1개 몬스터 타입 선택 (이 라운드 동안 이 타입만 스폰)
                 currentRoundMonsterType = SelectRandomMonster();
-                Debug.Log($"[MonsterManager] Round {currentRound} random monster: {currentRoundMonsterType.monsterName}");
             }
 
             spawnCoroutine = StartCoroutine(SpawnRoutine());
-            Debug.Log($"[MonsterManager] Started spawning for round {currentRound}");
         }
 
         /// <summary>
@@ -286,7 +280,6 @@ namespace LottoDefense.Monsters
 
             isSpawning = false;
 
-            Debug.Log("[MonsterManager] Stopped spawning");
         }
 
         /// <summary>
@@ -321,7 +314,6 @@ namespace LottoDefense.Monsters
                 }
 
                 isSpawning = false;
-                Debug.Log($"[MonsterManager] Finished spawning {monstersSpawnedThisRound} {currentRoundMonsterType.monsterName} monsters (elapsed {elapsed:F1}s)");
             }
 
             CheckRoundComplete();
@@ -332,7 +324,6 @@ namespace LottoDefense.Monsters
         /// </summary>
         private IEnumerator SpawnBossRoutine()
         {
-            Debug.Log("[MonsterManager] ⚔️ BOSS ROUND - Preparing boss entrance!");
 
             // Show boss warning effect
             if (VFXManager.Instance != null)
@@ -362,7 +353,6 @@ namespace LottoDefense.Monsters
             monstersSpawnedThisRound = 1; // Only 1 boss
             isSpawning = false;
 
-            Debug.Log($"[MonsterManager] 👑 BOSS SPAWNED: {bossData.monsterName} (HP: {bossData.maxHealth})");
         }
 
         /// <summary>
@@ -443,7 +433,6 @@ namespace LottoDefense.Monsters
             // Check for monster overflow (game over condition)
             CheckMonsterOverflow();
 
-            Debug.Log($"[MonsterManager] Spawned {data.monsterName} on {pathType} path (HP: {monster.CurrentHealth}, Active: {ActiveMonsterCount}/{maxActiveMonsters})");
         }
 
         /// <summary>
@@ -474,14 +463,12 @@ namespace LottoDefense.Monsters
             if (monster == null)
                 return;
 
-            Debug.Log($"[MonsterManager] Monster died: {monster.Data.monsterName}");
 
             // Award gold
             if (GameplayManager.Instance != null)
             {
                 int goldReward = monster.GetGoldReward();
                 GameplayManager.Instance.ModifyGold(goldReward);
-                Debug.Log($"[MonsterManager] Awarded {goldReward} gold");
             }
 
             // Unsubscribe from events
@@ -509,13 +496,11 @@ namespace LottoDefense.Monsters
             if (monster == null)
                 return;
 
-            Debug.Log($"[MonsterManager] Monster reached end: {monster.Data.monsterName}");
 
             // Decrease player life
             if (GameplayManager.Instance != null)
             {
                 GameplayManager.Instance.ModifyLife(-1);
-                Debug.Log("[MonsterManager] Player life decreased");
             }
 
             // Unsubscribe from events
@@ -562,7 +547,6 @@ namespace LottoDefense.Monsters
             // Round is complete when spawning finished and no active monsters
             if (!isSpawning && ActiveMonsterCount == 0 && monstersSpawnedThisRound > 0)
             {
-                Debug.Log("[MonsterManager] Round complete - all monsters cleared");
                 OnRoundComplete?.Invoke();
             }
         }
@@ -577,7 +561,6 @@ namespace LottoDefense.Monsters
                 monsterPool.ClearAll();
             }
 
-            Debug.Log("[MonsterManager] All monsters cleared");
         }
         #endregion
 

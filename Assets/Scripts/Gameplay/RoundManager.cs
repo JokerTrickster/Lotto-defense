@@ -171,7 +171,6 @@ namespace LottoDefense.Gameplay
             {
                 GameplayManager.Instance.OnStateChanged -= HandleGameStateChanged;
                 GameplayManager.Instance.OnStateChanged += HandleGameStateChanged;
-                Debug.Log("[RoundManager] Subscribed to GameplayManager state changes");
             }
             else
             {
@@ -189,7 +188,6 @@ namespace LottoDefense.Gameplay
             {
                 MonsterManager.Instance.OnRoundComplete -= HandleMonsterRoundComplete;
                 MonsterManager.Instance.OnRoundComplete += HandleMonsterRoundComplete;
-                Debug.Log("[RoundManager] Subscribed to MonsterManager round complete");
             }
 
             // Subscribe to multiplayer wave sync
@@ -241,7 +239,6 @@ namespace LottoDefense.Gameplay
             }
 
             isInitialized = true;
-            Debug.Log("[RoundManager] Initialized");
         }
         #endregion
 
@@ -251,7 +248,6 @@ namespace LottoDefense.Gameplay
         /// </summary>
         private void HandleGameStateChanged(GameState oldState, GameState newState)
         {
-            Debug.Log($"[RoundManager] GameState changed: {oldState} -> {newState}");
 
             switch (newState)
             {
@@ -288,7 +284,6 @@ namespace LottoDefense.Gameplay
             CurrentPhase = GamePhase.Preparation;
             RemainingTime = preparationDuration;
 
-            Debug.Log($"[RoundManager] Starting Preparation Phase - Round {CurrentRound}, Duration: {preparationDuration}s");
 
             // Show round start notification
             ShowRoundStartNotification();
@@ -319,7 +314,6 @@ namespace LottoDefense.Gameplay
             CurrentPhase = GamePhase.Combat;
             RemainingTime = combatDuration;
 
-            Debug.Log($"[RoundManager] Starting Combat Phase - Round {CurrentRound}, Duration: {combatDuration}s");
 
             // Safety: ensure CombatManager starts combat even if it missed the state change event
             if (LottoDefense.Combat.CombatManager.Instance != null && !LottoDefense.Combat.CombatManager.Instance.IsCombatActive)
@@ -371,7 +365,6 @@ namespace LottoDefense.Gameplay
         /// </summary>
         private IEnumerator PhaseTimerRoutine(float duration, Action onComplete)
         {
-            Debug.Log($"[RoundManager] PhaseTimerRoutine started - duration: {duration}s, phase: {CurrentPhase}");
             RemainingTime = duration;
 
             int frameCount = 0;
@@ -382,7 +375,6 @@ namespace LottoDefense.Gameplay
 
                 if (frameCount == 1)
                 {
-                    Debug.Log($"[RoundManager] PhaseTimerRoutine first frame - Time.deltaTime: {Time.deltaTime}, Time.timeScale: {Time.timeScale}");
                 }
 
                 RemainingTime -= Time.deltaTime;
@@ -395,7 +387,6 @@ namespace LottoDefense.Gameplay
                 OnTimerUpdated?.Invoke(RemainingTime);
             }
 
-            Debug.Log($"[RoundManager] Phase timer expired for {CurrentPhase} after {frameCount} frames");
             onComplete?.Invoke();
         }
         #endregion
@@ -406,7 +397,6 @@ namespace LottoDefense.Gameplay
         /// </summary>
         private void OnPreparationPhaseComplete()
         {
-            Debug.Log("[RoundManager] Preparation phase complete - transitioning to Combat");
 
             if (GameplayManager.Instance != null)
             {
@@ -419,7 +409,6 @@ namespace LottoDefense.Gameplay
         /// </summary>
         private void OnCombatPhaseComplete()
         {
-            Debug.Log("[RoundManager] Combat phase time expired");
 
             // Check remaining monsters and apply life loss
             int remainingMonsters = MonsterManager.Instance != null ? MonsterManager.Instance.ActiveMonsterCount : 0;
@@ -450,7 +439,6 @@ namespace LottoDefense.Gameplay
         /// </summary>
         private void HandleWaveSync(int round)
         {
-            Debug.Log($"[RoundManager] Wave sync received for round {round}");
             waitingForWaveSync = false;
         }
 
@@ -459,7 +447,6 @@ namespace LottoDefense.Gameplay
         /// </summary>
         private void HandleMonsterRoundComplete()
         {
-            Debug.Log("[RoundManager] All monsters cleared before time expired");
 
             // Stop combat timer early
             StopPhaseTimer();
@@ -478,7 +465,6 @@ namespace LottoDefense.Gameplay
         {
             int completedRound = CurrentRound;
 
-            Debug.Log($"[RoundManager] Round {completedRound} ended - Success: {success}");
 
             // Fire round completed event
             OnRoundCompleted?.Invoke(completedRound);
@@ -486,7 +472,6 @@ namespace LottoDefense.Gameplay
             // Check for victory condition
             if (completedRound >= MaxRounds)
             {
-                Debug.Log("[RoundManager] All rounds complete - VICTORY!");
                 if (GameplayManager.Instance != null)
                 {
                     GameplayManager.Instance.ChangeState(GameState.Victory);
@@ -497,7 +482,6 @@ namespace LottoDefense.Gameplay
             // Check if player is still alive
             if (GameplayManager.Instance != null && GameplayManager.Instance.CurrentLife <= 0)
             {
-                Debug.Log("[RoundManager] Player life depleted - DEFEAT!");
                 GameplayManager.Instance.ChangeState(GameState.Defeat);
                 return;
             }
@@ -528,7 +512,6 @@ namespace LottoDefense.Gameplay
             if (MultiplayerManager.Instance != null && MultiplayerManager.Instance.IsMultiplayer)
             {
                 waitingForWaveSync = true;
-                Debug.Log("[RoundManager] Waiting for server wave sync...");
 
                 float waveSyncTimeout = 30f;
                 float elapsed = 0f;
@@ -631,7 +614,6 @@ namespace LottoDefense.Gameplay
             if (cachedRoundStartUI != null)
             {
                 cachedRoundStartUI.ShowRoundStart(CurrentRound);
-                Debug.Log($"[RoundManager] Showing round start notification for Round {CurrentRound}");
             }
             else
             {

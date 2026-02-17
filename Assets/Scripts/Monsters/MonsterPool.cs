@@ -62,7 +62,6 @@ namespace LottoDefense.Monsters
 
             PrewarmPool();
 
-            Debug.Log($"[MonsterPool] Initialized with {poolSize} monsters");
         }
 
         /// <summary>
@@ -80,7 +79,6 @@ namespace LottoDefense.Monsters
                 }
             }
 
-            Debug.Log($"[MonsterPool] Prewarmed {availableMonsters.Count} monsters");
         }
         #endregion
 
@@ -149,7 +147,6 @@ namespace LottoDefense.Monsters
                 }
             }
 
-            Debug.Log($"[MonsterPool] Expanded pool by {count} (Total: {TotalCapacity})");
         }
         #endregion
 
@@ -254,7 +251,6 @@ namespace LottoDefense.Monsters
                 ReturnMonster(monster);
             }
 
-            Debug.Log("[MonsterPool] All monsters cleared and returned to pool");
         }
 
         /// <summary>

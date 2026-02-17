@@ -68,7 +68,6 @@ namespace LottoDefense.Gameplay
         /// <param name="onComplete">Callback invoked when countdown finishes</param>
         public void StartCountdown(Action onComplete = null)
         {
-            Debug.Log("[CountdownUI] StartCountdown called");
             _onCompleteCallback = onComplete;
 
             gameObject.SetActive(true);
@@ -80,7 +79,6 @@ namespace LottoDefense.Gameplay
             }
 
             _countdownCoroutine = StartCoroutine(CountdownSequence());
-            Debug.Log("[CountdownUI] Countdown coroutine started");
         }
         #endregion
 
@@ -91,7 +89,6 @@ namespace LottoDefense.Gameplay
         /// </summary>
         private IEnumerator CountdownSequence()
         {
-            Debug.Log($"[CountdownUI] CountdownSequence started - Time.timeScale: {Time.timeScale}");
 
             // Ensure time is running during countdown
             Time.timeScale = 1f;
@@ -99,21 +96,17 @@ namespace LottoDefense.Gameplay
             // Countdown from 3 to 1
             for (int i = 3; i >= 1; i--)
             {
-                Debug.Log($"[CountdownUI] Showing number: {i}");
                 yield return StartCoroutine(ShowNumber(i));
                 yield return new WaitForSecondsRealtime(countdownInterval);
             }
 
             // Show "START!" text
-            Debug.Log("[CountdownUI] Showing START!");
             yield return StartCoroutine(ShowStartText());
 
-            Debug.Log("[CountdownUI] Countdown complete, fading out");
             // Fade out and complete
             yield return StartCoroutine(FadeOut());
 
             // Notify completion
-            Debug.Log("[CountdownUI] Invoking completion callback");
             _onCompleteCallback?.Invoke();
 
             // Auto-destroy this UI element

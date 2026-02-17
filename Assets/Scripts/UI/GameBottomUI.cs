@@ -84,7 +84,6 @@ namespace LottoDefense.UI
             if (attackSpeedUpgradeButton != null) { attackSpeedUpgradeButton.onClick.AddListener(OnAttackSpeedUpgradeClicked); count++; }
             if (synthesisButton != null) { synthesisButton.onClick.AddListener(OnSynthesisButtonClicked); count++; }
 
-            Debug.Log($"[GameBottomUI] Wired {count} button listeners");
         }
 
         private void Start()
@@ -130,7 +129,6 @@ namespace LottoDefense.UI
         public void SetSelectedUnit(Unit unit)
         {
             selectedUnit = unit;
-            Debug.Log($"[GameBottomUI] SetSelectedUnit: {(unit != null ? unit.Data.GetDisplayName() : "NULL")}");
 
             if (unitInfoPanel != null)
             {
@@ -206,18 +204,15 @@ namespace LottoDefense.UI
                 int count = AutoSynthesisManager.Instance.PerformAutoSynthesis();
                 if (count > 0)
                 {
-                    Debug.Log($"[GameBottomUI] Auto-synthesized {count} groups");
                 }
                 else
                 {
-                    Debug.Log("[GameBottomUI] No units eligible for auto-synthesis");
                 }
             }
         }
 
         private void OnAttackUpgradeClicked()
         {
-            Debug.Log($"[GameBottomUI] Attack upgrade button clicked! selectedUnit={(selectedUnit != null ? selectedUnit.Data.GetDisplayName() : "NULL")}");
             if (selectedUnit == null) return;
 
             if (UnitUpgradeManager.Instance != null)
@@ -225,7 +220,6 @@ namespace LottoDefense.UI
                 bool success = UnitUpgradeManager.Instance.UpgradeAttack(selectedUnit);
                 if (success)
                 {
-                    Debug.Log($"[GameBottomUI] Upgraded {selectedUnit.Data.GetDisplayName()} attack");
                     VFXManager.Instance?.ShowUpgradeEffect(selectedUnit.transform.position, selectedUnit.Data.rarity);
                     unitInfoPanel?.RefreshStats();
                     UpdateButtonStates();
@@ -235,7 +229,6 @@ namespace LottoDefense.UI
 
         private void OnAttackSpeedUpgradeClicked()
         {
-            Debug.Log($"[GameBottomUI] Attack speed upgrade button clicked! selectedUnit={(selectedUnit != null ? selectedUnit.Data.GetDisplayName() : "NULL")}");
             if (selectedUnit == null) return;
 
             if (UnitUpgradeManager.Instance != null)
@@ -243,7 +236,6 @@ namespace LottoDefense.UI
                 bool success = UnitUpgradeManager.Instance.UpgradeAttackSpeed(selectedUnit);
                 if (success)
                 {
-                    Debug.Log($"[GameBottomUI] Upgraded {selectedUnit.Data.GetDisplayName()} attack speed");
                     VFXManager.Instance?.ShowUpgradeEffect(selectedUnit.transform.position, selectedUnit.Data.rarity);
                     unitInfoPanel?.RefreshStats();
                     UpdateButtonStates();
@@ -253,11 +245,9 @@ namespace LottoDefense.UI
 
         private void OnSellButtonClicked()
         {
-            Debug.Log($"[GameBottomUI] Sell button clicked! selectedUnit={(selectedUnit != null ? selectedUnit.Data.GetDisplayName() : "NULL")}");
             if (selectedUnit == null || balanceConfig == null) return;
 
             int sellPrice = balanceConfig.GetSellGold(selectedUnit.Data.rarity);
-            Debug.Log($"[GameBottomUI] Selling {selectedUnit.Data.GetDisplayName()} for {sellPrice} gold");
 
             if (GameplayManager.Instance != null)
             {
@@ -300,7 +290,6 @@ namespace LottoDefense.UI
             bool success = SynthesisManager.Instance.TrySynthesize(selectedUnit, target);
             if (success)
             {
-                Debug.Log("[GameBottomUI] Synthesis successful!");
             }
 
             if (cachedSelectionUI == null)

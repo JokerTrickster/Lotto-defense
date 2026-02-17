@@ -81,7 +81,6 @@ namespace LottoDefense.Units
                 balanceConfig = ScriptableObject.CreateInstance<GameBalanceConfig>();
             }
 
-            Debug.Log("[SynthesisManager] Initialized");
         }
         #endregion
 
@@ -150,7 +149,6 @@ namespace LottoDefense.Units
             sessionSynthesisCount++;
             OnSynthesisCompleted?.Invoke();
 
-            Debug.Log($"[SynthesisManager] Synthesis successful: {unit1.Data.unitName} x2 → {recipe.resultUnitName} (session total: {sessionSynthesisCount})");
             return true;
         }
 
@@ -185,7 +183,6 @@ namespace LottoDefense.Units
             if (UnitManager.Instance != null)
             {
                 Unit resultUnit = UnitManager.Instance.PlaceUnit(resultData, resultPosition);
-                Debug.Log($"[SynthesisManager] Created {resultData.unitName} at {resultPosition}");
             }
         }
         #endregion

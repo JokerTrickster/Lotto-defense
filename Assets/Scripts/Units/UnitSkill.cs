@@ -129,7 +129,6 @@ namespace LottoDefense.Units
         {
             if (IsOnCooldown)
             {
-                Debug.Log($"[UnitSkill] {skillName} is on cooldown ({currentCooldown:F1}s remaining)");
                 return false;
             }
 
@@ -139,7 +138,6 @@ namespace LottoDefense.Units
             // Fire event
             OnSkillActivated?.Invoke(this);
 
-            Debug.Log($"[UnitSkill] {skillName} activated! Cooldown: {cooldownDuration}s");
             return true;
         }
 
@@ -162,7 +160,6 @@ namespace LottoDefense.Units
                     // Fire cooldown complete event
                     OnCooldownComplete?.Invoke(this);
 
-                    Debug.Log($"[UnitSkill] {skillName} cooldown complete!");
                 }
             }
         }

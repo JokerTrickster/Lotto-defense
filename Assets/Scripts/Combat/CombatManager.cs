@@ -132,7 +132,6 @@ namespace LottoDefense.Combat
             {
                 GameplayManager.Instance.OnStateChanged -= HandleStateChanged;
                 GameplayManager.Instance.OnStateChanged += HandleStateChanged;
-                Debug.Log("[CombatManager] Subscribed to GameplayManager state changes");
             }
         }
 
@@ -156,7 +155,6 @@ namespace LottoDefense.Combat
         /// </summary>
         private void Initialize()
         {
-            Debug.Log("[CombatManager] Initialized");
         }
         #endregion
 
@@ -166,7 +164,6 @@ namespace LottoDefense.Combat
         /// </summary>
         private void HandleStateChanged(GameState oldState, GameState newState)
         {
-            Debug.Log($"[CombatManager] State changed: {oldState} -> {newState}");
 
             switch (newState)
             {
@@ -209,13 +206,11 @@ namespace LottoDefense.Combat
             // Log combat start with participant info
             List<Unit> units = GetActiveUnits();
             float cellSize = LottoDefense.Grid.GridManager.Instance != null ? LottoDefense.Grid.GridManager.Instance.CellSize : -1f;
-            Debug.Log($"[CombatManager] Combat started - {units.Count} units ready, tickInterval={combatTickInterval}s, CellSize={cellSize:F3}");
             foreach (Unit unit in units)
             {
                 if (unit != null && unit.Data != null)
                 {
                     float worldRange = unit.Data.attackRange * Mathf.Max(cellSize, 1f);
-                    Debug.Log($"[CombatManager]   Unit: {unit.Data.GetDisplayName()} at {unit.transform.position} (ATK={unit.CurrentAttack}, Range={unit.Data.attackRange}→WorldRange={worldRange:F2}, Speed={unit.CurrentAttackSpeed})");
                 }
             }
         }
@@ -246,7 +241,6 @@ namespace LottoDefense.Combat
 
             OnCombatStopped?.Invoke();
 
-            Debug.Log($"[CombatManager] Combat stopped (total ticks: {combatTickCount})");
         }
 
         /// <summary>
@@ -297,7 +291,6 @@ namespace LottoDefense.Combat
             // Debug: Log tick info every 30 ticks (3 seconds)
             if (combatTickCount % 30 == 1)
             {
-                Debug.Log($"[CombatManager] Tick #{combatTickCount}: Units={activeUnits.Count}, Monsters={activeMonsters.Count}, isCombatActive={isCombatActive}");
             }
 
             // Always tick units (mana regen, skill cooldowns) even without monsters

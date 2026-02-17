@@ -70,7 +70,6 @@ namespace LottoDefense.Units
             _instance = this;
             DontDestroyOnLoad(gameObject);
 
-            Debug.Log("[UnitUpgradeManager] Initialized");
         }
         #endregion
 
@@ -123,7 +122,6 @@ namespace LottoDefense.Units
             ApplyAttackLevelToAllUnits(rarity, newLevel);
 
             sessionUpgradeCount++;
-            Debug.Log($"[UnitUpgradeManager] Upgraded ALL {rarity} units attack to level {newLevel} (session total: {sessionUpgradeCount})");
 
             OnUnitUpgraded?.Invoke(unit, UpgradeType.Attack, newLevel);
 
@@ -176,7 +174,6 @@ namespace LottoDefense.Units
             ApplySpeedLevelToAllUnits(rarity, newLevel);
 
             sessionUpgradeCount++;
-            Debug.Log($"[UnitUpgradeManager] Upgraded ALL {rarity} units attack speed to level {newLevel} (session total: {sessionUpgradeCount})");
 
             OnUnitUpgraded?.Invoke(unit, UpgradeType.AttackSpeed, newLevel);
 
@@ -259,12 +256,10 @@ namespace LottoDefense.Units
             if (atkLevel > 0)
             {
                 unit.SetAttackUpgradeLevel(atkLevel);
-                Debug.Log($"[UnitUpgradeManager] Applied rarity attack level {atkLevel} to new {unit.Data.GetDisplayName()}");
             }
             if (spdLevel > 0)
             {
                 unit.SetAttackSpeedUpgradeLevel(spdLevel);
-                Debug.Log($"[UnitUpgradeManager] Applied rarity speed level {spdLevel} to new {unit.Data.GetDisplayName()}");
             }
         }
         #endregion

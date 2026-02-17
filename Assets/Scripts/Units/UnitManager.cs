@@ -144,11 +144,9 @@ namespace LottoDefense.Units
             }
             else
             {
-                Debug.Log($"[UnitManager] GameBalanceConfig loaded from asset (units={balanceConfig.units?.Count ?? 0}, skillPresets={balanceConfig.skillPresets?.Count ?? 0})");
             }
 
             // Verify config has skill presets
-            Debug.Log($"[UnitManager] Config state: units={balanceConfig.units?.Count ?? 0}, skillPresets={balanceConfig.skillPresets?.Count ?? 0}");
 
             // Set gacha cost from config
             gachaCost = balanceConfig.gameRules.summonCost;
@@ -166,13 +164,10 @@ namespace LottoDefense.Units
             {
                 foreach (var unit in pool)
                 {
-                    Debug.Log($"[UnitManager] VERIFY: '{unit.unitName}' skills={unit.skills?.Length ?? 0}, pattern={unit.attackPattern}");
                 }
             }
 
             ValidateUnitPools();
-            Debug.Log($"[UnitManager] Initialized - Pool sizes: N={normalUnits.Count}, R={rareUnits.Count}, E={epicUnits.Count}, L={legendaryUnits.Count}");
-            Debug.Log($"[UnitManager] Spawn rates: N={balanceConfig.spawnRates.normalRate}%, R={balanceConfig.spawnRates.rareRate}%, E={balanceConfig.spawnRates.epicRate}%, L={balanceConfig.spawnRates.legendaryRate}%");
         }
 
         /// <summary>
@@ -233,7 +228,6 @@ namespace LottoDefense.Units
                 int remainingGold = GameplayManager.Instance.CurrentGold;
                 OnUnitDrawn?.Invoke(drawnUnit, remainingGold);
 
-                Debug.Log($"[UnitManager] Drew unit: {drawnUnit.GetDisplayName()} (Gold remaining: {remainingGold})");
             }
             else
             {
@@ -304,7 +298,6 @@ namespace LottoDefense.Units
             if (selectedPool.Count > 0)
             {
                 int randomIndex = UnityEngine.Random.Range(0, selectedPool.Count);
-                Debug.Log($"[UnitManager] Gacha roll: {roll:F2} -> {selectedRarity} (pool size: {selectedPool.Count})");
                 return selectedPool[randomIndex];
             }
 
@@ -345,7 +338,6 @@ namespace LottoDefense.Units
 
             Inventory.Add(unit);
             OnInventoryChanged?.Invoke(Inventory, "add", unit);
-            Debug.Log($"[UnitManager] Added {unit.GetDisplayName()} to inventory ({Inventory.Count}/{maxInventorySize})");
             return true;
         }
 
@@ -361,7 +353,6 @@ namespace LottoDefense.Units
             if (removed)
             {
                 OnInventoryChanged?.Invoke(Inventory, "remove", unit);
-                Debug.Log($"[UnitManager] Removed {unit.GetDisplayName()} from inventory ({Inventory.Count}/{maxInventorySize})");
             }
             else
             {
@@ -402,7 +393,6 @@ namespace LottoDefense.Units
         {
             Inventory.Clear();
             OnInventoryChanged?.Invoke(Inventory, "clear", null);
-            Debug.Log("[UnitManager] Inventory cleared");
         }
         #endregion
 
@@ -442,7 +432,6 @@ namespace LottoDefense.Units
                 }
             }
 
-            Debug.Log($"[UnitManager] Loaded {allUnits.Length} units from Resources");
             ValidateUnitPools();
         }
 
@@ -494,7 +483,6 @@ namespace LottoDefense.Units
             {
                 skillInfo += $"{s.skillName}({s.skillType},cd={s.cooldownDuration}s) ";
             }
-            Debug.Log($"[UnitManager] Assigned {skills.Length} skills + pattern={unitBalance.attackPattern} to '{unitData.unitName}': {skillInfo}");
         }
 
         /// <summary>
@@ -639,7 +627,6 @@ namespace LottoDefense.Units
                 return null;
             }
 
-            Debug.Log($"[UnitManager] Placed {unitData.unitName} at {position}");
             return unit;
         }
 
@@ -663,7 +650,6 @@ namespace LottoDefense.Units
                 }
             }
 
-            Debug.Log("[UnitManager] Cleared all units from grid");
         }
 
         /// <summary>

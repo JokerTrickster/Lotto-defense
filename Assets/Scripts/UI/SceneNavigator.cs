@@ -10,19 +10,16 @@ namespace LottoDefense.UI
     {
         public void LoadScene(string sceneName)
         {
-            Debug.Log($"Loading scene: {sceneName}");
             SceneManager.LoadScene(sceneName);
         }
 
         public void LoadGameScene()
         {
-            Debug.Log("Loading GameScene...");
             SceneManager.LoadScene("GameScene");
         }
 
         public void LoadMainGame()
         {
-            Debug.Log("Loading MainGame...");
             // Cleanup then load synchronously. Destroy() is deferred to end-of-frame,
             // so LoadScene executes before GameCanvas (our parent) is actually destroyed.
             // Using a coroutine here would fail because CleanupAllGameplaySingletons()
@@ -33,13 +30,11 @@ namespace LottoDefense.UI
 
         public void LoadLoginScene()
         {
-            Debug.Log("Loading LoginScene...");
             SceneManager.LoadScene("LoginScene");
         }
 
         public void QuitGame()
         {
-            Debug.Log("Quitting game...");
             Application.Quit();
 #if UNITY_EDITOR
             UnityEditor.EditorApplication.isPlaying = false;
@@ -51,7 +46,6 @@ namespace LottoDefense.UI
         /// </summary>
         public void ShowComingSoon(string modeName)
         {
-            Debug.Log($"[MainMenu] 준비중: {modeName}");
         }
 
         /// <summary>Open multiplayer lobby (legacy name kept for existing button binding).</summary>
@@ -60,7 +54,6 @@ namespace LottoDefense.UI
         /// <summary>Open multiplayer lobby overlay (for button binding).</summary>
         public void ShowMultiplayerLobby()
         {
-            Debug.Log("[SceneNavigator] Opening multiplayer lobby");
 
             // Find existing lobby UI (may be inactive)
             MultiplayerLobbyUI lobbyUI = FindFirstObjectByType<MultiplayerLobbyUI>(FindObjectsInactive.Include);
@@ -90,13 +83,11 @@ namespace LottoDefense.UI
         public void TryStartGame()
         {
             // Free entry for testing - skip ticket check
-            Debug.Log("[SceneNavigator] Starting game (free entry mode)");
             SceneManager.LoadScene("GameScene");
         }
 
         private void ShowInsufficientTicketsPopup()
         {
-            Debug.Log("[SceneNavigator] Insufficient tickets");
 
             Canvas canvas = FindFirstObjectByType<Canvas>();
             if (canvas == null) return;

@@ -108,7 +108,6 @@ namespace LottoDefense.VFX
             // Initialize pools
             InitializePools();
 
-            Debug.Log("[VFXManager] Initialized with pools - DamageNumbers: " + damageNumberPoolSize + ", FloatingText: " + floatingTextPoolSize);
         }
 
         /// <summary>
@@ -218,12 +217,10 @@ namespace LottoDefense.VFX
         /// <param name="color">Text color</param>
         public void ShowFloatingText(Vector3 worldPosition, string message, Color color)
         {
-            Debug.Log($"[VFXManager] 🎯 ShowFloatingText called: message='{message}'");
             
             FloatingTextController controller = GetFloatingText();
             if (controller != null)
             {
-                Debug.Log($"[VFXManager] ✅ Got FloatingTextController, calling Show");
                 controller.Show(worldPosition, message, color);
             }
             else
@@ -507,7 +504,6 @@ namespace LottoDefense.VFX
 
         private IEnumerator BossWarningRoutine()
         {
-            Debug.Log("[VFXManager] BOSS WARNING!");
 
             // Create full-screen overlay on GameCanvas
             Canvas gameCanvas = null;
@@ -641,7 +637,6 @@ namespace LottoDefense.VFX
 
         private IEnumerator BossSpawnEffectRoutine(Vector3 worldPosition)
         {
-            Debug.Log($"[VFXManager] Boss spawn effect at {worldPosition}");
 
             // Create expanding ring using SpriteRenderer
             GameObject ring = new GameObject("BossSpawnRing");
@@ -702,7 +697,6 @@ namespace LottoDefense.VFX
 
         private IEnumerator QuestCompletedRoutine(string hintText)
         {
-            Debug.Log($"[VFXManager] Quest completed effect: {hintText}");
 
             // Find GameCanvas
             Canvas gameCanvas = null;
@@ -840,7 +834,6 @@ namespace LottoDefense.VFX
 
         private IEnumerator RewardClaimedRoutine(int goldAmount)
         {
-            Debug.Log($"[VFXManager] Reward claimed effect: +{goldAmount} gold");
 
             // Find GameCanvas
             Canvas gameCanvas = null;
@@ -993,7 +986,6 @@ namespace LottoDefense.VFX
 
         private IEnumerator LegendarySummonEffectRoutine(Vector3 worldPosition)
         {
-            Debug.Log($"[VFXManager] Legendary summon effect at {worldPosition}");
 
             // Find GameCanvas for UI overlay
             Canvas gameCanvas = null;
@@ -1298,7 +1290,6 @@ namespace LottoDefense.VFX
 
         private IEnumerator UpgradeEffectRoutine(Vector3 unitPosition, Rarity rarity)
         {
-            Debug.Log($"[VFXManager] Upgrade effect for {rarity} at {unitPosition}");
 
             Color rarityColor = UnitData.GetRarityColor(rarity);
 

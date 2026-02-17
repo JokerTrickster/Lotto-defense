@@ -183,7 +183,6 @@ namespace LottoDefense.Monsters
             // Create HP bar
             CreateHPBar();
 
-            Debug.Log($"[Monster] {data.monsterName} initialized - HP: {CurrentHealth}/{MaxHealth}, Def: {Defense}, Speed: {moveSpeed}");
         }
         #endregion
 
@@ -240,7 +239,6 @@ namespace LottoDefense.Monsters
             if (!IsActive)
                 return;
 
-            Debug.Log($"[Monster] {Data.monsterName} reached end of path");
 
             IsActive = false;
             OnReachEnd?.Invoke(this);
@@ -267,7 +265,6 @@ namespace LottoDefense.Monsters
             // Update HP bar
             UpdateHPBar();
 
-            Debug.Log($"[Monster] {Data.monsterName} took {actualDamage} damage (raw: {rawDamage}, def: {Defense}, HP: {CurrentHealth}/{MaxHealth})");
 
             if (CurrentHealth <= 0)
             {
@@ -284,7 +281,6 @@ namespace LottoDefense.Monsters
             if (!IsActive)
                 return;
 
-            Debug.Log($"[Monster] {Data.monsterName} died");
 
             // Show gold popup VFX
             if (VFXManager.Instance != null)

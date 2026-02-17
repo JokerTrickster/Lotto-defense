@@ -140,14 +140,11 @@ namespace LottoDefense.Gameplay
         /// </summary>
         public void LogRoundProgression()
         {
-            Debug.Log($"[RoundConfig] Total Rounds: {totalRounds}");
-            Debug.Log("[RoundConfig] Round Progression:");
 
             for (int i = 1; i <= totalRounds; i++)
             {
                 RoundMonsterConfig config = GetRoundConfig(i);
                 string monsterName = config.monsterData != null ? config.monsterData.monsterName : "None";
-                Debug.Log($"Round {i}: {monsterName} (x{config.totalMonsters}, Interval: {config.spawnInterval}s, Duration: {config.spawnDuration}s)");
             }
         }
 
@@ -219,7 +216,6 @@ namespace LottoDefense.Gameplay
                 });
             }
 
-            Debug.Log($"[RoundConfig] Auto-generated {totalRounds} round configs");
             UnityEditor.EditorUtility.SetDirty(this);
         }
 
@@ -230,7 +226,6 @@ namespace LottoDefense.Gameplay
         private void SortRoundConfigs()
         {
             roundConfigs.Sort((a, b) => a.roundNumber.CompareTo(b.roundNumber));
-            Debug.Log("[RoundConfig] Sorted round configs by round number");
             UnityEditor.EditorUtility.SetDirty(this);
         }
 #endif

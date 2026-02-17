@@ -97,32 +97,24 @@ namespace LottoDefense.Grid
         #region Unity Lifecycle
         private void Awake()
         {
-            Debug.Log($"[GridManager] Awake - _instance={_instance}, this={this}");
 
             if (_instance != null && _instance != this)
             {
-                Debug.Log("[GridManager] Duplicate instance, destroying self");
                 Destroy(gameObject);
                 return;
             }
 
             _instance = this;
             DontDestroyOnLoad(gameObject);
-            Debug.Log("[GridManager] Set as singleton and marked DontDestroyOnLoad");
 
             InitializeGrid();
-            Debug.Log("[GridManager] InitializeGrid complete");
         }
 
         private void Start()
         {
-            Debug.Log("[GridManager] Start - calling GenerateGrid");
             GenerateGrid();
-            Debug.Log("[GridManager] GenerateGrid complete");
 
-            Debug.Log("[GridManager] Start - calling DrawSquareLoopPath");
             DrawSquareLoopPath();
-            Debug.Log("[GridManager] DrawSquareLoopPath complete");
         }
         #endregion
 
@@ -161,7 +153,6 @@ namespace LottoDefense.Grid
 
             GridOrigin = new Vector3(gridX, gridY, 0f);
 
-            Debug.Log($"[GridManager] Grid initialized - CellSize: {CellSize:F2}, Origin: {GridOrigin}, Available: {availableWidth:F2}x{availableHeight:F2}");
         }
         #endregion
 
@@ -196,7 +187,6 @@ namespace LottoDefense.Grid
             long endTime = System.Diagnostics.Stopwatch.GetTimestamp();
             float elapsedMs = (endTime - startTime) * 1000f / System.Diagnostics.Stopwatch.Frequency;
 
-            Debug.Log($"[GridManager] Grid generation complete - {GRID_WIDTH}x{GRID_HEIGHT} cells created in {elapsedMs:F2}ms");
         }
 
         /// <summary>
@@ -499,7 +489,6 @@ namespace LottoDefense.Grid
 
             OnCellSelected?.Invoke(pos);
 
-            Debug.Log($"[GridManager] Cell selected: {pos}");
         }
 
         /// <summary>
@@ -518,7 +507,6 @@ namespace LottoDefense.Grid
                 OnCellDeselected?.Invoke(selectedCell.Value);
                 selectedCell = null;
 
-                Debug.Log("[GridManager] All cells deselected");
             }
         }
         #endregion
@@ -579,7 +567,6 @@ namespace LottoDefense.Grid
             // Position unit at cell center
             unitObject.transform.position = GridToWorld(new Vector2Int(x, y));
 
-            Debug.Log($"[GridManager] Placed unit at ({x}, {y})");
             return true;
         }
 
@@ -619,7 +606,6 @@ namespace LottoDefense.Grid
             GameObject unitObject = cell.OccupyingUnit;
             cell.ClearOccupancy();
 
-            Debug.Log($"[GridManager] Removed unit from ({x}, {y})");
             return unitObject;
         }
 

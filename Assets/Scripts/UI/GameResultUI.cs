@@ -185,7 +185,6 @@ namespace LottoDefense.UI
                 StartCoroutine(FadeIn());
             }
 
-            Debug.Log($"[GameResultUI] Showing result: {(isVictory ? "Victory" : "Defeat")}, Round: {roundReached}, Contribution: {contribution}");
         }
 
         /// <summary>
@@ -247,7 +246,6 @@ namespace LottoDefense.UI
         /// </summary>
         private void OnConfirmButtonClicked()
         {
-            Debug.Log("[GameResultUI] Confirm button clicked - returning to main menu");
 
             // Load main menu scene (SceneNavigator.LoadMainGame will handle cleanup)
             SceneNavigator navigator = FindFirstObjectByType<SceneNavigator>();

@@ -186,7 +186,6 @@ namespace LottoDefense.Units
                 // Immediately place the unit
                 PlaceUnit(emptyCell.Value);
 
-                Debug.Log($"[UnitPlacementManager] Auto-placed {unitData.GetDisplayName()} at {emptyCell.Value}");
             }
             else
             {
@@ -301,7 +300,6 @@ namespace LottoDefense.Units
             // Place unit at new position in grid
             GridManager.Instance.SetUnit(newPos, unit.gameObject);
 
-            Debug.Log($"[UnitPlacementManager] Moved {unit.Data.unitName} from {oldPos} to {newPos}");
         }
 
         /// <summary>
@@ -343,7 +341,6 @@ namespace LottoDefense.Units
                 if (bottomUI2 != null)
                     bottomUI2.SetSelectedUnit(null);
 
-                Debug.Log($"[UnitPlacementManager] Toggled deselect {clickedUnit.Data.GetDisplayName()}");
                 return;
             }
 
@@ -355,7 +352,6 @@ namespace LottoDefense.Units
             if (selectionUI != null)
             {
                 selectionUI.ShowForUnit(clickedUnit);
-                Debug.Log($"[UnitPlacementManager] Selected {clickedUnit.Data.GetDisplayName()} for movement and showing UI");
             }
 
             // Notify GameBottomUI of selected unit for upgrade buttons
@@ -423,7 +419,6 @@ namespace LottoDefense.Units
                     VFXManager.Instance?.ShowLegendarySummonEffect(unitObject.transform.position);
                 }
 
-                Debug.Log($"[UnitPlacementManager] Placed {SelectedUnitData.GetDisplayName()} at {gridPos}");
                 OnUnitPlaced?.Invoke(unitComponent, gridPos);
 
                 // Exit placement mode
@@ -488,7 +483,6 @@ namespace LottoDefense.Units
             // Allow unit selection and movement in all states (removed phase restriction)
             SelectedPlacedUnit = unit;
             unit.Select();
-            Debug.Log($"[UnitPlacementManager] Selected {unit.Data.GetDisplayName()} for movement/swapping");
         }
 
         /// <summary>
@@ -504,7 +498,6 @@ namespace LottoDefense.Units
             {
                 cell.SetVisualState(CellState.Selected);
             }
-            Debug.Log($"[UnitPlacementManager] Pending empty cell set: {pos}");
         }
 
         /// <summary>
@@ -532,7 +525,6 @@ namespace LottoDefense.Units
             {
                 SelectedPlacedUnit.Deselect();
                 SelectedPlacedUnit = null;
-                Debug.Log("[UnitPlacementManager] Deselected placed unit");
             }
         }
 
@@ -559,7 +551,6 @@ namespace LottoDefense.Units
             GridManager.Instance.SetUnit(pos2, unit1.gameObject);
             GridManager.Instance.SetUnit(pos1, unit2.gameObject);
 
-            Debug.Log($"[UnitPlacementManager] Swapped {unit1.Data.GetDisplayName()} at {pos1} with {unit2.Data.GetDisplayName()} at {pos2}");
             OnUnitsSwapped?.Invoke(unit1, unit2, pos1, pos2);
 
             // Deselect after swap
@@ -666,7 +657,6 @@ namespace LottoDefense.Units
         {
             if (IsPlacementMode)
             {
-                Debug.Log("[UnitPlacementManager] Placement cancelled");
             }
 
             SelectedUnitData = null;

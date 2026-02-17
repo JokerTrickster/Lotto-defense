@@ -257,7 +257,6 @@ namespace LottoDefense.Units
                 float skillCooldown = 0f;
                 foreach (var skill in instanceSkills)
                 {
-                    Debug.Log($"  - {skill.skillName} ({skill.skillType}): CD={skill.cooldownDuration}s, DMG×{skill.damageMultiplier}, AS×{skill.attackSpeedMultiplier}");
                     
                     if (skill.skillType == SkillType.Active && skill.cooldownDuration > 0f)
                     {
@@ -269,7 +268,6 @@ namespace LottoDefense.Units
                 {
                     // 10배 빠른 마나 재생 (원래는 skillCooldown 초에 100% 채움, 이제는 1/10 시간에 채움)
                     ManaRegenPerSecond = (MaxMana / skillCooldown) * 10f;
-                    Debug.Log($"[Unit] {Data.GetDisplayName()} mana config: cooldown={skillCooldown}s → regen={ManaRegenPerSecond:F1}/s (10x speed for testing)");
                 }
                 else
                 {
@@ -285,7 +283,6 @@ namespace LottoDefense.Units
             }
 
             gameObject.name = $"Unit_{unitData.unitName}_{gridPos.x}_{gridPos.y}";
-            Debug.Log($"[Unit] Initialized {Data.GetDisplayName()} at {GridPosition}");
         }
         #endregion
 
@@ -305,7 +302,6 @@ namespace LottoDefense.Units
             // Show attack range indicator
             ShowAttackRange();
 
-            Debug.Log($"[Unit] Selected {Data.GetDisplayName()} at {GridPosition}");
         }
 
         /// <summary>
@@ -324,7 +320,6 @@ namespace LottoDefense.Units
             // Hide attack range indicator
             HideAttackRange();
 
-            Debug.Log($"[Unit] Deselected {Data.GetDisplayName()} at {GridPosition}");
         }
         #endregion
 
@@ -347,7 +342,6 @@ namespace LottoDefense.Units
             // Update name for debugging
             gameObject.name = $"Unit_{Data.unitName}_{newGridPos.x}_{newGridPos.y}";
 
-            Debug.Log($"[Unit] Moved {Data.GetDisplayName()} from {oldPos} to {newGridPos}");
         }
         #endregion
 
@@ -377,7 +371,6 @@ namespace LottoDefense.Units
             UpgradeLevel = newLevel;
             CurrentAttack = Mathf.RoundToInt(Data.attack * attackMultiplier);
 
-            Debug.Log($"[Unit] {Data.GetDisplayName()} upgraded: L{oldLevel}→L{newLevel}, ATK {oldAttack}→{CurrentAttack}");
         }
 
         /// <summary>
@@ -425,7 +418,6 @@ namespace LottoDefense.Units
                 // 로그는 첫 번째 타겟 획득 시에만 (디버그용)
                 // if (CurrentTarget != null)
                 // {
-                //     Debug.Log($"[Unit] {Data.GetDisplayName()} acquired target: {CurrentTarget.Data.monsterName}");
                 // }
             }
 
@@ -489,7 +481,6 @@ namespace LottoDefense.Units
             // (주석 처리 - 게임 정상 작동 시 불필요)
             // if (nearest == null && activeMonsters.Count > 0 && combatTickCount % 50 == 1)
             // {
-            //     Debug.Log($"[Unit] {Data.GetDisplayName()} has {activeMonsters.Count} monsters but nearest is {closestOutOfRange:F2} away");
             // }
 
             return nearest;
@@ -794,7 +785,6 @@ namespace LottoDefense.Units
             {
                 if (skill.skillType == SkillType.Active)
                 {
-                    Debug.Log($"[Unit] {Data.GetDisplayName()} trying Active skill '{skill.skillName}' (onCooldown={skill.IsOnCooldown}, cd={skill.currentCooldown:F1})");
                     if (skill.TryActivate())
                     {
                         skillToActivate = skill;
@@ -805,7 +795,6 @@ namespace LottoDefense.Units
 
             if (skillToActivate != null)
             {
-                Debug.Log($"[Unit] {Data.GetDisplayName()} auto-triggered skill: {skillToActivate.skillName}");
 
                 // Apply skill effect
                 ApplySkillEffect(skillToActivate);
@@ -865,7 +854,6 @@ namespace LottoDefense.Units
                 Destroy(vfx, 2f);
             }
 
-            Debug.Log($"[Unit] Applied skill effect: {skill.skillName} (DMG×{skill.damageMultiplier}, AS×{skill.attackSpeedMultiplier}, Slow={skill.slowMultiplier}, Freeze={skill.freezeDuration}s, Duration: {skill.effectDuration}s)");
         }
 
         /// <summary>
@@ -901,13 +889,11 @@ namespace LottoDefense.Units
         {
             activeDamageBuff = multiplier;
             RecalculateStats();
-            Debug.Log($"[Unit] Damage buff applied: x{multiplier} for {duration}s (Attack: {CurrentAttack})");
 
             yield return new WaitForSeconds(duration);
 
             activeDamageBuff = 1f;
             RecalculateStats();
-            Debug.Log($"[Unit] Damage buff expired (Attack: {CurrentAttack})");
         }
 
         /// <summary>
@@ -917,13 +903,11 @@ namespace LottoDefense.Units
         {
             activeSpeedBuff = multiplier;
             RecalculateStats();
-            Debug.Log($"[Unit] Attack speed buff applied: x{multiplier} for {duration}s (Cooldown: {attackCooldown:F2}s)");
 
             yield return new WaitForSeconds(duration);
 
             activeSpeedBuff = 1f;
             RecalculateStats();
-            Debug.Log($"[Unit] Attack speed buff expired (Cooldown: {attackCooldown:F2}s)");
         }
 
         /// <summary>
@@ -1203,7 +1187,6 @@ namespace LottoDefense.Units
             // Initialize the mana bar (this will find the Fill image via GetComponentInChildren)
             manaBar.Initialize(this);
 
-            Debug.Log($"[Unit] Created mana bar for {Data.GetDisplayName()}");
         }
 
         /// <summary>

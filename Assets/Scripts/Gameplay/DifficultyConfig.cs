@@ -72,11 +72,9 @@ namespace LottoDefense.Gameplay
         /// </summary>
         public void LogDifficultyProgression()
         {
-            Debug.Log("[DifficultyConfig] Difficulty Progression:");
             for (int i = 1; i <= maxRounds; i++)
             {
                 var multipliers = GetMultipliersForRound(i);
-                Debug.Log($"Round {i}: HP={multipliers.hpMultiplier:F2}x, Def={multipliers.defenseMultiplier:F2}x");
             }
         }
         #endregion

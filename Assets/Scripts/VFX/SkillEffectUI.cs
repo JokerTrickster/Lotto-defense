@@ -11,7 +11,6 @@ namespace LottoDefense.VFX
     {
         public static void Show(Vector3 worldPosition, string unitName, string skillName, Color skillColor)
         {
-            Debug.Log($"[SkillEffectUI] 🎯 Creating effect: {unitName} - {skillName}");
             
             // Find or create UI Canvas
             Canvas uiCanvas = FindUICanvas();
@@ -103,7 +102,6 @@ namespace LottoDefense.VFX
             SkillEffectAnimator animator = effectObj.AddComponent<SkillEffectAnimator>();
             animator.Initialize(effectObj, rect, canvasGroup, bgImage, skillColor, screenPos);
             
-            Debug.Log($"[SkillEffectUI] ✅ Created: {unitName} - {skillName}");
         }
         
         private static Canvas FindUICanvas()

@@ -74,7 +74,6 @@ namespace LottoDefense.Units
                 balanceConfig = ScriptableObject.CreateInstance<GameBalanceConfig>();
             }
 
-            Debug.Log("[AutoSynthesisManager] Initialized");
         }
         #endregion
 
@@ -107,7 +106,6 @@ namespace LottoDefense.Units
             var placedUnits = UnitManager.Instance.GetPlacedUnits();
             if (placedUnits == null || placedUnits.Count == 0)
             {
-                Debug.Log("[AutoSynthesisManager] No units to synthesize");
                 return 0;
             }
 
@@ -142,7 +140,6 @@ namespace LottoDefense.Units
                     var recipe = balanceConfig.GetSynthesisRecipe(unitName);
                     if (recipe == null)
                     {
-                        Debug.Log($"[AutoSynthesisManager] No recipe for {unitName}, skipping");
                         break;
                     }
 
@@ -167,7 +164,6 @@ namespace LottoDefense.Units
                         if (success)
                         {
                             totalSynthesisCount++;
-                            Debug.Log($"[AutoSynthesisManager] Auto-synthesized {unitName} → {recipe.resultUnitName}");
 
                             // Remove synthesized units from list
                             units.Remove(unit1);
@@ -192,11 +188,9 @@ namespace LottoDefense.Units
 
             if (totalSynthesisCount > 0)
             {
-                Debug.Log($"[AutoSynthesisManager] Performed {totalSynthesisCount} auto-synthesis operations");
             }
             else
             {
-                Debug.Log("[AutoSynthesisManager] No units eligible for auto-synthesis");
             }
 
             return totalSynthesisCount;
