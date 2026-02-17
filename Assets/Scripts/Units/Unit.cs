@@ -805,18 +805,14 @@ namespace LottoDefense.Units
                 // Apply skill effect
                 ApplySkillEffect(skillToActivate);
 
-                // 화려한 스킬 이펙트 - 유닛 이름 + 스킬 이름 표시
-                Vector3 effectPos = transform.position + Vector3.up * 0.8f; // 유닛 위에 표시
+                // 심플한 텍스트 이펙트 - 유닛 이름 + 스킬 이름
+                Vector3 effectPos = transform.position + Vector3.up * 0.8f;
                 Color effectColor = UnitData.GetRarityColor(Data.rarity);
-                effectColor = Color.Lerp(effectColor, Color.white, 0.3f); // 밝게
+                effectColor = Color.Lerp(effectColor, Color.white, 0.3f);
                 
-                // SkillEffectUI 사용 (화려한 애니메이션)
-                LottoDefense.VFX.SkillEffectUI.Show(
-                    effectPos,
-                    Data.GetDisplayName(), // 유닛 이름
-                    skillToActivate.skillName, // 스킬 이름
-                    effectColor
-                );
+                // 심플한 텍스트: "[유닛] 스킬이름"
+                string displayText = $"{Data.GetDisplayName()}\n{skillToActivate.skillName}";
+                LottoDefense.VFX.SimpleFloatingText.Show(effectPos, displayText, effectColor, 0.12f);
                 
                 Debug.Log($"[Unit] 🌟 {Data.GetDisplayName()} activated skill: {skillToActivate.skillName} at {effectPos}");
 

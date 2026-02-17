@@ -9,18 +9,18 @@ namespace LottoDefense.VFX
     /// </summary>
     public class SimpleFloatingText : MonoBehaviour
     {
-        public static void Show(Vector3 worldPosition, string message, Color color, float fontSize = 0.1f)
+        public static void Show(Vector3 worldPosition, string message, Color color, float fontSize = 0.12f)
         {
             Debug.Log($"[SimpleFloatingText] 🎯 Creating: '{message}' at {worldPosition}");
             
             // Create GameObject with TextMesh (3D text)
-            GameObject textObj = new GameObject("SkillEffect_" + message);
+            GameObject textObj = new GameObject("SkillText");
             textObj.transform.position = worldPosition;
             
             // Add TextMesh component (built-in 3D text)
             TextMesh textMesh = textObj.AddComponent<TextMesh>();
             textMesh.text = message;
-            textMesh.fontSize = 100; // High resolution
+            textMesh.fontSize = 80; // High resolution
             textMesh.characterSize = fontSize; // World size
             textMesh.color = color;
             textMesh.anchor = TextAnchor.MiddleCenter;
@@ -42,15 +42,15 @@ namespace LottoDefense.VFX
                 textObj.transform.Rotate(0, 180, 0); // Flip to face correctly
             }
             
-            // Add animator
+            // Add animator (심플하게)
             textObj.AddComponent<SimpleFloatingTextAnimator>().Initialize(textObj, worldPosition, color);
             
-            Debug.Log($"[SimpleFloatingText] ✅ Created 3D TextMesh: '{message}' at {worldPosition}");
+            Debug.Log($"[SimpleFloatingText] ✅ Created: '{message}'");
         }
     }
     
     /// <summary>
-    /// Animator component for SimpleFloatingText with TextMesh.
+    /// 심플한 애니메이터: 위로 떠오르며 페이드아웃
     /// </summary>
     public class SimpleFloatingTextAnimator : MonoBehaviour
     {
@@ -58,7 +58,7 @@ namespace LottoDefense.VFX
         private TextMesh textMesh;
         private Vector3 startPosition;
         private Color startColor;
-        private float lifetime = 3f; // Longer lifetime
+        private float lifetime = 2f; // 2초
         private float elapsed = 0f;
         
         public void Initialize(GameObject obj, Vector3 startPos, Color color)
@@ -76,13 +76,11 @@ namespace LottoDefense.VFX
             elapsed += Time.deltaTime;
             float t = elapsed / lifetime;
             
-            // Move up and slightly scale up
-            float moveUp = elapsed * 0.8f;
-            float scale = 1f + (elapsed * 0.3f); // Grow slightly
+            // 위로 천천히 이동
+            float moveUp = elapsed * 0.5f;
             textObject.transform.position = startPosition + Vector3.up * moveUp;
-            textObject.transform.localScale = Vector3.one * scale;
             
-            // Always face camera
+            // 카메라 방향으로 회전
             Camera mainCam = Camera.main;
             if (mainCam != null)
             {
@@ -90,14 +88,14 @@ namespace LottoDefense.VFX
                 textObject.transform.Rotate(0, 180, 0);
             }
             
-            // Fade out color
+            // 페이드아웃
             if (textMesh != null)
             {
                 float alpha = 1f - t;
                 textMesh.color = new Color(startColor.r, startColor.g, startColor.b, alpha);
             }
             
-            // Destroy when done
+            // 2초 후 삭제
             if (elapsed >= lifetime)
             {
                 Destroy(textObject);
