@@ -755,6 +755,17 @@ namespace LottoDefense.Units
                 // 쿨다운 중이면 99.9%까지만, 아니면 100%까지
                 float maxAllowed = hasActiveSkillOnCooldown ? (MaxMana * 0.999f) : MaxMana;
                 CurrentMana = Mathf.Min(newMana, maxAllowed);
+                
+                // 디버그: 99%에 도달했을 때만 로그
+                if (!hasActiveSkillOnCooldown && oldMana < MaxMana * 0.99f && CurrentMana >= MaxMana * 0.99f)
+                {
+                    Debug.Log($"[SKILL-DEBUG] {Data.GetDisplayName()} mana 99% reached, CD clear, should hit 100% next tick");
+                }
+                if (hasActiveSkillOnCooldown && oldMana < MaxMana * 0.99f && CurrentMana >= MaxMana * 0.99f)
+                {
+                    var activeSkill = System.Array.Find(instanceSkills, s => s.skillType == SkillType.Active);
+                    Debug.Log($"[SKILL-DEBUG] {Data.GetDisplayName()} mana capped at 99.9%, waiting for CD: {activeSkill?.currentCooldown:F2}s");
+                }
 
                 // Fire mana changed event
                 OnManaChanged?.Invoke(CurrentMana, MaxMana);
@@ -763,6 +774,7 @@ namespace LottoDefense.Units
             // Auto-trigger skill when mana is full (쿨다운 끝났을 때만 100%가 됨)
             if (CurrentMana >= MaxMana)
             {
+                Debug.Log($"[SKILL-DEBUG] {Data.GetDisplayName()} mana 100%, triggering skill...");
                 TriggerSkill();
             }
         }
@@ -785,10 +797,16 @@ namespace LottoDefense.Units
             {
                 if (skill.skillType == SkillType.Active)
                 {
+                    Debug.Log($"[SKILL-DEBUG] {Data.GetDisplayName()} trying {skill.skillName}, CD={skill.currentCooldown:F2}s, IsOnCD={skill.IsOnCooldown}");
                     if (skill.TryActivate())
                     {
                         skillToActivate = skill;
+                        Debug.Log($"[SKILL-DEBUG] {Data.GetDisplayName()} activated {skill.skillName}!");
                         break;
+                    }
+                    else
+                    {
+                        Debug.LogWarning($"[SKILL-DEBUG] {Data.GetDisplayName()} FAILED to activate {skill.skillName} (still on cooldown)");
                     }
                 }
             }
