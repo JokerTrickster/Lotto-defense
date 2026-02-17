@@ -130,7 +130,7 @@ namespace LottoDefense.Units
         /// <summary>
         /// Mana regeneration per second.
         /// </summary>
-        public float ManaRegenPerSecond { get; private set; } = 10f;
+        public float ManaRegenPerSecond { get; private set; } = 100f; // 10배 증가로 빠른 테스트
 
         /// <summary>
         /// Per-instance cloned skills (prevents shared state between same-type units).
@@ -239,7 +239,7 @@ namespace LottoDefense.Units
             // Initialize mana system (시간 기반 마나 재생)
             CurrentMana = 0f;
             MaxMana = 100f;
-            ManaRegenPerSecond = 10f; // 기본값 (스킬 없을 때 fallback)
+            ManaRegenPerSecond = 100f; // 10배 증가 (빠른 테스트용)
 
             // Clone skills per-unit to prevent shared cooldown state between same-type units
             if (unitData.skills != null && unitData.skills.Length > 0)
@@ -267,8 +267,9 @@ namespace LottoDefense.Units
                 
                 if (skillCooldown > 0f)
                 {
-                    ManaRegenPerSecond = MaxMana / skillCooldown;
-                    Debug.Log($"[Unit] {Data.GetDisplayName()} mana config: cooldown={skillCooldown}s → regen={ManaRegenPerSecond:F1}/s");
+                    // 10배 빠른 마나 재생 (원래는 skillCooldown 초에 100% 채움, 이제는 1/10 시간에 채움)
+                    ManaRegenPerSecond = (MaxMana / skillCooldown) * 10f;
+                    Debug.Log($"[Unit] {Data.GetDisplayName()} mana config: cooldown={skillCooldown}s → regen={ManaRegenPerSecond:F1}/s (10x speed for testing)");
                 }
                 else
                 {
@@ -801,9 +802,9 @@ namespace LottoDefense.Units
                 Color effectColor = UnitData.GetRarityColor(Data.rarity);
                 effectColor = Color.Lerp(effectColor, Color.white, 0.4f); // Brighter color
                 
-                // Use SimpleFloatingText for guaranteed visibility
+                // Use SimpleFloatingText with 3D TextMesh for guaranteed visibility
                 LottoDefense.VFX.SimpleFloatingText.Show(effectPos, 
-                    skillToActivate.skillName, effectColor, 64f);
+                    skillToActivate.skillName, effectColor, 0.15f); // 0.15 = world size
                 
                 Debug.Log($"[Unit] 🌟 {Data.GetDisplayName()} activated skill: {skillToActivate.skillName} at {effectPos}");
 

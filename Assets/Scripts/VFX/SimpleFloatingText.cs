@@ -5,83 +5,68 @@ using System.Collections;
 namespace LottoDefense.VFX
 {
     /// <summary>
-    /// Simple floating text that always works - WorldSpace Canvas version.
+    /// Simple floating text using 3D TextMesh - guaranteed to be visible!
     /// </summary>
     public class SimpleFloatingText : MonoBehaviour
     {
-        public static void Show(Vector3 worldPosition, string message, Color color, float fontSize = 48f)
+        public static void Show(Vector3 worldPosition, string message, Color color, float fontSize = 0.1f)
         {
+            Debug.Log($"[SimpleFloatingText] 🎯 Creating: '{message}' at {worldPosition}");
+            
+            // Create GameObject with TextMesh (3D text)
             GameObject textObj = new GameObject("SkillEffect_" + message);
-            
-            // Add Canvas (WorldSpace)
-            Canvas canvas = textObj.AddComponent<Canvas>();
-            canvas.renderMode = RenderMode.WorldSpace;
-            
-            // Position in world
             textObj.transform.position = worldPosition;
-            textObj.transform.localScale = Vector3.one * 0.01f; // Scale down for WorldSpace
             
-            // Add CanvasScaler
-            CanvasScaler scaler = textObj.AddComponent<CanvasScaler>();
-            scaler.dynamicPixelsPerUnit = 10;
+            // Add TextMesh component (built-in 3D text)
+            TextMesh textMesh = textObj.AddComponent<TextMesh>();
+            textMesh.text = message;
+            textMesh.fontSize = 100; // High resolution
+            textMesh.characterSize = fontSize; // World size
+            textMesh.color = color;
+            textMesh.anchor = TextAnchor.MiddleCenter;
+            textMesh.alignment = TextAlignment.Center;
+            textMesh.fontStyle = FontStyle.Bold;
             
-            // Setup RectTransform
-            RectTransform rectTransform = textObj.GetComponent<RectTransform>();
-            rectTransform.sizeDelta = new Vector2(400, 100);
+            // Add MeshRenderer (required for TextMesh)
+            MeshRenderer renderer = textObj.GetComponent<MeshRenderer>();
+            if (renderer != null)
+            {
+                renderer.sortingOrder = 1000; // Render on top
+            }
             
-            // Add Text object
-            GameObject textChild = new GameObject("Text");
-            textChild.transform.SetParent(textObj.transform, false);
+            // Make text face camera
+            Camera mainCam = Camera.main;
+            if (mainCam != null)
+            {
+                textObj.transform.LookAt(mainCam.transform);
+                textObj.transform.Rotate(0, 180, 0); // Flip to face correctly
+            }
             
-            Text text = textChild.AddComponent<Text>();
-            text.text = message;
-            text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            if (text.font == null)
-                text.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            // Add animator
+            textObj.AddComponent<SimpleFloatingTextAnimator>().Initialize(textObj, worldPosition, color);
             
-            text.fontSize = (int)fontSize;
-            text.fontStyle = FontStyle.Bold;
-            text.color = color;
-            text.alignment = TextAnchor.MiddleCenter;
-            text.horizontalOverflow = HorizontalWrapMode.Overflow;
-            text.verticalOverflow = VerticalWrapMode.Overflow;
-            
-            // Add outline for visibility
-            Outline outline = textChild.AddComponent<Outline>();
-            outline.effectColor = Color.black;
-            outline.effectDistance = new Vector2(3, -3);
-            
-            RectTransform textRect = textChild.GetComponent<RectTransform>();
-            textRect.anchorMin = Vector2.zero;
-            textRect.anchorMax = Vector2.one;
-            textRect.sizeDelta = Vector2.zero;
-            
-            // Add CanvasGroup for fading
-            CanvasGroup canvasGroup = textObj.AddComponent<CanvasGroup>();
-            
-            // Start animation
-            textObj.AddComponent<SimpleFloatingTextAnimator>().Initialize(canvasGroup, textObj, worldPosition);
-            
-            Debug.Log($"[SimpleFloatingText] ✅ Created: '{message}' at {worldPosition}");
+            Debug.Log($"[SimpleFloatingText] ✅ Created 3D TextMesh: '{message}' at {worldPosition}");
         }
     }
     
     /// <summary>
-    /// Animator component for SimpleFloatingText.
+    /// Animator component for SimpleFloatingText with TextMesh.
     /// </summary>
     public class SimpleFloatingTextAnimator : MonoBehaviour
     {
-        private CanvasGroup canvasGroup;
         private GameObject textObject;
+        private TextMesh textMesh;
         private Vector3 startPosition;
-        private float lifetime = 2f;
+        private Color startColor;
+        private float lifetime = 3f; // Longer lifetime
         private float elapsed = 0f;
         
-        public void Initialize(CanvasGroup cg, GameObject obj, Vector3 startPos)
+        public void Initialize(GameObject obj, Vector3 startPos, Color color)
         {
-            canvasGroup = cg;
             textObject = obj;
             startPosition = startPos;
+            startColor = color;
+            textMesh = obj.GetComponent<TextMesh>();
         }
         
         private void Update()
@@ -91,13 +76,25 @@ namespace LottoDefense.VFX
             elapsed += Time.deltaTime;
             float t = elapsed / lifetime;
             
-            // Move up
-            textObject.transform.position = startPosition + Vector3.up * (elapsed * 0.5f);
+            // Move up and slightly scale up
+            float moveUp = elapsed * 0.8f;
+            float scale = 1f + (elapsed * 0.3f); // Grow slightly
+            textObject.transform.position = startPosition + Vector3.up * moveUp;
+            textObject.transform.localScale = Vector3.one * scale;
             
-            // Fade out
-            if (canvasGroup != null)
+            // Always face camera
+            Camera mainCam = Camera.main;
+            if (mainCam != null)
             {
-                canvasGroup.alpha = 1f - t;
+                textObject.transform.LookAt(mainCam.transform);
+                textObject.transform.Rotate(0, 180, 0);
+            }
+            
+            // Fade out color
+            if (textMesh != null)
+            {
+                float alpha = 1f - t;
+                textMesh.color = new Color(startColor.r, startColor.g, startColor.b, alpha);
             }
             
             // Destroy when done
