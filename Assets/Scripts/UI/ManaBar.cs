@@ -85,8 +85,6 @@ namespace LottoDefense.UI
             }
 
             isInitialized = true;
-            
-            Debug.Log($"[ManaBar] ✅ Initialized for {ownerUnit.Data.GetDisplayName()} (size: {rectTransform?.sizeDelta}, sprite: {fillImage?.sprite != null})");
         }
 
         /// <summary>
@@ -229,23 +227,6 @@ namespace LottoDefense.UI
             
             // Force canvas update (static method, no instance needed)
             Canvas.ForceUpdateCanvases();
-            
-            // Debug log only at important milestones (0%, 50%, 100%)
-            int percentNow = Mathf.FloorToInt(fillAmount * 100f);
-            int percentOld = Mathf.FloorToInt(oldFillAmount * 100f);
-            
-            if (percentNow == 0 && percentOld > 0) // Reset to 0 (skill used)
-            {
-                Debug.Log($"[ManaBar] 💙 {ownerUnit?.Data?.GetDisplayName()}: RESET {percentOld}%→0% (skill used!)");
-            }
-            else if (percentNow >= 50 && percentOld < 50) // 50% milestone
-            {
-                Debug.Log($"[ManaBar] 💙 {ownerUnit?.Data?.GetDisplayName()}: 50% reached ({currentMana:F1}/{maxMana:F0})");
-            }
-            else if (percentNow >= 100 && percentOld < 100) // 100% milestone
-            {
-                Debug.Log($"[ManaBar] 💙 {ownerUnit?.Data?.GetDisplayName()}: 100% FULL! ({currentMana:F1}/{maxMana:F0})");
-            }
         }
 
         /// <summary>

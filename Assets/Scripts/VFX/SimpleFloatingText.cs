@@ -11,8 +11,6 @@ namespace LottoDefense.VFX
     {
         public static void Show(Vector3 worldPosition, string message, Color color, float fontSize = 0.025f)
         {
-            Debug.Log($"[SimpleFloatingText] 🎯 Creating: '{message}' at {worldPosition}");
-            
             // Create GameObject with TextMesh (3D text)
             GameObject textObj = new GameObject("SkillText");
             textObj.transform.position = worldPosition;
@@ -44,8 +42,6 @@ namespace LottoDefense.VFX
             
             // Add animator (심플하게)
             textObj.AddComponent<SimpleFloatingTextAnimator>().Initialize(textObj, worldPosition, color);
-            
-            Debug.Log($"[SimpleFloatingText] ✅ Created: '{message}'");
         }
     }
     

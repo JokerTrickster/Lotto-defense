@@ -414,12 +414,6 @@ namespace LottoDefense.Units
             if (HasSkill)
             {
                 RegenerateMana(tickInterval);
-
-                // Diagnostic: log mana progress every 100 ticks (10 seconds)
-                if (combatTickCount % 100 == 1)
-                {
-                    Debug.Log($"[Unit] {Data.GetDisplayName()} mana={CurrentMana:F1}/{MaxMana} ({GetManaPercentage()*100:F0}%), regen={ManaRegenPerSecond:F1}/s");
-                }
             }
 
             // Find or validate target
@@ -771,13 +765,6 @@ namespace LottoDefense.Units
                 float maxAllowed = hasActiveSkillOnCooldown ? (MaxMana * 0.999f) : MaxMana;
                 CurrentMana = Mathf.Min(newMana, maxAllowed);
 
-                // 로그: 마나 재생 확인 (10% 단위로)
-                if ((int)(oldMana / 10f) < (int)(CurrentMana / 10f))
-                {
-                    string cdStatus = hasActiveSkillOnCooldown ? " [CD중]" : "";
-                    Debug.Log($"[Unit] {Data.GetDisplayName()} mana: {CurrentMana:F1}/{MaxMana} ({GetManaPercentage()*100:F0}%){cdStatus}");
-                }
-
                 // Fire mana changed event
                 OnManaChanged?.Invoke(CurrentMana, MaxMana);
             }
@@ -785,7 +772,6 @@ namespace LottoDefense.Units
             // Auto-trigger skill when mana is full (쿨다운 끝났을 때만 100%가 됨)
             if (CurrentMana >= MaxMana)
             {
-                Debug.Log($"[Unit] {Data.GetDisplayName()} mana 100% + CD ready! Triggering skill...");
                 TriggerSkill();
             }
         }
@@ -832,8 +818,6 @@ namespace LottoDefense.Units
                 // 심플한 텍스트: "[유닛] 스킬이름" (작은 크기)
                 string displayText = $"{Data.GetDisplayName()}\n{skillToActivate.skillName}";
                 LottoDefense.VFX.SimpleFloatingText.Show(effectPos, displayText, effectColor);
-                
-                Debug.Log($"[Unit] 🌟 {Data.GetDisplayName()} activated skill: {skillToActivate.skillName} at {effectPos}");
 
                 // Reset mana to 0 after using skill
                 CurrentMana = 0f;
