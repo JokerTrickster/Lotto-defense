@@ -189,7 +189,6 @@ namespace LottoDefense.Combat
         {
             if (isCombatActive)
             {
-                Debug.LogWarning("[CombatManager] Combat already active!");
                 return;
             }
 

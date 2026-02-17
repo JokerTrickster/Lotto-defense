@@ -313,14 +313,12 @@ namespace LottoDefense.Gameplay
             // Safety: ensure CombatManager starts combat even if it missed the state change event
             if (LottoDefense.Combat.CombatManager.Instance != null && !LottoDefense.Combat.CombatManager.Instance.IsCombatActive)
             {
-                Debug.LogWarning("[RoundManager] CombatManager was not active! Starting combat as safety net.");
                 LottoDefense.Combat.CombatManager.Instance.StartCombat();
             }
 
             // Safety: ensure MonsterManager starts spawning even if it missed the state change event
             if (MonsterManager.Instance != null && !MonsterManager.Instance.IsSpawning)
             {
-                Debug.LogWarning("[RoundManager] MonsterManager was not spawning! Starting as safety net.");
                 MonsterManager.Instance.StartSpawning();
             }
 

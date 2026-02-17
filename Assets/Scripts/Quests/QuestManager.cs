@@ -127,7 +127,6 @@ namespace LottoDefense.Quests
                 if (completed)
                 {
                     quest.State = QuestState.Completed;
-                    Debug.Log($"[QuestManager] Quest completed: {quest.Definition.questId}");
                     OnQuestCompleted?.Invoke(quest);
                 }
             }
