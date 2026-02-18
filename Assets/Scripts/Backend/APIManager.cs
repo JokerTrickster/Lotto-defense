@@ -203,5 +203,17 @@ namespace LottoDefense.Backend
             StartCoroutine(_client.Get(endpoint, onSuccess, onError));
         }
         #endregion
+
+        #region Ranking API
+        /// <summary>
+        /// Get weekly rankings (top 10, last 7 days).
+        /// </summary>
+        /// <param name="gameMode">"single" or "coop"</param>
+        public void GetWeeklyRankings(string gameMode, Action<RankingResponse> onSuccess, Action<string> onError)
+        {
+            string endpoint = $"/rankings/{gameMode}";
+            StartCoroutine(_client.Get(endpoint, onSuccess, onError));
+        }
+        #endregion
     }
 }

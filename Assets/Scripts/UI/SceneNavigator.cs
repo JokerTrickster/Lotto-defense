@@ -76,6 +76,25 @@ namespace LottoDefense.UI
         /// <summary>준비중: 보스 러시 (for button binding).</summary>
         public void ShowComingSoonBossRush() => ShowComingSoon("보스 러시");
 
+        /// <summary>Show weekly rankings UI (for button binding).</summary>
+        public void ShowRankings()
+        {
+            LottoDefense.Backend.UI.RankingUI rankingUI = FindFirstObjectByType<LottoDefense.Backend.UI.RankingUI>(FindObjectsInactive.Include);
+
+            if (rankingUI == null)
+            {
+                Canvas canvas = FindFirstObjectByType<Canvas>();
+                if (canvas == null)
+                {
+                    Debug.LogError("[SceneNavigator] No Canvas found to host RankingUI");
+                    return;
+                }
+                rankingUI = LottoDefense.Backend.UI.RankingUI.CreateInCanvas(canvas);
+            }
+
+            rankingUI.Show();
+        }
+
         /// <summary>
         /// Try to start a game by deducting 1 entry ticket.
         /// Shows insufficient tickets popup if not enough.
