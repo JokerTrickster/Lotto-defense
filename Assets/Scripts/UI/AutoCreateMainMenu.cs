@@ -20,19 +20,40 @@ namespace LottoDefense.UI
                 return;
             }
 
-            // 이미 버튼이 있으면 생성 안 함
-            if (GameObject.Find("SinglePlayButton") != null)
-            {
-                Debug.Log("[AutoCreateMainMenu] Buttons already exist, skipping creation");
-                Destroy(gameObject);
-                return;
-            }
-
-            Debug.Log("[AutoCreateMainMenu] Creating main menu buttons...");
+            Debug.Log("[AutoCreateMainMenu] Starting UI cleanup and creation...");
+            
+            // 모든 기존 버튼 삭제 (StartGameButton, 이상한 버튼들 등)
+            CleanupOldUI();
+            
+            // 새 버튼 생성
             CreateMainMenuButtons();
             
             // 생성 후 자신은 삭제
             Destroy(gameObject);
+        }
+        
+        private void CleanupOldUI()
+        {
+            // 모든 버튼 찾아서 삭제 (SinglePlayButton, CoopPlayButton 제외)
+            Button[] allButtons = FindObjectsByType<Button>(FindObjectsSortMode.None);
+            int deletedCount = 0;
+            
+            foreach (Button btn in allButtons)
+            {
+                string name = btn.gameObject.name;
+                // 이미 생성한 새 버튼은 건너뛰기
+                if (name == "SinglePlayButton" || name == "CoopPlayButton" ||
+                    name == "RankingButton" || name == "MyStatsButton")
+                {
+                    continue;
+                }
+                
+                Debug.Log($"[AutoCreateMainMenu] Deleting old button: {name}");
+                Destroy(btn.gameObject);
+                deletedCount++;
+            }
+            
+            Debug.Log($"[AutoCreateMainMenu] Deleted {deletedCount} old buttons");
         }
 
         private void CreateMainMenuButtons()
