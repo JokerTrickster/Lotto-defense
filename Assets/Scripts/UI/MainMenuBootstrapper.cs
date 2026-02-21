@@ -29,10 +29,10 @@ namespace LottoDefense.UI
                 return;
             }
 
-            // 이미 MainMenuUI가 있으면 실행 안 함
-            if (Object.FindFirstObjectByType<MainMenuUI>() != null)
+            // 이미 버튼이 있으면 실행 안 함
+            if (GameObject.Find("SinglePlayButton") != null)
             {
-                Debug.Log("[MainMenuBootstrapper] MainMenuUI already exists");
+                Debug.Log("[MainMenuBootstrapper] Buttons already exist");
                 return;
             }
 

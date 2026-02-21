@@ -12,21 +12,26 @@ namespace LottoDefense.UI
     {
         private void Awake()
         {
-            // 이미 MainMenuUI가 있으면 생성 안 함
-            if (FindFirstObjectByType<MainMenuUI>() != null)
-            {
-                Debug.Log("[AutoCreateMainMenu] MainMenuUI already exists, skipping creation");
-                return;
-            }
-
             // MainGame 씬에서만 실행
             if (SceneManager.GetActiveScene().name != "MainGame")
             {
+                Destroy(gameObject);
+                return;
+            }
+
+            // 이미 버튼이 있으면 생성 안 함
+            if (GameObject.Find("SinglePlayButton") != null)
+            {
+                Debug.Log("[AutoCreateMainMenu] Buttons already exist, skipping creation");
+                Destroy(gameObject);
                 return;
             }
 
             Debug.Log("[AutoCreateMainMenu] Creating main menu buttons...");
             CreateMainMenuButtons();
+            
+            // 생성 후 자신은 삭제
+            Destroy(gameObject);
         }
 
         private void CreateMainMenuButtons()
@@ -43,16 +48,6 @@ namespace LottoDefense.UI
                 Debug.Log("[AutoCreateMainMenu] Canvas created");
             }
 
-            // MainMenuUI GameObject 생성
-            GameObject mainMenuObj = new GameObject("MainMenuUI");
-            mainMenuObj.transform.SetParent(canvas.transform, false);
-            MainMenuUI mainMenuUI = mainMenuObj.AddComponent<MainMenuUI>();
-
-            RectTransform menuRect = mainMenuObj.GetComponent<RectTransform>();
-            menuRect.anchorMin = Vector2.zero;
-            menuRect.anchorMax = Vector2.one;
-            menuRect.sizeDelta = Vector2.zero;
-
             // SceneNavigator 생성 또는 찾기
             SceneNavigator navigator = FindFirstObjectByType<SceneNavigator>();
             if (navigator == null)
@@ -67,10 +62,10 @@ namespace LottoDefense.UI
             if (defaultFont == null)
                 defaultFont = Resources.GetBuiltinResource<Font>("Arial.ttf");
 
-            // 1. 싱글 플레이 버튼 (화면 중앙 위쪽)
+            // 1. 싱글 플레이 버튼
             Button singleButton = CreateButton("SinglePlayButton", "싱글 플레이", 
                 new Vector2(0.5f, 0.65f), new Vector2(300, 80), 
-                new Color(0.2f, 0.6f, 1f), defaultFont, mainMenuObj.transform);
+                new Color(0.2f, 0.6f, 1f), defaultFont, canvas.transform);
             
             singleButton.onClick.AddListener(() => 
             {
@@ -81,7 +76,7 @@ namespace LottoDefense.UI
             // 2. 협동 플레이 버튼
             Button coopButton = CreateButton("CoopPlayButton", "협동 플레이", 
                 new Vector2(0.5f, 0.5f), new Vector2(300, 80), 
-                new Color(0.9f, 0.5f, 0.2f), defaultFont, mainMenuObj.transform);
+                new Color(0.9f, 0.5f, 0.2f), defaultFont, canvas.transform);
             
             coopButton.onClick.AddListener(() => 
             {
@@ -92,7 +87,7 @@ namespace LottoDefense.UI
             // 3. 랭킹 버튼
             Button rankingButton = CreateButton("RankingButton", "랭킹", 
                 new Vector2(0.5f, 0.35f), new Vector2(300, 60), 
-                new Color(0.3f, 0.7f, 0.3f), defaultFont, mainMenuObj.transform);
+                new Color(0.3f, 0.7f, 0.3f), defaultFont, canvas.transform);
             
             rankingButton.onClick.AddListener(() => 
             {
@@ -103,31 +98,12 @@ namespace LottoDefense.UI
             // 4. 내 기록 버튼
             Button statsButton = CreateButton("MyStatsButton", "내 기록", 
                 new Vector2(0.5f, 0.25f), new Vector2(300, 60), 
-                new Color(0.7f, 0.3f, 0.7f), defaultFont, mainMenuObj.transform);
+                new Color(0.7f, 0.3f, 0.7f), defaultFont, canvas.transform);
             
             statsButton.onClick.AddListener(() => 
             {
                 Debug.Log("[AutoCreateMainMenu] Stats button clicked!");
-                // TODO: Show stats UI
             });
-
-            // MainMenuUI에 버튼 참조 연결
-            var singleField = typeof(MainMenuUI).GetField("singlePlayButton", 
-                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            var coopField = typeof(MainMenuUI).GetField("coopPlayButton", 
-                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            var rankingField = typeof(MainMenuUI).GetField("rankingButton", 
-                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            var statsField = typeof(MainMenuUI).GetField("myStatsButton", 
-                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            var navField = typeof(MainMenuUI).GetField("sceneNavigator", 
-                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-
-            singleField?.SetValue(mainMenuUI, singleButton);
-            coopField?.SetValue(mainMenuUI, coopButton);
-            rankingField?.SetValue(mainMenuUI, rankingButton);
-            statsField?.SetValue(mainMenuUI, statsButton);
-            navField?.SetValue(mainMenuUI, navigator);
 
             Debug.Log("[AutoCreateMainMenu] ✅ 메인 메뉴 버튼 자동 생성 완료!");
             Debug.Log("버튼 4개: 싱글 플레이, 협동 플레이, 랭킹, 내 기록");
