@@ -130,7 +130,7 @@ namespace LottoDefense.Units
         /// <summary>
         /// Mana regeneration per second.
         /// </summary>
-        public float ManaRegenPerSecond { get; private set; } = 100f; // 10배 증가로 빠른 테스트
+        public float ManaRegenPerSecond { get; private set; } = 10f; // 정상 속도
 
         /// <summary>
         /// Per-instance cloned skills (prevents shared state between same-type units).
@@ -239,7 +239,7 @@ namespace LottoDefense.Units
             // Initialize mana system (시간 기반 마나 재생)
             CurrentMana = 0f;
             MaxMana = 100f;
-            ManaRegenPerSecond = 100f; // 10배 증가 (빠른 테스트용)
+            ManaRegenPerSecond = 10f; // 정상 속도
 
             // Clone skills per-unit to prevent shared cooldown state between same-type units
             if (unitData.skills != null && unitData.skills.Length > 0)
@@ -266,8 +266,8 @@ namespace LottoDefense.Units
                 
                 if (skillCooldown > 0f)
                 {
-                    // 10배 빠른 마나 재생 (원래는 skillCooldown 초에 100% 채움, 이제는 1/10 시간에 채움)
-                    ManaRegenPerSecond = (MaxMana / skillCooldown) * 10f;
+                    // 마나 재생 = 스킬 쿨타임과 동기화 (쿨타임 시간에 마나 100% 채움)
+                    ManaRegenPerSecond = MaxMana / skillCooldown;
                 }
                 else
                 {
@@ -755,17 +755,6 @@ namespace LottoDefense.Units
                 // 쿨다운 중이면 99.9%까지만, 아니면 100%까지
                 float maxAllowed = hasActiveSkillOnCooldown ? (MaxMana * 0.999f) : MaxMana;
                 CurrentMana = Mathf.Min(newMana, maxAllowed);
-                
-                // 디버그: 99%에 도달했을 때만 로그
-                if (!hasActiveSkillOnCooldown && oldMana < MaxMana * 0.99f && CurrentMana >= MaxMana * 0.99f)
-                {
-                    Debug.Log($"[SKILL-DEBUG] {Data.GetDisplayName()} mana 99% reached, CD clear, should hit 100% next tick");
-                }
-                if (hasActiveSkillOnCooldown && oldMana < MaxMana * 0.99f && CurrentMana >= MaxMana * 0.99f)
-                {
-                    var activeSkill = System.Array.Find(instanceSkills, s => s.skillType == SkillType.Active);
-                    Debug.Log($"[SKILL-DEBUG] {Data.GetDisplayName()} mana capped at 99.9%, waiting for CD: {activeSkill?.currentCooldown:F2}s");
-                }
 
                 // Fire mana changed event
                 OnManaChanged?.Invoke(CurrentMana, MaxMana);
@@ -774,7 +763,6 @@ namespace LottoDefense.Units
             // Auto-trigger skill when mana is full (쿨다운 끝났을 때만 100%가 됨)
             if (CurrentMana >= MaxMana)
             {
-                Debug.Log($"[SKILL-DEBUG] {Data.GetDisplayName()} mana 100%, triggering skill...");
                 TriggerSkill();
             }
         }
@@ -797,16 +785,10 @@ namespace LottoDefense.Units
             {
                 if (skill.skillType == SkillType.Active)
                 {
-                    Debug.Log($"[SKILL-DEBUG] {Data.GetDisplayName()} trying {skill.skillName}, CD={skill.currentCooldown:F2}s, IsOnCD={skill.IsOnCooldown}");
                     if (skill.TryActivate())
                     {
                         skillToActivate = skill;
-                        Debug.Log($"[SKILL-DEBUG] {Data.GetDisplayName()} activated {skill.skillName}!");
                         break;
-                    }
-                    else
-                    {
-                        Debug.LogWarning($"[SKILL-DEBUG] {Data.GetDisplayName()} FAILED to activate {skill.skillName} (still on cooldown)");
                     }
                 }
             }
