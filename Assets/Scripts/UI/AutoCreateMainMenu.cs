@@ -57,15 +57,27 @@ namespace LottoDefense.UI
                 DontDestroyOnLoad(navObj);
             }
 
+            // "게임 시작" 버튼 삭제 (있으면)
+            GameObject oldStartButton = GameObject.Find("StartButton");
+            if (oldStartButton != null)
+            {
+                Destroy(oldStartButton);
+                Debug.Log("[AutoCreateMainMenu] Old StartButton removed");
+            }
+
             // 버튼 생성
             Font defaultFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             if (defaultFont == null)
                 defaultFont = Resources.GetBuiltinResource<Font>("Arial.ttf");
 
-            // 1. 싱글 플레이 버튼
+            // 1. 싱글 플레이 버튼 (화면 중앙, 왼쪽)
             Button singleButton = CreateButton("SinglePlayButton", "싱글 플레이", 
-                new Vector2(0.5f, 0.65f), new Vector2(300, 80), 
+                new Vector2(0.5f, 0.5f), new Vector2(250, 100), 
                 new Color(0.2f, 0.6f, 1f), defaultFont, canvas.transform);
+            
+            // 왼쪽으로 이동 (-140px)
+            RectTransform singleRect = singleButton.GetComponent<RectTransform>();
+            singleRect.anchoredPosition = new Vector2(-140, 0);
             
             singleButton.onClick.AddListener(() => 
             {
@@ -73,10 +85,14 @@ namespace LottoDefense.UI
                 navigator.LoadGameScene();
             });
 
-            // 2. 협동 플레이 버튼
+            // 2. 협동 플레이 버튼 (화면 중앙, 오른쪽)
             Button coopButton = CreateButton("CoopPlayButton", "협동 플레이", 
-                new Vector2(0.5f, 0.5f), new Vector2(300, 80), 
+                new Vector2(0.5f, 0.5f), new Vector2(250, 100), 
                 new Color(0.9f, 0.5f, 0.2f), defaultFont, canvas.transform);
+            
+            // 오른쪽으로 이동 (+140px)
+            RectTransform coopRect = coopButton.GetComponent<RectTransform>();
+            coopRect.anchoredPosition = new Vector2(140, 0);
             
             coopButton.onClick.AddListener(() => 
             {
@@ -84,10 +100,18 @@ namespace LottoDefense.UI
                 navigator.ShowMultiplayerLobby();
             });
 
-            // 3. 랭킹 버튼
+            // 3. 랭킹 버튼 (왼쪽 상단)
             Button rankingButton = CreateButton("RankingButton", "랭킹", 
-                new Vector2(0.5f, 0.35f), new Vector2(300, 60), 
+                new Vector2(0f, 1f), new Vector2(120, 50), 
                 new Color(0.3f, 0.7f, 0.3f), defaultFont, canvas.transform);
+            
+            // 왼쪽 상단 모서리에 배치 (여백 10px)
+            RectTransform rankingRect = rankingButton.GetComponent<RectTransform>();
+            rankingRect.anchoredPosition = new Vector2(70, -35);
+            
+            // 텍스트 크기 줄이기
+            Text rankingText = rankingButton.GetComponentInChildren<Text>();
+            if (rankingText != null) rankingText.fontSize = 24;
             
             rankingButton.onClick.AddListener(() => 
             {
@@ -95,10 +119,18 @@ namespace LottoDefense.UI
                 navigator.ShowRankings();
             });
 
-            // 4. 내 기록 버튼
+            // 4. 내 기록 버튼 (왼쪽 상단, 랭킹 버튼 아래)
             Button statsButton = CreateButton("MyStatsButton", "내 기록", 
-                new Vector2(0.5f, 0.25f), new Vector2(300, 60), 
+                new Vector2(0f, 1f), new Vector2(120, 50), 
                 new Color(0.7f, 0.3f, 0.7f), defaultFont, canvas.transform);
+            
+            // 랭킹 버튼 아래에 배치 (여백 5px)
+            RectTransform statsRect = statsButton.GetComponent<RectTransform>();
+            statsRect.anchoredPosition = new Vector2(70, -95);
+            
+            // 텍스트 크기 줄이기
+            Text statsText = statsButton.GetComponentInChildren<Text>();
+            if (statsText != null) statsText.fontSize = 24;
             
             statsButton.onClick.AddListener(() => 
             {
@@ -106,7 +138,7 @@ namespace LottoDefense.UI
             });
 
             Debug.Log("[AutoCreateMainMenu] ✅ 메인 메뉴 버튼 자동 생성 완료!");
-            Debug.Log("버튼 4개: 싱글 플레이, 협동 플레이, 랭킹, 내 기록");
+            Debug.Log("레이아웃: 싱글/협동 중앙 나란히, 랭킹/내기록 좌상단");
         }
 
         private Button CreateButton(string name, string text, Vector2 anchorPos, Vector2 size, Color color, Font font, Transform parent)
