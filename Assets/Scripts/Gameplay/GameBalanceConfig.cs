@@ -139,10 +139,10 @@ namespace LottoDefense.Gameplay
                 skillIds = new List<string> { "area_attack", "chain_lightning", "meteor" }
             },
 
-            // Legendary 유닛 - Dragon Knight (전설 기사, 스플래시 공격)
+            // Legendary 유닛 - DragonKnight (전설 기사, 스플래시 공격)
             new UnitBalance
             {
-                unitName = "Dragon Knight",
+                unitName = "DragonKnight",
                 rarity = Rarity.Legendary,
                 attack = 40,
                 attackSpeed = 0.7f,
@@ -598,14 +598,14 @@ namespace LottoDefense.Gameplay
             new SynthesisRecipe
             {
                 sourceUnitName = "Mage",
-                resultUnitName = "Dragon Knight",
+                resultUnitName = "DragonKnight",
                 synthesisGoldCost = 0
             },
 
-            // Legendary → Legendary (Dragon Knight → Phoenix)
+            // Legendary → Legendary (DragonKnight → Phoenix)
             new SynthesisRecipe
             {
-                sourceUnitName = "Dragon Knight",
+                sourceUnitName = "DragonKnight",
                 resultUnitName = "Phoenix",
                 synthesisGoldCost = 0
             }
@@ -639,7 +639,7 @@ namespace LottoDefense.Gameplay
             new UnitShopPrice { unitName = "Warrior", goldCost = 0 },
             new UnitShopPrice { unitName = "Archer", goldCost = 100 },
             new UnitShopPrice { unitName = "Mage", goldCost = 500 },
-            new UnitShopPrice { unitName = "Dragon Knight", goldCost = 2000 },
+            new UnitShopPrice { unitName = "DragonKnight", goldCost = 2000 },
             new UnitShopPrice { unitName = "Phoenix", goldCost = 3000 }
         };
 
