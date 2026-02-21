@@ -140,9 +140,8 @@ namespace LottoDefense.UI
             var recipe = balanceConfig.GetSynthesisRecipe(source.Data.unitName);
             if (recipe == null) return;
 
-            Canvas canvas = FindGameCanvas();
-            if (canvas == null) return;
-
+            // 맵에 같은 유닛이 있는지 확인
+            bool hasMatchingUnit = false;
             for (int x = 0; x < GridManager.GRID_WIDTH; x++)
             {
                 for (int y = 0; y < GridManager.GRID_HEIGHT; y++)
@@ -151,19 +150,26 @@ namespace LottoDefense.UI
                     if (candidate == null) continue;
                     if (candidate == source) continue;
                     if (candidate.Data.unitName != source.Data.unitName) continue;
-
-                    GameObject btnObj = new GameObject($"SynthesisBtn_{x}_{y}");
-                    btnObj.transform.SetParent(canvas.transform, false);
-
-                    SynthesisButtonController controller = btnObj.AddComponent<SynthesisButtonController>();
-                    controller.Initialize(source, candidate, OnSynthesisFloatingClicked);
-                    activeSynthesisButtons.Add(controller);
+                    
+                    hasMatchingUnit = true;
+                    break;
                 }
+                if (hasMatchingUnit) break;
             }
 
-            if (activeSynthesisButtons.Count > 0)
-            {
-            }
+            // 조합 가능한 유닛이 없으면 버튼 표시 안 함
+            if (!hasMatchingUnit) return;
+
+            Canvas canvas = FindGameCanvas();
+            if (canvas == null) return;
+
+            // 선택한 유닛 위에만 조합 버튼 1개 표시
+            GameObject btnObj = new GameObject($"SynthesisBtn_Auto");
+            btnObj.transform.SetParent(canvas.transform, false);
+
+            SynthesisButtonController controller = btnObj.AddComponent<SynthesisButtonController>();
+            controller.Initialize(source, source, OnAutoSynthesisClicked); // source를 두 번 전달
+            activeSynthesisButtons.Add(controller);
         }
 
         private void OnSynthesisFloatingClicked(Unit source, Unit target)
@@ -180,6 +186,53 @@ namespace LottoDefense.UI
             if (success)
             {
                 Debug.Log("[UnitSelectionUI] 1-click synthesis successful!");
+            }
+
+            HideUI();
+        }
+
+        /// <summary>
+        /// 자동 조합: 맵에서 같은 유닛을 앞에서부터 찾아서 조합
+        /// </summary>
+        private void OnAutoSynthesisClicked(Unit source, Unit dummy)
+        {
+            if (source == null) return;
+
+            if (GridManager.Instance == null || SynthesisManager.Instance == null)
+            {
+                Debug.LogError("[UnitSelectionUI] GridManager or SynthesisManager not found!");
+                return;
+            }
+
+            // 맵에서 같은 유닛 찾기 (앞에서부터)
+            Unit targetUnit = null;
+            for (int y = 0; y < GridManager.GRID_HEIGHT; y++)
+            {
+                for (int x = 0; x < GridManager.GRID_WIDTH; x++)
+                {
+                    Unit candidate = GridManager.Instance.GetUnitAt(x, y);
+                    if (candidate == null) continue;
+                    if (candidate == source) continue;
+                    if (candidate.Data.unitName != source.Data.unitName) continue;
+
+                    targetUnit = candidate;
+                    break;
+                }
+                if (targetUnit != null) break;
+            }
+
+            if (targetUnit == null)
+            {
+                Debug.LogWarning("[UnitSelectionUI] No matching unit found for synthesis!");
+                HideUI();
+                return;
+            }
+
+            // 조합 실행
+            bool success = SynthesisManager.Instance.TrySynthesize(source, targetUnit);
+            if (success)
+            {
+                Debug.Log($"[UnitSelectionUI] Auto synthesis successful: {source.Data.unitName} + {targetUnit.Data.unitName}");
             }
 
             HideUI();
