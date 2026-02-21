@@ -8,6 +8,7 @@ namespace LottoDefense.UI
     /// MainGame 씬 로드 시 자동으로 메인 메뉴 버튼 생성
     /// Unity Editor 메뉴 실행 필요 없음!
     /// </summary>
+    [DefaultExecutionOrder(-100)] // 다른 스크립트보다 먼저 실행
     public class AutoCreateMainMenu : MonoBehaviour
     {
         private void Awake()
@@ -57,15 +58,7 @@ namespace LottoDefense.UI
                 DontDestroyOnLoad(navObj);
             }
 
-            // "게임 시작" 버튼 삭제 (있으면)
-            GameObject oldStartButton = GameObject.Find("StartButton");
-            if (oldStartButton != null)
-            {
-                Destroy(oldStartButton);
-                Debug.Log("[AutoCreateMainMenu] Old StartButton removed");
-            }
-
-            // 버튼 생성
+            // 버튼 생성 (StartGameButton은 이미 Bootstrapper에서 삭제됨)
             Font defaultFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             if (defaultFont == null)
                 defaultFont = Resources.GetBuiltinResource<Font>("Arial.ttf");
