@@ -140,10 +140,17 @@ namespace LottoDefense.Monsters
             CurrentWaypointIndex = 0;
             this.loopPath = loopPath;
 
-            // Apply round scaling
-            MaxHealth = data.GetScaledHealth(round);
+            // Apply round scaling + difficulty multipliers
+            int baseHealth = data.GetScaledHealth(round);
+            int baseDefense = data.GetScaledDefense(round);
+            
+            GameDifficulty difficulty = GameplayManager.Instance != null 
+                ? GameplayManager.Instance.CurrentDifficulty 
+                : GameDifficulty.Normal;
+            
+            MaxHealth = Mathf.RoundToInt(baseHealth * DifficultyMultipliers.GetHealthMultiplier(difficulty));
             CurrentHealth = MaxHealth;
-            Defense = data.GetScaledDefense(round);
+            Defense = Mathf.RoundToInt(baseDefense * DifficultyMultipliers.GetDefenseMultiplier(difficulty));
             moveSpeed = data.moveSpeed;
             baseSpeed = data.moveSpeed;
             goldReward = data.goldReward;

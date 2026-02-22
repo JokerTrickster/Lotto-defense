@@ -429,7 +429,7 @@ namespace LottoDefense.Lobby
             singleColors.pressedColor = new Color(0.55f, 0.55f, 0.55f, 1f);
             singleColors.fadeDuration = 0.06f;
             singleButton.colors = singleColors;
-            singleButton.onClick.AddListener(OnGameStartClicked); // 기존 동작 유지
+            singleButton.onClick.AddListener(() => OnSinglePlayClicked());
 
             GameObject singleTextObj = new GameObject("Text");
             singleTextObj.transform.SetParent(singleBtn.transform, false);
@@ -462,9 +462,7 @@ namespace LottoDefense.Lobby
             coopColors.pressedColor = new Color(0.55f, 0.55f, 0.55f, 1f);
             coopColors.fadeDuration = 0.06f;
             coopButton.colors = coopColors;
-            coopButton.onClick.AddListener(() => {
-                Debug.Log("[MainGameBootstrapper] Coop play clicked - TODO: Show multiplayer lobby");
-            });
+            coopButton.onClick.AddListener(() => OnCoopPlayClicked());
 
             GameObject coopTextObj = new GameObject("Text");
             coopTextObj.transform.SetParent(coopBtn.transform, false);
@@ -765,6 +763,30 @@ namespace LottoDefense.Lobby
 
             overlay.SetActive(false);
             return panel;
+        }
+
+        private void OnSinglePlayClicked()
+        {
+            Debug.Log("[MainGameBootstrapper] Single play button clicked - showing difficulty selection");
+            LottoDefense.UI.DifficultySelectionUI.Show(false, OnDifficultySelected);
+        }
+
+        private void OnCoopPlayClicked()
+        {
+            Debug.Log("[MainGameBootstrapper] Coop play button clicked - showing difficulty selection");
+            LottoDefense.UI.DifficultySelectionUI.Show(true, OnDifficultySelected);
+        }
+
+        private void OnDifficultySelected(LottoDefense.Gameplay.GameDifficulty difficulty)
+        {
+            Debug.Log($"[MainGameBootstrapper] Difficulty selected: {difficulty}");
+            
+            // 난이도 저장 (게임 시작 전에 GameplayManager가 설정할 수 있도록)
+            PlayerPrefs.SetInt("SelectedDifficulty", (int)difficulty);
+            PlayerPrefs.Save();
+            
+            // 게임 시작
+            OnGameStartClicked();
         }
         #endregion
     }

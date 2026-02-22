@@ -80,6 +80,11 @@ namespace LottoDefense.Gameplay
         /// Current player gold amount.
         /// </summary>
         public int CurrentGold { get; private set; }
+
+        /// <summary>
+        /// Current game difficulty.
+        /// </summary>
+        public GameDifficulty CurrentDifficulty { get; private set; } = GameDifficulty.Normal;
         #endregion
 
         #region Events
@@ -191,6 +196,19 @@ namespace LottoDefense.Gameplay
             int startingGold = balanceConfig != null ? balanceConfig.gameRules.startingGold : 30;
             CurrentGold = startingGold;
 
+            // Load difficulty from PlayerPrefs
+            int difficultyInt = PlayerPrefs.GetInt("SelectedDifficulty", 0); // 0 = Normal
+            CurrentDifficulty = (GameDifficulty)difficultyInt;
+            Debug.Log($"[GameplayManager] Loaded difficulty: {CurrentDifficulty}");
+        }
+
+        /// <summary>
+        /// 게임 난이도 설정 (게임 시작 전에 호출)
+        /// </summary>
+        public void SetDifficulty(GameDifficulty difficulty)
+        {
+            CurrentDifficulty = difficulty;
+            Debug.Log($"[GameplayManager] Difficulty set to: {difficulty}");
         }
         #endregion
 
