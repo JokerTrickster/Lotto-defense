@@ -65,9 +65,27 @@ namespace LottoDefense.UI
                 GameObject canvasObj = new GameObject("Canvas");
                 canvas = canvasObj.AddComponent<Canvas>();
                 canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-                canvasObj.AddComponent<CanvasScaler>();
+                
+                // CanvasScaler 설정 (모바일 대응)
+                CanvasScaler scaler = canvasObj.AddComponent<CanvasScaler>();
+                scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+                scaler.referenceResolution = new Vector2(1080, 1920); // 모바일 세로 해상도
+                scaler.matchWidthOrHeight = 0.5f; // Width와 Height 균형
+                
                 canvasObj.AddComponent<GraphicRaycaster>();
-                Debug.Log("[AutoCreateMainMenu] Canvas created");
+                Debug.Log("[AutoCreateMainMenu] Canvas created with mobile-friendly scaler");
+            }
+            else
+            {
+                // 기존 Canvas의 Scaler 설정 업데이트
+                CanvasScaler scaler = canvas.GetComponent<CanvasScaler>();
+                if (scaler != null)
+                {
+                    scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+                    scaler.referenceResolution = new Vector2(1080, 1920);
+                    scaler.matchWidthOrHeight = 0.5f;
+                    Debug.Log("[AutoCreateMainMenu] Updated existing CanvasScaler for mobile");
+                }
             }
 
             // SceneNavigator 생성 또는 찾기
@@ -84,14 +102,14 @@ namespace LottoDefense.UI
             if (defaultFont == null)
                 defaultFont = Resources.GetBuiltinResource<Font>("Arial.ttf");
 
-            // 1. 싱글 플레이 버튼 (화면 중앙, 왼쪽)
+            // 1. 싱글 플레이 버튼 (화면 중앙, 왼쪽) - 모바일 최적화
             Button singleButton = CreateButton("SinglePlayButton", "싱글 플레이", 
-                new Vector2(0.5f, 0.5f), new Vector2(250, 100), 
+                new Vector2(0.5f, 0.5f), new Vector2(400, 150), // 크게 (터치하기 쉽게)
                 new Color(0.2f, 0.6f, 1f), defaultFont, canvas.transform);
             
-            // 왼쪽으로 이동 (-140px)
+            // 왼쪽으로 이동
             RectTransform singleRect = singleButton.GetComponent<RectTransform>();
-            singleRect.anchoredPosition = new Vector2(-140, 0);
+            singleRect.anchoredPosition = new Vector2(-220, 0);
             
             singleButton.onClick.AddListener(() => 
             {
@@ -99,14 +117,14 @@ namespace LottoDefense.UI
                 navigator.LoadGameScene();
             });
 
-            // 2. 협동 플레이 버튼 (화면 중앙, 오른쪽)
+            // 2. 협동 플레이 버튼 (화면 중앙, 오른쪽) - 모바일 최적화
             Button coopButton = CreateButton("CoopPlayButton", "협동 플레이", 
-                new Vector2(0.5f, 0.5f), new Vector2(250, 100), 
+                new Vector2(0.5f, 0.5f), new Vector2(400, 150), // 크게 (터치하기 쉽게)
                 new Color(0.9f, 0.5f, 0.2f), defaultFont, canvas.transform);
             
-            // 오른쪽으로 이동 (+140px)
+            // 오른쪽으로 이동
             RectTransform coopRect = coopButton.GetComponent<RectTransform>();
-            coopRect.anchoredPosition = new Vector2(140, 0);
+            coopRect.anchoredPosition = new Vector2(220, 0);
             
             coopButton.onClick.AddListener(() => 
             {
@@ -114,18 +132,18 @@ namespace LottoDefense.UI
                 navigator.ShowMultiplayerLobby();
             });
 
-            // 3. 랭킹 버튼 (왼쪽 상단)
+            // 3. 랭킹 버튼 (왼쪽 상단) - Safe Area 고려
             Button rankingButton = CreateButton("RankingButton", "랭킹", 
-                new Vector2(0f, 1f), new Vector2(120, 50), 
+                new Vector2(0f, 1f), new Vector2(150, 70), // 모바일에 맞게 크게
                 new Color(0.3f, 0.7f, 0.3f), defaultFont, canvas.transform);
             
-            // 왼쪽 상단 모서리에 배치 (여백 10px)
+            // 왼쪽 상단 모서리에 배치 (노치 피하기)
             RectTransform rankingRect = rankingButton.GetComponent<RectTransform>();
-            rankingRect.anchoredPosition = new Vector2(70, -35);
+            rankingRect.anchoredPosition = new Vector2(90, -100); // 더 아래로 (노치 피하기)
             
-            // 텍스트 크기 줄이기
+            // 텍스트 크기
             Text rankingText = rankingButton.GetComponentInChildren<Text>();
-            if (rankingText != null) rankingText.fontSize = 24;
+            if (rankingText != null) rankingText.fontSize = 32;
             
             rankingButton.onClick.AddListener(() => 
             {
@@ -133,18 +151,18 @@ namespace LottoDefense.UI
                 navigator.ShowRankings();
             });
 
-            // 4. 내 기록 버튼 (왼쪽 상단, 랭킹 버튼 아래)
+            // 4. 내 기록 버튼 (왼쪽 상단, 랭킹 버튼 아래) - Safe Area 고려
             Button statsButton = CreateButton("MyStatsButton", "내 기록", 
-                new Vector2(0f, 1f), new Vector2(120, 50), 
+                new Vector2(0f, 1f), new Vector2(150, 70), // 모바일에 맞게 크게
                 new Color(0.7f, 0.3f, 0.7f), defaultFont, canvas.transform);
             
-            // 랭킹 버튼 아래에 배치 (여백 5px)
+            // 랭킹 버튼 아래에 배치
             RectTransform statsRect = statsButton.GetComponent<RectTransform>();
-            statsRect.anchoredPosition = new Vector2(70, -95);
+            statsRect.anchoredPosition = new Vector2(90, -185); // 여백 15px
             
-            // 텍스트 크기 줄이기
+            // 텍스트 크기
             Text statsText = statsButton.GetComponentInChildren<Text>();
-            if (statsText != null) statsText.fontSize = 24;
+            if (statsText != null) statsText.fontSize = 32;
             
             statsButton.onClick.AddListener(() => 
             {
@@ -185,10 +203,13 @@ namespace LottoDefense.UI
             Text btnText = textObj.AddComponent<Text>();
             btnText.text = text;
             btnText.font = font;
-            btnText.fontSize = 32;
+            btnText.fontSize = 48; // 모바일에서 보기 쉽게 크게
             btnText.color = Color.white;
             btnText.alignment = TextAnchor.MiddleCenter;
             btnText.fontStyle = FontStyle.Bold;
+            btnText.resizeTextForBestFit = true; // 자동 크기 조정
+            btnText.resizeTextMinSize = 24;
+            btnText.resizeTextMaxSize = 48;
 
             return btn;
         }

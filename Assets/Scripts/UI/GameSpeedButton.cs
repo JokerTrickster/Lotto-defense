@@ -110,13 +110,13 @@ namespace LottoDefense.UI
             GameObject btnObj = new GameObject("SpeedButton");
             btnObj.transform.SetParent(canvas.transform, false);
 
-            // RectTransform 설정 (우상단)
+            // RectTransform 설정 (우상단, Safe Area 고려)
             RectTransform btnRect = btnObj.AddComponent<RectTransform>();
             btnRect.anchorMin = new Vector2(1f, 1f); // 우상단
             btnRect.anchorMax = new Vector2(1f, 1f);
             btnRect.pivot = new Vector2(1f, 1f);
-            btnRect.anchoredPosition = new Vector2(-20, -20); // 우상단에서 20px 여백
-            btnRect.sizeDelta = new Vector2(80, 50);
+            btnRect.anchoredPosition = new Vector2(-30, -80); // 노치/홈 바 피하기 (더 아래로)
+            btnRect.sizeDelta = new Vector2(100, 60); // 모바일에서 터치하기 쉽게 크게
 
             // Image 컴포넌트
             Image btnImage = btnObj.AddComponent<Image>();
