@@ -334,6 +334,12 @@ namespace LottoDefense.Lobby
             questBtn.GetComponent<Button>().onClick.AddListener(OnQuestClicked);
             questBadge = NotificationBadge.Create(questBtn.transform, defaultFont);
 
+            // Synthesis button (조합)
+            GameObject synthesisBtn = CreateIconButton(rightObj.transform, "Synthesis", "조합");
+            synthesisBtn.GetComponent<Button>().onClick.AddListener(() => {
+                Debug.Log("[MainGameBootstrapper] Synthesis clicked - TODO: Show synthesis UI");
+            });
+
             // Mailbox button
             GameObject mailBtn = CreateIconButton(rightObj.transform, "Mailbox", "Ma");
             mailBtn.GetComponent<Button>().onClick.AddListener(OnMailboxClicked);

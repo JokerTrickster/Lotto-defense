@@ -301,6 +301,12 @@ namespace LottoDefense.Units
         /// </summary>
         public bool CanDraw()
         {
+            // 카운트다운 중에는 유닛 생산 불가
+            if (GameplayManager.Instance.CurrentState == GameState.Countdown)
+            {
+                return false;
+            }
+            
             return GameplayManager.Instance.CurrentGold >= gachaCost && !IsInventoryFull;
         }
 
