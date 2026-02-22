@@ -338,6 +338,19 @@ namespace LottoDefense.Lobby
             GameObject mailBtn = CreateIconButton(rightObj.transform, "Mailbox", "Ma");
             mailBtn.GetComponent<Button>().onClick.AddListener(OnMailboxClicked);
             mailBadge = NotificationBadge.Create(mailBtn.transform, defaultFont);
+
+            // Ranking button (랭킹)
+            GameObject rankingBtn = CreateIconButton(rightObj.transform, "Ranking", "랭킹");
+            rankingBtn.GetComponent<Button>().onClick.AddListener(() => {
+                Debug.Log("[MainGameBootstrapper] Ranking clicked - TODO: Show rankings");
+            });
+            // 랭킹 버튼은 약간 크게
+            LayoutElement rankingLE = rankingBtn.GetComponent<LayoutElement>();
+            rankingLE.preferredWidth = 120;
+            rankingLE.preferredHeight = 60;
+            // 텍스트 크기 조정
+            Text rankingText = rankingBtn.GetComponentInChildren<Text>();
+            if (rankingText != null) rankingText.fontSize = 32;
         }
 
         private GameObject CreateIconButton(Transform parent, string name, string label)
@@ -389,53 +402,73 @@ namespace LottoDefense.Lobby
 
         private void CreateGameStartButton()
         {
-            // Container for centering
-            GameObject container = new GameObject("GameStartContainer");
-            container.transform.SetParent(safeAreaRoot, false);
+            // ===== 싱글 플레이 버튼 (중앙 왼쪽) =====
+            GameObject singleBtn = new GameObject("SinglePlayButton");
+            singleBtn.transform.SetParent(safeAreaRoot, false);
 
-            RectTransform containerRect = container.AddComponent<RectTransform>();
-            containerRect.anchorMin = new Vector2(0.5f, 0.15f);
-            containerRect.anchorMax = new Vector2(0.5f, 0.15f);
-            containerRect.pivot = new Vector2(0.5f, 0.5f);
-            containerRect.sizeDelta = new Vector2(LobbyDesignTokens.GameStartButtonWidth, LobbyDesignTokens.GameStartButtonHeight);
+            RectTransform singleRect = singleBtn.AddComponent<RectTransform>();
+            singleRect.anchorMin = new Vector2(0.5f, 0.4f);
+            singleRect.anchorMax = new Vector2(0.5f, 0.4f);
+            singleRect.pivot = new Vector2(0.5f, 0.5f);
+            singleRect.anchoredPosition = new Vector2(-220, 0); // 왼쪽으로
+            singleRect.sizeDelta = new Vector2(400, 150);
 
-            Image bg = container.AddComponent<Image>();
-            bg.color = LobbyDesignTokens.ButtonPrimary;
+            Image singleBg = singleBtn.AddComponent<Image>();
+            singleBg.color = new Color(0.2f, 0.6f, 1f); // 파란색
 
-            Button btn = container.AddComponent<Button>();
-            ColorBlock colors = btn.colors;
-            colors.normalColor = Color.white;
-            colors.highlightedColor = new Color(0.9f, 0.95f, 1f, 1f);
-            colors.pressedColor = new Color(0.55f, 0.55f, 0.55f, 1f);
-            colors.fadeDuration = 0.06f;
-            btn.colors = colors;
-            btn.onClick.AddListener(OnGameStartClicked);
+            Button singleButton = singleBtn.AddComponent<Button>();
+            ColorBlock singleColors = singleButton.colors;
+            singleColors.normalColor = Color.white;
+            singleColors.highlightedColor = new Color(0.9f, 0.95f, 1f, 1f);
+            singleColors.pressedColor = new Color(0.55f, 0.55f, 0.55f, 1f);
+            singleColors.fadeDuration = 0.06f;
+            singleButton.colors = singleColors;
+            singleButton.onClick.AddListener(OnGameStartClicked); // 기존 동작 유지
 
-            // Add outline
-            Outline outline = container.AddComponent<Outline>();
-            outline.effectColor = new Color(1f, 1f, 1f, 0.3f);
-            outline.effectDistance = new Vector2(2f, 2f);
+            GameObject singleTextObj = new GameObject("Text");
+            singleTextObj.transform.SetParent(singleBtn.transform, false);
+            Text singleText = CreateText(singleTextObj, "싱글 플레이", 48, LobbyDesignTokens.ButtonText);
+            singleText.fontStyle = FontStyle.Bold;
 
-            // Main text
-            GameObject textObj = new GameObject("Text");
-            textObj.transform.SetParent(container.transform, false);
-            Text text = CreateText(textObj, "게임 시작", LobbyDesignTokens.HeaderSize, LobbyDesignTokens.ButtonText);
-            text.fontStyle = FontStyle.Bold;
+            RectTransform singleTextRect = singleTextObj.GetComponent<RectTransform>();
+            singleTextRect.anchorMin = Vector2.zero;
+            singleTextRect.anchorMax = Vector2.one;
+            singleTextRect.sizeDelta = Vector2.zero;
 
-            RectTransform textRect = textObj.GetComponent<RectTransform>();
-            textRect.anchorMin = new Vector2(0f, 0.3f);
-            textRect.anchorMax = new Vector2(1f, 1f);
-            textRect.sizeDelta = Vector2.zero;
+            // ===== 협동 플레이 버튼 (중앙 오른쪽) =====
+            GameObject coopBtn = new GameObject("CoopPlayButton");
+            coopBtn.transform.SetParent(safeAreaRoot, false);
 
-            // Sub text (ticket cost)
-            GameObject subObj = new GameObject("SubText");
-            subObj.transform.SetParent(container.transform, false);
-            CreateText(subObj, "(입장권 1장)", LobbyDesignTokens.SmallSize, new Color(1f, 1f, 1f, 0.7f));
+            RectTransform coopRect = coopBtn.AddComponent<RectTransform>();
+            coopRect.anchorMin = new Vector2(0.5f, 0.4f);
+            coopRect.anchorMax = new Vector2(0.5f, 0.4f);
+            coopRect.pivot = new Vector2(0.5f, 0.5f);
+            coopRect.anchoredPosition = new Vector2(220, 0); // 오른쪽으로
+            coopRect.sizeDelta = new Vector2(400, 150);
 
-            RectTransform subRect = subObj.GetComponent<RectTransform>();
-            subRect.anchorMin = new Vector2(0f, 0f);
-            subRect.anchorMax = new Vector2(1f, 0.35f);
-            subRect.sizeDelta = Vector2.zero;
+            Image coopBg = coopBtn.AddComponent<Image>();
+            coopBg.color = new Color(0.9f, 0.5f, 0.2f); // 주황색
+
+            Button coopButton = coopBtn.AddComponent<Button>();
+            ColorBlock coopColors = coopButton.colors;
+            coopColors.normalColor = Color.white;
+            coopColors.highlightedColor = new Color(1f, 0.95f, 0.9f, 1f);
+            coopColors.pressedColor = new Color(0.55f, 0.55f, 0.55f, 1f);
+            coopColors.fadeDuration = 0.06f;
+            coopButton.colors = coopColors;
+            coopButton.onClick.AddListener(() => {
+                Debug.Log("[MainGameBootstrapper] Coop play clicked - TODO: Show multiplayer lobby");
+            });
+
+            GameObject coopTextObj = new GameObject("Text");
+            coopTextObj.transform.SetParent(coopBtn.transform, false);
+            Text coopText = CreateText(coopTextObj, "협동 플레이", 48, LobbyDesignTokens.ButtonText);
+            coopText.fontStyle = FontStyle.Bold;
+
+            RectTransform coopTextRect = coopTextObj.GetComponent<RectTransform>();
+            coopTextRect.anchorMin = Vector2.zero;
+            coopTextRect.anchorMax = Vector2.one;
+            coopTextRect.sizeDelta = Vector2.zero;
         }
 
         private void CreateBottomButtons()
