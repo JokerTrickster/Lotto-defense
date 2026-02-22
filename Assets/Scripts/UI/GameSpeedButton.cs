@@ -16,8 +16,8 @@ namespace LottoDefense.UI
         [SerializeField] private Text speedText;
         
         [Header("Visual Settings")]
-        [SerializeField] private Color normalSpeedColor = new Color(0.8f, 0.8f, 0.8f);
-        [SerializeField] private Color fastSpeedColor = new Color(1f, 0.5f, 0.2f);
+        [SerializeField] private Color normalSpeedColor = new Color(0.3f, 0.7f, 1f); // 파란색 (눈에 잘 띔)
+        [SerializeField] private Color fastSpeedColor = new Color(1f, 0.5f, 0.2f); // 주황색
         #endregion
 
         #region Unity Lifecycle
@@ -109,14 +109,15 @@ namespace LottoDefense.UI
             // 버튼 GameObject 생성
             GameObject btnObj = new GameObject("SpeedButton");
             btnObj.transform.SetParent(canvas.transform, false);
+            btnObj.transform.SetAsLastSibling(); // 최상위로 (다른 UI 위에 표시)
 
-            // RectTransform 설정 (우상단, Safe Area 고려)
+            // RectTransform 설정 (우상단, 눈에 잘 띄게)
             RectTransform btnRect = btnObj.AddComponent<RectTransform>();
             btnRect.anchorMin = new Vector2(1f, 1f); // 우상단
             btnRect.anchorMax = new Vector2(1f, 1f);
             btnRect.pivot = new Vector2(1f, 1f);
-            btnRect.anchoredPosition = new Vector2(-30, -80); // 노치/홈 바 피하기 (더 아래로)
-            btnRect.sizeDelta = new Vector2(100, 60); // 모바일에서 터치하기 쉽게 크게
+            btnRect.anchoredPosition = new Vector2(-20, -20); // 우상단 코너에 바로 붙임
+            btnRect.sizeDelta = new Vector2(120, 80); // 더 크게 (눈에 잘 띄게)
 
             // Image 컴포넌트
             Image btnImage = btnObj.AddComponent<Image>();
@@ -139,10 +140,15 @@ namespace LottoDefense.UI
             speedText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             if (speedText.font == null)
                 speedText.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
-            speedText.fontSize = 28;
+            speedText.fontSize = 36; // 더 크게
             speedText.color = Color.white;
             speedText.alignment = TextAnchor.MiddleCenter;
             speedText.fontStyle = FontStyle.Bold;
+            
+            // 외곽선 추가 (가독성 향상)
+            Outline outline = textObj.AddComponent<Outline>();
+            outline.effectColor = Color.black;
+            outline.effectDistance = new Vector2(2, 2);
 
             Debug.Log("[GameSpeedButton] Speed button created at top-right corner");
         }
