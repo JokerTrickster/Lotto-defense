@@ -34,26 +34,32 @@ namespace LottoDefense.UI
         
         private void CleanupOldUI()
         {
-            // 모든 버튼 찾아서 삭제 (SinglePlayButton, CoopPlayButton 제외)
-            Button[] allButtons = FindObjectsByType<Button>(FindObjectsSortMode.None);
-            int deletedCount = 0;
-            
-            foreach (Button btn in allButtons)
+            // ⚠️ 기존 UI는 유지! 중복 버튼만 삭제
+            // 이미 생성된 싱글/협동/랭킹/내기록 버튼만 삭제 (중복 방지)
+            string[] duplicateButtons = new string[]
             {
-                string name = btn.gameObject.name;
-                // 이미 생성한 새 버튼은 건너뛰기
-                if (name == "SinglePlayButton" || name == "CoopPlayButton" ||
-                    name == "RankingButton" || name == "MyStatsButton")
+                "SinglePlayButton",
+                "CoopPlayButton",
+                "RankingButton",
+                "MyStatsButton"
+            };
+            
+            int deletedCount = 0;
+            foreach (string btnName in duplicateButtons)
+            {
+                GameObject btnObj = GameObject.Find(btnName);
+                if (btnObj != null)
                 {
-                    continue;
+                    Debug.Log($"[AutoCreateMainMenu] Removing duplicate: {btnName}");
+                    Destroy(btnObj);
+                    deletedCount++;
                 }
-                
-                Debug.Log($"[AutoCreateMainMenu] Deleting old button: {name}");
-                Destroy(btn.gameObject);
-                deletedCount++;
             }
             
-            Debug.Log($"[AutoCreateMainMenu] Deleted {deletedCount} old buttons");
+            if (deletedCount > 0)
+            {
+                Debug.Log($"[AutoCreateMainMenu] Removed {deletedCount} duplicate buttons");
+            }
         }
 
         private void CreateMainMenuButtons()

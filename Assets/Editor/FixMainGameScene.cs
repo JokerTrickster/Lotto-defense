@@ -43,33 +43,28 @@ namespace LottoDefense.Editor
         
         private static void DeleteOldButtons()
         {
-            // 모든 버튼 찾아서 삭제
-            Button[] buttons = Object.FindObjectsByType<Button>(FindObjectsSortMode.None);
-            foreach (Button btn in buttons)
+            // ⚠️ 기존 UI는 유지! 중복된 메인 메뉴 버튼만 삭제
+            string[] menuButtons = new string[]
             {
-                Debug.Log($"[FixMainGameScene] Deleting old button: {btn.gameObject.name}");
-                Object.DestroyImmediate(btn.gameObject);
-            }
+                "SinglePlayButton",
+                "CoopPlayButton",
+                "RankingButton",
+                "MyStatsButton"
+            };
             
-            // Canvas 안의 불필요한 GameObject 정리
-            Canvas canvas = Object.FindFirstObjectByType<Canvas>();
-            if (canvas != null)
+            int deletedCount = 0;
+            foreach (string btnName in menuButtons)
             {
-                // Canvas의 자식들 중 버튼이 아닌 것들 정리
-                Transform[] children = canvas.GetComponentsInChildren<Transform>(true);
-                foreach (Transform child in children)
+                GameObject btnObj = GameObject.Find(btnName);
+                if (btnObj != null)
                 {
-                    if (child == canvas.transform) continue;
-                    
-                    string name = child.name.ToLower();
-                    if (name.Contains("button") || name.Contains("btn") || 
-                        name.Contains("start") || name.Contains("game"))
-                    {
-                        Debug.Log($"[FixMainGameScene] Removing: {child.name}");
-                        Object.DestroyImmediate(child.gameObject);
-                    }
+                    Debug.Log($"[FixMainGameScene] Deleting duplicate: {btnName}");
+                    Object.DestroyImmediate(btnObj);
+                    deletedCount++;
                 }
             }
+            
+            Debug.Log($"[FixMainGameScene] Deleted {deletedCount} duplicate menu buttons (기존 UI 유지)");
         }
         
         private static void CreateNewUI()

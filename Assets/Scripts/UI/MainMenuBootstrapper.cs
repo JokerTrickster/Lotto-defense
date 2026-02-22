@@ -23,16 +23,7 @@ namespace LottoDefense.UI
                 return;
             }
 
-            // 즉시 "게임 시작" 버튼 제거 (씬에 있는 버튼)
-            GameObject oldStartButton = GameObject.Find("StartGameButton");
-            if (oldStartButton == null)
-                oldStartButton = GameObject.Find("StartButton");
-            
-            if (oldStartButton != null)
-            {
-                Object.Destroy(oldStartButton);
-                Debug.Log("[MainMenuBootstrapper] Old StartButton removed immediately: " + oldStartButton.name);
-            }
+            // ⚠️ 기존 UI는 건드리지 않음! StartButton 유지!
 
             // 이미 AutoCreateMainMenu가 있으면 실행 안 함
             if (Object.FindFirstObjectByType<AutoCreateMainMenu>() != null)
@@ -40,14 +31,14 @@ namespace LottoDefense.UI
                 return;
             }
 
-            // 이미 버튼이 있으면 실행 안 함
+            // 이미 싱글/협동 버튼이 있으면 실행 안 함
             if (GameObject.Find("SinglePlayButton") != null)
             {
-                Debug.Log("[MainMenuBootstrapper] Buttons already exist");
+                Debug.Log("[MainMenuBootstrapper] Main menu buttons already exist");
                 return;
             }
 
-            Debug.Log("[MainMenuBootstrapper] Creating AutoCreateMainMenu...");
+            Debug.Log("[MainMenuBootstrapper] Creating main menu buttons...");
 
             // AutoCreateMainMenu GameObject 생성
             GameObject bootstrapObj = new GameObject("AutoCreateMainMenu");
