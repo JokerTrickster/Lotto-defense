@@ -34,23 +34,26 @@ namespace LottoDefense.UI
         
         private void CleanupOldUI()
         {
-            // ⚠️ 기존 UI는 유지! 중복 버튼만 삭제
-            // 이미 생성된 싱글/협동/랭킹/내기록 버튼만 삭제 (중복 방지)
-            string[] duplicateButtons = new string[]
+            // 제거할 버튼들
+            string[] buttonsToRemove = new string[]
             {
+                // 중복 방지
                 "SinglePlayButton",
                 "CoopPlayButton",
                 "RankingButton",
-                "MyStatsButton"
+                "MyStatsButton",
+                // "게임 시작" 버튼 제거
+                "StartGameButton",
+                "게임 시작"
             };
             
             int deletedCount = 0;
-            foreach (string btnName in duplicateButtons)
+            foreach (string btnName in buttonsToRemove)
             {
                 GameObject btnObj = GameObject.Find(btnName);
                 if (btnObj != null)
                 {
-                    Debug.Log($"[AutoCreateMainMenu] Removing duplicate: {btnName}");
+                    Debug.Log($"[AutoCreateMainMenu] Removing: {btnName}");
                     Destroy(btnObj);
                     deletedCount++;
                 }
@@ -58,7 +61,7 @@ namespace LottoDefense.UI
             
             if (deletedCount > 0)
             {
-                Debug.Log($"[AutoCreateMainMenu] Removed {deletedCount} duplicate buttons");
+                Debug.Log($"[AutoCreateMainMenu] Removed {deletedCount} buttons");
             }
         }
 
@@ -108,14 +111,13 @@ namespace LottoDefense.UI
             if (defaultFont == null)
                 defaultFont = Resources.GetBuiltinResource<Font>("Arial.ttf");
 
-            // 1. 싱글 플레이 버튼 (화면 중앙, 왼쪽) - 모바일 최적화
+            // 1. 싱글 플레이 버튼 (중앙 왼쪽, 크게)
             Button singleButton = CreateButton("SinglePlayButton", "싱글 플레이", 
-                new Vector2(0.5f, 0.5f), new Vector2(400, 150), // 크게 (터치하기 쉽게)
+                new Vector2(0.5f, 0.5f), new Vector2(400, 150),
                 new Color(0.2f, 0.6f, 1f), defaultFont, canvas.transform);
             
-            // 왼쪽으로 이동
             RectTransform singleRect = singleButton.GetComponent<RectTransform>();
-            singleRect.anchoredPosition = new Vector2(-220, 0);
+            singleRect.anchoredPosition = new Vector2(-220, -50); // 약간 아래로
             
             singleButton.onClick.AddListener(() => 
             {
@@ -123,14 +125,13 @@ namespace LottoDefense.UI
                 navigator.LoadGameScene();
             });
 
-            // 2. 협동 플레이 버튼 (화면 중앙, 오른쪽) - 모바일 최적화
+            // 2. 협동 플레이 버튼 (중앙 오른쪽, 크게)
             Button coopButton = CreateButton("CoopPlayButton", "협동 플레이", 
-                new Vector2(0.5f, 0.5f), new Vector2(400, 150), // 크게 (터치하기 쉽게)
+                new Vector2(0.5f, 0.5f), new Vector2(400, 150),
                 new Color(0.9f, 0.5f, 0.2f), defaultFont, canvas.transform);
             
-            // 오른쪽으로 이동
             RectTransform coopRect = coopButton.GetComponent<RectTransform>();
-            coopRect.anchoredPosition = new Vector2(220, 0);
+            coopRect.anchoredPosition = new Vector2(220, -50); // 약간 아래로
             
             coopButton.onClick.AddListener(() => 
             {
@@ -138,16 +139,14 @@ namespace LottoDefense.UI
                 navigator.ShowMultiplayerLobby();
             });
 
-            // 3. 랭킹 버튼 (왼쪽 상단) - Safe Area 고려
+            // 3. 랭킹 버튼 (헤더 우측)
             Button rankingButton = CreateButton("RankingButton", "랭킹", 
-                new Vector2(0f, 1f), new Vector2(150, 70), // 모바일에 맞게 크게
+                new Vector2(1f, 1f), new Vector2(120, 60),
                 new Color(0.3f, 0.7f, 0.3f), defaultFont, canvas.transform);
             
-            // 왼쪽 상단 모서리에 배치 (노치 피하기)
             RectTransform rankingRect = rankingButton.GetComponent<RectTransform>();
-            rankingRect.anchoredPosition = new Vector2(90, -100); // 더 아래로 (노치 피하기)
+            rankingRect.anchoredPosition = new Vector2(-20, -40); // 헤더 우측 상단
             
-            // 텍스트 크기
             Text rankingText = rankingButton.GetComponentInChildren<Text>();
             if (rankingText != null) rankingText.fontSize = 32;
             
@@ -155,24 +154,6 @@ namespace LottoDefense.UI
             {
                 Debug.Log("[AutoCreateMainMenu] Ranking button clicked!");
                 navigator.ShowRankings();
-            });
-
-            // 4. 내 기록 버튼 (왼쪽 상단, 랭킹 버튼 아래) - Safe Area 고려
-            Button statsButton = CreateButton("MyStatsButton", "내 기록", 
-                new Vector2(0f, 1f), new Vector2(150, 70), // 모바일에 맞게 크게
-                new Color(0.7f, 0.3f, 0.7f), defaultFont, canvas.transform);
-            
-            // 랭킹 버튼 아래에 배치
-            RectTransform statsRect = statsButton.GetComponent<RectTransform>();
-            statsRect.anchoredPosition = new Vector2(90, -185); // 여백 15px
-            
-            // 텍스트 크기
-            Text statsText = statsButton.GetComponentInChildren<Text>();
-            if (statsText != null) statsText.fontSize = 32;
-            
-            statsButton.onClick.AddListener(() => 
-            {
-                Debug.Log("[AutoCreateMainMenu] Stats button clicked!");
             });
 
             Debug.Log("[AutoCreateMainMenu] ✅ 메인 메뉴 버튼 자동 생성 완료!");

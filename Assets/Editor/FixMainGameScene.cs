@@ -43,28 +43,34 @@ namespace LottoDefense.Editor
         
         private static void DeleteOldButtons()
         {
-            // ⚠️ 기존 UI는 유지! 중복된 메인 메뉴 버튼만 삭제
-            string[] menuButtons = new string[]
+            // 제거할 버튼들
+            string[] buttonsToRemove = new string[]
             {
+                // 기존 중복 메뉴 버튼
                 "SinglePlayButton",
                 "CoopPlayButton",
                 "RankingButton",
-                "MyStatsButton"
+                "MyStatsButton",
+                // "게임 시작" 버튼 제거
+                "StartGameButton",
+                "게임 시작",
+                // 프리뷰 버튼도 제거
+                "프리뷰"
             };
             
             int deletedCount = 0;
-            foreach (string btnName in menuButtons)
+            foreach (string btnName in buttonsToRemove)
             {
                 GameObject btnObj = GameObject.Find(btnName);
                 if (btnObj != null)
                 {
-                    Debug.Log($"[FixMainGameScene] Deleting duplicate: {btnName}");
+                    Debug.Log($"[FixMainGameScene] Removing: {btnName}");
                     Object.DestroyImmediate(btnObj);
                     deletedCount++;
                 }
             }
             
-            Debug.Log($"[FixMainGameScene] Deleted {deletedCount} duplicate menu buttons (기존 UI 유지)");
+            Debug.Log($"[FixMainGameScene] Removed {deletedCount} buttons");
         }
         
         private static void CreateNewUI()
@@ -94,31 +100,24 @@ namespace LottoDefense.Editor
             if (defaultFont == null)
                 defaultFont = Resources.GetBuiltinResource<Font>("Arial.ttf");
             
-            // 1. 싱글 플레이 버튼 (중앙 왼쪽)
+            // 1. 싱글 플레이 버튼 (중앙 왼쪽, 크게)
             Button singleButton = CreateButton("SinglePlayButton", "싱글 플레이", 
-                new Vector2(0.5f, 0.5f), new Vector2(250, 100), 
+                new Vector2(0.5f, 0.5f), new Vector2(400, 150), 
                 new Color(0.2f, 0.6f, 1f), defaultFont, canvas.transform);
-            singleButton.GetComponent<RectTransform>().anchoredPosition = new Vector2(-140, 0);
+            singleButton.GetComponent<RectTransform>().anchoredPosition = new Vector2(-220, -50);
             
-            // 2. 협동 플레이 버튼 (중앙 오른쪽)
+            // 2. 협동 플레이 버튼 (중앙 오른쪽, 크게)
             Button coopButton = CreateButton("CoopPlayButton", "협동 플레이", 
-                new Vector2(0.5f, 0.5f), new Vector2(250, 100), 
+                new Vector2(0.5f, 0.5f), new Vector2(400, 150), 
                 new Color(0.9f, 0.5f, 0.2f), defaultFont, canvas.transform);
-            coopButton.GetComponent<RectTransform>().anchoredPosition = new Vector2(140, 0);
+            coopButton.GetComponent<RectTransform>().anchoredPosition = new Vector2(220, -50);
             
-            // 3. 랭킹 버튼 (좌상단)
+            // 3. 랭킹 버튼 (헤더 우측 - 상단바에 통합)
             Button rankingButton = CreateButton("RankingButton", "랭킹", 
-                new Vector2(0f, 1f), new Vector2(120, 50), 
+                new Vector2(1f, 1f), new Vector2(120, 60), 
                 new Color(0.3f, 0.7f, 0.3f), defaultFont, canvas.transform);
-            rankingButton.GetComponent<RectTransform>().anchoredPosition = new Vector2(70, -35);
-            rankingButton.GetComponentInChildren<Text>().fontSize = 24;
-            
-            // 4. 내 기록 버튼 (좌상단, 랭킹 아래)
-            Button statsButton = CreateButton("MyStatsButton", "내 기록", 
-                new Vector2(0f, 1f), new Vector2(120, 50), 
-                new Color(0.7f, 0.3f, 0.7f), defaultFont, canvas.transform);
-            statsButton.GetComponent<RectTransform>().anchoredPosition = new Vector2(70, -95);
-            statsButton.GetComponentInChildren<Text>().fontSize = 24;
+            rankingButton.GetComponent<RectTransform>().anchoredPosition = new Vector2(-20, -40);
+            rankingButton.GetComponentInChildren<Text>().fontSize = 32;
             
             Debug.Log("[FixMainGameScene] 4 buttons created successfully");
         }
