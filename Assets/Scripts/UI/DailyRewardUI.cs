@@ -200,6 +200,7 @@ namespace LottoDefense.UI
             t.text = text;
             t.fontSize = fontSize;
             t.color = color;
+            t.fontStyle = FontStyle.Bold;
             t.alignment = TextAnchor.MiddleCenter;
             t.horizontalOverflow = HorizontalWrapMode.Overflow;
             t.verticalOverflow = VerticalWrapMode.Overflow;

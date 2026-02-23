@@ -138,8 +138,7 @@ namespace LottoDefense.UI
             panelRect.sizeDelta = Vector2.zero;
 
             // Message
-            Font font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            if (font == null) font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            Font font = GameFont.Get();
 
             GameObject msgObj = new GameObject("Message");
             msgObj.transform.SetParent(panel.transform, false);
@@ -148,6 +147,7 @@ namespace LottoDefense.UI
             msgText.text = "입장권이 부족합니다\n\n일일 보상, 퀘스트, 우편함에서\n입장권을 획득할 수 있습니다.";
             msgText.fontSize = 28;
             msgText.color = CuteUIHelper.DarkText;
+            msgText.fontStyle = FontStyle.Bold;
             msgText.alignment = TextAnchor.MiddleCenter;
             msgText.raycastTarget = false;
 
@@ -179,6 +179,7 @@ namespace LottoDefense.UI
             okText.text = "확인";
             okText.fontSize = 30;
             okText.color = CuteUIHelper.DarkText;
+            okText.fontStyle = FontStyle.Bold;
             okText.alignment = TextAnchor.MiddleCenter;
             okText.raycastTarget = false;
 

@@ -39,9 +39,7 @@ namespace LottoDefense.UI
 
         private void CreatePopup()
         {
-            Font defaultFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            if (defaultFont == null)
-                defaultFont = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            Font defaultFont = GameFont.Get();
 
             // Full-screen overlay
             GameObject bgObj = new GameObject("Background");
@@ -65,7 +63,7 @@ namespace LottoDefense.UI
             panelRect.anchorMax = new Vector2(0.5f, 0.5f);
             panelRect.pivot = new Vector2(0.5f, 0.5f);
             panelRect.anchoredPosition = Vector2.zero;
-            panelRect.sizeDelta = new Vector2(700, 680);
+            panelRect.sizeDelta = new Vector2(700, 520);
 
             Image panelImage = popupPanel.AddComponent<Image>();
             panelImage.color = CuteUIHelper.PeachBg;
@@ -80,10 +78,10 @@ namespace LottoDefense.UI
             panelShadow.effectColor = new Color(0.4f, 0.3f, 0.2f, 0.3f);
             panelShadow.effectDistance = new Vector2(4, -4);
 
-            // Vertical layout for everything
+            // Vertical layout: title, difficulty options, cancel in one border
             VerticalLayoutGroup vlg = popupPanel.AddComponent<VerticalLayoutGroup>();
-            vlg.padding = new RectOffset(40, 40, 32, 32);
-            vlg.spacing = 20;
+            vlg.padding = new RectOffset(40, 40, 24, 24);
+            vlg.spacing = 12;
             vlg.childControlWidth = true;
             vlg.childControlHeight = false;
             vlg.childForceExpandWidth = true;
@@ -94,7 +92,7 @@ namespace LottoDefense.UI
             GameObject titleObj = new GameObject("Title");
             titleObj.transform.SetParent(popupPanel.transform, false);
             LayoutElement titleLE = titleObj.AddComponent<LayoutElement>();
-            titleLE.preferredHeight = 70;
+            titleLE.preferredHeight = 56;
 
             Text titleText = titleObj.AddComponent<Text>();
             titleText.text = "난이도 선택";
@@ -109,14 +107,14 @@ namespace LottoDefense.UI
             CreateDifficultyButton(GameDifficulty.Hard, new Color(0.95f, 0.7f, 0.4f), defaultFont);
             CreateDifficultyButton(GameDifficulty.VeryHard, new Color(0.95f, 0.5f, 0.5f), defaultFont);
 
-            // Spacer
+            // Small gap above cancel so it sits clearly below difficulty options
             GameObject spacer = new GameObject("Spacer");
             spacer.transform.SetParent(popupPanel.transform, false);
             LayoutElement spacerLE = spacer.AddComponent<LayoutElement>();
             spacerLE.preferredHeight = 8;
-            spacerLE.flexibleHeight = 1;
+            spacerLE.flexibleHeight = 0;
 
-            // Cancel button (same width as difficulty buttons via layout)
+            // Cancel button – stays up, no flexible space below
             CreateCancelButton(defaultFont);
         }
 
@@ -126,7 +124,7 @@ namespace LottoDefense.UI
             btnObj.transform.SetParent(popupPanel.transform, false);
 
             LayoutElement le = btnObj.AddComponent<LayoutElement>();
-            le.preferredHeight = 110;
+            le.preferredHeight = 88;
 
             Image btnImage = btnObj.AddComponent<Image>();
             btnImage.color = color;
@@ -177,7 +175,7 @@ namespace LottoDefense.UI
             btnObj.transform.SetParent(popupPanel.transform, false);
 
             LayoutElement le = btnObj.AddComponent<LayoutElement>();
-            le.preferredHeight = 80;
+            le.preferredHeight = 64;
 
             Image btnImage = btnObj.AddComponent<Image>();
             btnImage.color = new Color(0.82f, 0.78f, 0.75f);

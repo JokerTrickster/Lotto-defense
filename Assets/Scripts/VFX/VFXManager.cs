@@ -6,6 +6,7 @@ using LottoDefense.Units;
 using LottoDefense.Monsters;
 using LottoDefense.Gameplay;
 using LottoDefense.Grid;
+using LottoDefense.UI;
 
 namespace LottoDefense.VFX
 {
@@ -380,18 +381,7 @@ namespace LottoDefense.VFX
         /// </summary>
         private Font GetBuiltinFont()
         {
-            // Unity 2022+ uses LegacyRuntime.ttf
-            Font font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            if (font == null)
-            {
-                // Fallback to Arial.ttf for older Unity versions
-                font = Resources.GetBuiltinResource<Font>("Arial.ttf");
-            }
-            if (font == null)
-            {
-                Debug.LogError("[VFXManager] Failed to load built-in font!");
-            }
-            return font;
+            return GameFont.Get();
         }
 
         /// <summary>
@@ -546,7 +536,7 @@ namespace LottoDefense.VFX
 
                 warningText = textObj.AddComponent<UnityEngine.UI.Text>();
                 warningText.text = "BOSS";
-                warningText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+                warningText.font = GameFont.Get();
                 warningText.fontSize = 120;
                 warningText.fontStyle = FontStyle.Bold;
                 warningText.color = new Color(1f, 0.2f, 0.1f, 0f);
@@ -716,7 +706,7 @@ namespace LottoDefense.VFX
 
             Text titleText = titleObj.AddComponent<Text>();
             titleText.text = "퀘스트 달성!";
-            titleText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            titleText.font = GameFont.Get();
             titleText.fontSize = 42;
             titleText.fontStyle = FontStyle.Bold;
             titleText.color = new Color(0.3f, 0.15f, 0f, 1f);
@@ -740,8 +730,9 @@ namespace LottoDefense.VFX
 
             Text hintTextComp = hintObj.AddComponent<Text>();
             hintTextComp.text = hintText;
-            hintTextComp.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            hintTextComp.font = GameFont.Get();
             hintTextComp.fontSize = 26;
+            hintTextComp.fontStyle = FontStyle.Bold;
             hintTextComp.color = new Color(0.4f, 0.2f, 0f, 1f);
             hintTextComp.alignment = TextAnchor.MiddleCenter;
             hintTextComp.horizontalOverflow = HorizontalWrapMode.Wrap;
@@ -851,7 +842,7 @@ namespace LottoDefense.VFX
 
             Text rewardText = textObj.AddComponent<Text>();
             rewardText.text = $"+{goldAmount} Gold";
-            rewardText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            rewardText.font = GameFont.Get();
             rewardText.fontSize = 80;
             rewardText.fontStyle = FontStyle.Bold;
             rewardText.color = new Color(1f, 0.84f, 0f, 0f);
@@ -987,7 +978,7 @@ namespace LottoDefense.VFX
 
                 legendaryText = textObj.AddComponent<Text>();
                 legendaryText.text = "LEGENDARY!";
-                legendaryText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+                legendaryText.font = GameFont.Get();
                 legendaryText.fontSize = 100;
                 legendaryText.fontStyle = FontStyle.Bold;
                 legendaryText.color = new Color(1f, 0.84f, 0f, 0f);

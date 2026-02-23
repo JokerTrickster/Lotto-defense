@@ -29,6 +29,7 @@ namespace LottoDefense.UI
             Text text = textObj.AddComponent<Text>();
             text.font = font;
             text.fontSize = LobbyDesignTokens.BadgeFontSize;
+            text.fontStyle = FontStyle.Bold;
             text.color = LobbyDesignTokens.BadgeText;
             text.alignment = TextAnchor.MiddleCenter;
             text.raycastTarget = false;

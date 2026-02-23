@@ -124,7 +124,7 @@ namespace LottoDefense.UI
 
             Text label = textObj.AddComponent<Text>();
             label.text = "\u2728 \uC870\uD569";
-            label.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            label.font = GameFont.Get();
             label.fontSize = 22;
             label.fontStyle = FontStyle.Bold;
             label.color = GameSceneDesignTokens.SynthFloatBtnText;

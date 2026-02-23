@@ -44,9 +44,7 @@ namespace LottoDefense.Editor
             }
 
             // 버튼 생성
-            Font defaultFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            if (defaultFont == null)
-                defaultFont = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            Font defaultFont = GameFont.Get();
 
             // 1. 싱글 플레이 버튼 (화면 중앙 위쪽)
             Button singleButton = CreateButton("SinglePlayButton", "싱글 플레이", 

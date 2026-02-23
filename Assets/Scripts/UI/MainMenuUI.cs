@@ -140,9 +140,10 @@ namespace LottoDefense.UI
             Text text = textObj.AddComponent<Text>();
             text.text = "MainMenuUI: Please assign UI elements in Inspector\n\n버튼을 Inspector에서 연결하거나\nEditor → Create Main Menu Buttons 실행";
             text.fontSize = 24;
+            text.fontStyle = FontStyle.Bold;
             text.color = Color.white;
             text.alignment = TextAnchor.MiddleCenter;
-            text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            text.font = GameFont.Get();
 
             RectTransform rt = textObj.GetComponent<RectTransform>();
             rt.anchorMin = Vector2.zero;

@@ -60,7 +60,7 @@ public class LoginSceneSetup : EditorWindow
         titleObj.transform.SetParent(canvasObj.transform, false);
         Text titleText = titleObj.AddComponent<Text>();
         titleText.text = "LOTTO DEFENSE";
-        titleText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        titleText.font = GameFont.Get();
         titleText.fontSize = 72;
         titleText.alignment = TextAnchor.MiddleCenter;
         titleText.color = Color.white;
@@ -89,7 +89,7 @@ public class LoginSceneSetup : EditorWindow
         buttonTextObj.transform.SetParent(loginButtonObj.transform, false);
         Text buttonText = buttonTextObj.AddComponent<Text>();
         buttonText.text = "Sign in with Google";
-        buttonText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        buttonText.font = GameFont.Get();
         buttonText.fontSize = 36;
         buttonText.alignment = TextAnchor.MiddleCenter;
         buttonText.color = Color.black;
@@ -125,7 +125,7 @@ public class LoginSceneSetup : EditorWindow
         loadingTextObj.transform.SetParent(loadingOverlayObj.transform, false);
         Text loadingText = loadingTextObj.AddComponent<Text>();
         loadingText.text = "Loading...";
-        loadingText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        loadingText.font = GameFont.Get();
         loadingText.fontSize = 48;
         loadingText.alignment = TextAnchor.MiddleCenter;
         loadingText.color = Color.white;
@@ -172,7 +172,7 @@ public class LoginSceneSetup : EditorWindow
         privacyTextObj.transform.SetParent(privacyButtonObj.transform, false);
         Text privacyText = privacyTextObj.AddComponent<Text>();
         privacyText.text = "Privacy Policy";
-        privacyText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        privacyText.font = GameFont.Get();
         privacyText.fontSize = 28;
         privacyText.alignment = TextAnchor.MiddleCenter;
         privacyText.color = new Color(0.6f, 0.6f, 1f);
@@ -197,7 +197,7 @@ public class LoginSceneSetup : EditorWindow
         termsTextObj.transform.SetParent(termsButtonObj.transform, false);
         Text termsText = termsTextObj.AddComponent<Text>();
         termsText.text = "Terms of Service";
-        termsText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        termsText.font = GameFont.Get();
         termsText.fontSize = 28;
         termsText.alignment = TextAnchor.MiddleCenter;
         termsText.color = new Color(0.6f, 0.6f, 1f);

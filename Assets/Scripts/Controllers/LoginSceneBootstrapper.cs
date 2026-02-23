@@ -41,10 +41,7 @@ namespace LottoDefense.Controllers
 
         private void Awake()
         {
-            defaultFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            if (defaultFont == null)
-                defaultFont = Resources.GetBuiltinResource<Font>("Arial.ttf");
-
+            defaultFont = LottoDefense.UI.GameFont.Get();
             if (defaultFont == null)
                 Debug.LogError("[LoginSceneBootstrapper] Failed to load default font!");
 
@@ -182,6 +179,7 @@ namespace LottoDefense.Controllers
             statusText.text = "";
             statusText.font = defaultFont;
             statusText.fontSize = 28;
+            statusText.fontStyle = FontStyle.Bold;
             statusText.color = new Color(0.7f, 0.7f, 0.7f, 1f);
             statusText.alignment = TextAnchor.MiddleCenter;
 
@@ -215,6 +213,7 @@ namespace LottoDefense.Controllers
             text.text = label;
             text.font = defaultFont;
             text.fontSize = fontSize;
+            text.fontStyle = FontStyle.Bold;
             text.color = Color.white;
             text.alignment = TextAnchor.MiddleCenter;
 

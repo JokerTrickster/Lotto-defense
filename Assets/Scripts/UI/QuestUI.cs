@@ -22,9 +22,7 @@ namespace LottoDefense.UI
         #region Unity Lifecycle
         private void Start()
         {
-            cachedFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            if (cachedFont == null)
-                cachedFont = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            cachedFont = GameFont.Get();
 
             if (closeButton != null)
                 closeButton.onClick.AddListener(Hide);
@@ -132,6 +130,7 @@ namespace LottoDefense.UI
             Text questText = textObj.AddComponent<Text>();
             questText.font = cachedFont;
             questText.fontSize = 22;
+            questText.fontStyle = FontStyle.Bold;
             questText.alignment = TextAnchor.MiddleLeft;
             questText.horizontalOverflow = HorizontalWrapMode.Wrap;
             questText.verticalOverflow = VerticalWrapMode.Overflow;
@@ -216,6 +215,7 @@ namespace LottoDefense.UI
                     rewardText.text = $"+{quest.Definition.goldReward}G";
                     rewardText.fontSize = 22;
                     rewardText.color = GameSceneDesignTokens.GoldColor;
+                    rewardText.fontStyle = FontStyle.Bold;
                 }
             }
 

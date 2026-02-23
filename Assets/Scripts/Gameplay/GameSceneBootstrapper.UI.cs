@@ -208,15 +208,60 @@ namespace LottoDefense.Gameplay
             GameObject obj = new GameObject($"Info_{placeholder}");
             obj.transform.SetParent(parent, false);
 
+            RectTransform rect = obj.AddComponent<RectTransform>();
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
+            rect.offsetMin = Vector2.zero;
+            rect.offsetMax = Vector2.zero;
+
             Text t = CreateText(obj, placeholder, GameSceneDesignTokens.UnitInfoDetailSize, CuteUIHelper.DarkText);
-            t.alignment = TextAnchor.MiddleCenter;
+            t.alignment = TextAnchor.MiddleLeft;
             t.fontStyle = FontStyle.Bold;
             t.supportRichText = true;
             t.resizeTextForBestFit = true;
-            t.resizeTextMinSize = 18;
+            t.resizeTextMinSize = 28;
             t.resizeTextMaxSize = GameSceneDesignTokens.UnitInfoDetailSize;
             t.horizontalOverflow = HorizontalWrapMode.Overflow;
             t.verticalOverflow = VerticalWrapMode.Overflow;
+
+            return t;
+        }
+
+        private GameObject CreateStatGridRow(Transform parent, string name, float height)
+        {
+            GameObject row = new GameObject(name);
+            row.transform.SetParent(parent, false);
+            row.AddComponent<RectTransform>();
+            LayoutElement le = row.AddComponent<LayoutElement>();
+            le.preferredHeight = height;
+
+            HorizontalLayoutGroup hlg = row.AddComponent<HorizontalLayoutGroup>();
+            hlg.spacing = 6f;
+            hlg.childControlWidth = true;
+            hlg.childControlHeight = true;
+            hlg.childForceExpandWidth = true;
+            hlg.childForceExpandHeight = true;
+
+            return row;
+        }
+
+        private Text CreateGridStatText(Transform parent, string placeholder, int fontSize, Color color)
+        {
+            GameObject obj = new GameObject($"Stat_{placeholder}");
+            obj.transform.SetParent(parent, false);
+            obj.AddComponent<RectTransform>();
+            LayoutElement le = obj.AddComponent<LayoutElement>();
+            le.flexibleWidth = 1f;
+
+            Text t = CreateText(obj, placeholder, fontSize, color);
+            t.alignment = TextAnchor.MiddleLeft;
+            t.fontStyle = FontStyle.Bold;
+            t.resizeTextForBestFit = true;
+            t.resizeTextMinSize = 12;
+            t.resizeTextMaxSize = fontSize;
+            t.horizontalOverflow = HorizontalWrapMode.Overflow;
+            t.verticalOverflow = VerticalWrapMode.Truncate;
+            t.supportRichText = true;
 
             return t;
         }
@@ -251,61 +296,72 @@ namespace LottoDefense.Gameplay
 
             // Vertical layout: unit info on top, buttons below
             VerticalLayoutGroup mainVLayout = bottomPanelObj.AddComponent<VerticalLayoutGroup>();
-            mainVLayout.padding = new RectOffset(14, 14, 10, 10);
-            mainVLayout.spacing = 8;
+            mainVLayout.padding = new RectOffset(10, 10, 4, 4);
+            mainVLayout.spacing = 4;
             mainVLayout.childControlWidth = true;
             mainVLayout.childControlHeight = false;
             mainVLayout.childForceExpandWidth = true;
             mainVLayout.childForceExpandHeight = false;
 
-            // ========== TOP: Full-width Unit Info ==========
+            // ========== TOP: Unit Info – compact 2-column grid ==========
             GameObject infoRow = new GameObject("UnitInfoRow");
             infoRow.transform.SetParent(bottomPanelObj.transform, false);
             LayoutElement infoRowLE = infoRow.AddComponent<LayoutElement>();
-            infoRowLE.preferredHeight = 140;
+            infoRowLE.preferredHeight = GameSceneDesignTokens.UnitInfoPanelHeight;
 
             Image infoBg = infoRow.AddComponent<Image>();
             infoBg.color = new Color(0.96f, 0.93f, 0.88f, 0.7f);
             infoBg.raycastTarget = false;
             ApplyRoundedSprite(infoBg, 12);
 
+            infoRow.AddComponent<RectMask2D>();
+
             GameObject statsContainer = new GameObject("StatsContainer");
             statsContainer.transform.SetParent(infoRow.transform, false);
             RectTransform statsContainerRect = statsContainer.AddComponent<RectTransform>();
             statsContainerRect.anchorMin = Vector2.zero;
             statsContainerRect.anchorMax = Vector2.one;
-            statsContainerRect.offsetMin = new Vector2(10, 8);
-            statsContainerRect.offsetMax = new Vector2(-10, -8);
+            statsContainerRect.offsetMin = new Vector2(6, 2);
+            statsContainerRect.offsetMax = new Vector2(-6, -2);
 
-            HorizontalLayoutGroup statsHLayout = statsContainer.AddComponent<HorizontalLayoutGroup>();
-            statsHLayout.spacing = 12;
-            statsHLayout.padding = new RectOffset(4, 4, 2, 2);
-            statsHLayout.childControlWidth = false;
-            statsHLayout.childControlHeight = true;
-            statsHLayout.childForceExpandWidth = false;
-            statsHLayout.childForceExpandHeight = true;
+            VerticalLayoutGroup infoVLayout = statsContainer.AddComponent<VerticalLayoutGroup>();
+            infoVLayout.spacing = 1f;
+            infoVLayout.padding = new RectOffset(2, 2, 1, 1);
+            infoVLayout.childControlWidth = true;
+            infoVLayout.childControlHeight = false;
+            infoVLayout.childForceExpandWidth = true;
+            infoVLayout.childForceExpandHeight = false;
 
-            // Portrait (larger for mobile)
+            // --- Row 0: Portrait + Name ---
+            GameObject nameRow = new GameObject("NameRow");
+            nameRow.transform.SetParent(statsContainer.transform, false);
+            nameRow.AddComponent<RectTransform>();
+            LayoutElement nameRowLE = nameRow.AddComponent<LayoutElement>();
+            nameRowLE.preferredHeight = 34f;
+
+            HorizontalLayoutGroup nameHLG = nameRow.AddComponent<HorizontalLayoutGroup>();
+            nameHLG.spacing = 6f;
+            nameHLG.childControlWidth = false;
+            nameHLG.childControlHeight = true;
+            nameHLG.childForceExpandWidth = false;
+            nameHLG.childForceExpandHeight = true;
+
             GameObject portraitObj = new GameObject("Portrait");
-            portraitObj.transform.SetParent(statsContainer.transform, false);
+            portraitObj.transform.SetParent(nameRow.transform, false);
             LayoutElement portraitLE = portraitObj.AddComponent<LayoutElement>();
-            portraitLE.preferredWidth = 100;
-            portraitLE.preferredHeight = 100;
+            portraitLE.preferredWidth = 34;
+            portraitLE.preferredHeight = 34;
 
             Image portraitBg = portraitObj.AddComponent<Image>();
             portraitBg.color = new Color(0.92f, 0.88f, 0.82f, 0.85f);
             portraitBg.raycastTarget = false;
-            ApplyRoundedSprite(portraitBg, 12);
-
-            Outline portraitOutline = portraitObj.AddComponent<Outline>();
-            portraitOutline.effectColor = CuteUIHelper.WarmBorder;
-            portraitOutline.effectDistance = new Vector2(1, -1);
+            ApplyRoundedSprite(portraitBg, 8);
 
             GameObject portraitCircleObj = new GameObject("PortraitCircle");
             portraitCircleObj.transform.SetParent(portraitObj.transform, false);
             RectTransform circleRect = portraitCircleObj.AddComponent<RectTransform>();
-            circleRect.anchorMin = new Vector2(0.08f, 0.08f);
-            circleRect.anchorMax = new Vector2(0.92f, 0.92f);
+            circleRect.anchorMin = new Vector2(0.1f, 0.1f);
+            circleRect.anchorMax = new Vector2(0.9f, 0.9f);
             circleRect.offsetMin = Vector2.zero;
             circleRect.offsetMax = Vector2.zero;
 
@@ -314,107 +370,65 @@ namespace LottoDefense.Gameplay
             portraitImage.color = Color.white;
             portraitImage.raycastTarget = false;
 
-            // Stats area (right of portrait, full width available)
-            GameObject statsAreaObj = new GameObject("StatsArea");
-            statsAreaObj.transform.SetParent(statsContainer.transform, false);
-            LayoutElement statsLE = statsAreaObj.AddComponent<LayoutElement>();
-            statsLE.flexibleWidth = 1f;
+            GameObject nameTextObj = new GameObject("NameText");
+            nameTextObj.transform.SetParent(nameRow.transform, false);
+            nameTextObj.AddComponent<RectTransform>();
+            LayoutElement nameTextLE = nameTextObj.AddComponent<LayoutElement>();
+            nameTextLE.flexibleWidth = 1f;
 
-            VerticalLayoutGroup statsVLayout = statsAreaObj.AddComponent<VerticalLayoutGroup>();
-            statsVLayout.spacing = 2f;
-            statsVLayout.childControlWidth = true;
-            statsVLayout.childControlHeight = true;
-            statsVLayout.childForceExpandWidth = true;
-            statsVLayout.childForceExpandHeight = true;
-
-            // Name row
-            GameObject nameRowObj = new GameObject("InfoNameRow");
-            nameRowObj.transform.SetParent(statsAreaObj.transform, false);
-            LayoutElement nameRowLE = nameRowObj.AddComponent<LayoutElement>();
-            nameRowLE.preferredHeight = 40f;
-
-            Text infoNameText = CreateText(nameRowObj, "", 36, CuteUIHelper.DarkText);
+            Text infoNameText = CreateText(nameTextObj, "", 28, CuteUIHelper.DarkText);
             infoNameText.alignment = TextAnchor.MiddleLeft;
             infoNameText.fontStyle = FontStyle.Bold;
-            infoNameText.horizontalOverflow = HorizontalWrapMode.Overflow;
-            infoNameText.verticalOverflow = VerticalWrapMode.Overflow;
             infoNameText.resizeTextForBestFit = true;
-            infoNameText.resizeTextMinSize = 26;
-            infoNameText.resizeTextMaxSize = 36;
+            infoNameText.resizeTextMinSize = 18;
+            infoNameText.resizeTextMaxSize = 28;
 
-            // ATK | SPD | RNG | TYPE | DEF (single row, full width)
-            GameObject statsRow1Obj = new GameObject("StatsRow1");
-            statsRow1Obj.transform.SetParent(statsAreaObj.transform, false);
-            LayoutElement statsRow1LE = statsRow1Obj.AddComponent<LayoutElement>();
-            statsRow1LE.preferredHeight = 36f;
+            // --- Row 1: ATK | SPD ---
+            float gridRowH = 22f;
+            int gridFontSize = 20;
 
-            HorizontalLayoutGroup statsRow1H = statsRow1Obj.AddComponent<HorizontalLayoutGroup>();
-            statsRow1H.spacing = 6f;
-            statsRow1H.childControlWidth = true;
-            statsRow1H.childControlHeight = true;
-            statsRow1H.childForceExpandWidth = true;
-            statsRow1H.childForceExpandHeight = true;
+            GameObject gridRow1 = CreateStatGridRow(statsContainer.transform, "GridRow1", gridRowH);
+            Text infoAtkText = CreateGridStatText(gridRow1.transform, "ATK", gridFontSize, GameSceneDesignTokens.UnitInfoAttack);
+            Text infoSpdText = CreateGridStatText(gridRow1.transform, "SPD", gridFontSize, GameSceneDesignTokens.UnitInfoSpeed);
 
-            Text infoAtkText = CreateInfoStatText(statsRow1Obj.transform, "ATK");
-            infoAtkText.color = GameSceneDesignTokens.UnitInfoAttack;
-            Text infoSpdText = CreateInfoStatText(statsRow1Obj.transform, "SPD");
-            infoSpdText.color = GameSceneDesignTokens.UnitInfoSpeed;
-            Text infoRngText = CreateInfoStatText(statsRow1Obj.transform, "RNG");
-            infoRngText.color = GameSceneDesignTokens.UnitInfoRange;
-            Text infoPatternText = CreateInfoStatText(statsRow1Obj.transform, "TYPE");
-            infoPatternText.color = GameSceneDesignTokens.UnitInfoPatternColor;
-            Text infoDefText = CreateInfoStatText(statsRow1Obj.transform, "DEF");
-            infoDefText.color = GameSceneDesignTokens.UnitInfoDefense;
+            // --- Row 2: RNG | DEF ---
+            GameObject gridRow2 = CreateStatGridRow(statsContainer.transform, "GridRow2", gridRowH);
+            Text infoRngText = CreateGridStatText(gridRow2.transform, "RNG", gridFontSize, GameSceneDesignTokens.UnitInfoRange);
+            Text infoDefText = CreateGridStatText(gridRow2.transform, "DEF", gridFontSize, GameSceneDesignTokens.UnitInfoDefense);
 
-            // SKILL + Mana bar
-            GameObject skillRowObj = new GameObject("SkillRow");
-            skillRowObj.transform.SetParent(statsAreaObj.transform, false);
-            LayoutElement skillRowLE = skillRowObj.AddComponent<LayoutElement>();
-            skillRowLE.preferredHeight = 36f;
-
-            HorizontalLayoutGroup skillRowH = skillRowObj.AddComponent<HorizontalLayoutGroup>();
-            skillRowH.spacing = 8f;
-            skillRowH.childControlWidth = false;
-            skillRowH.childControlHeight = true;
-            skillRowH.childForceExpandWidth = false;
-            skillRowH.childForceExpandHeight = true;
-
-            GameObject skillTextObj = new GameObject("SkillText");
-            skillTextObj.transform.SetParent(skillRowObj.transform, false);
-            LayoutElement skillTextLE = skillTextObj.AddComponent<LayoutElement>();
-            skillTextLE.flexibleWidth = 1f;
-
-            Text infoSkillText = CreateText(skillTextObj, "", 28, GameSceneDesignTokens.UnitInfoSkillColor);
-            infoSkillText.alignment = TextAnchor.MiddleLeft;
-            infoSkillText.horizontalOverflow = HorizontalWrapMode.Overflow;
-            infoSkillText.verticalOverflow = VerticalWrapMode.Overflow;
-            infoSkillText.resizeTextForBestFit = true;
-            infoSkillText.resizeTextMinSize = 20;
-            infoSkillText.resizeTextMaxSize = 28;
+            // --- Row 3: TYPE | SKILL ---
+            GameObject gridRow3 = CreateStatGridRow(statsContainer.transform, "GridRow3", gridRowH);
+            Text infoPatternText = CreateGridStatText(gridRow3.transform, "TYPE", gridFontSize, GameSceneDesignTokens.UnitInfoPatternColor);
+            Text infoSkillText = CreateGridStatText(gridRow3.transform, "SKILL", gridFontSize, GameSceneDesignTokens.UnitInfoSkillColor);
             infoSkillText.supportRichText = true;
 
+            // --- Row 4: Mana bar (only visible when unit has skill) ---
+            GameObject manaRowObj = new GameObject("ManaRow");
+            manaRowObj.transform.SetParent(statsContainer.transform, false);
+            manaRowObj.AddComponent<RectTransform>();
+            LayoutElement manaRowLE = manaRowObj.AddComponent<LayoutElement>();
+            manaRowLE.preferredHeight = 10f;
+
             GameObject manaContainerObj = new GameObject("ManaBarContainer");
-            manaContainerObj.transform.SetParent(skillRowObj.transform, false);
-            LayoutElement manaContainerLE = manaContainerObj.AddComponent<LayoutElement>();
-            manaContainerLE.preferredWidth = 140f;
-            manaContainerLE.preferredHeight = 22f;
+            manaContainerObj.transform.SetParent(manaRowObj.transform, false);
+            RectTransform manaContainerRect = manaContainerObj.AddComponent<RectTransform>();
+            manaContainerRect.anchorMin = Vector2.zero;
+            manaContainerRect.anchorMax = Vector2.one;
+            manaContainerRect.offsetMin = Vector2.zero;
+            manaContainerRect.offsetMax = Vector2.zero;
 
             Image manaBarBgImg = manaContainerObj.AddComponent<Image>();
             manaBarBgImg.color = GameSceneDesignTokens.ManaBarBg;
             manaBarBgImg.raycastTarget = false;
-            ApplyRoundedSprite(manaBarBgImg, 6);
-
-            Outline manaBarOutline = manaContainerObj.AddComponent<Outline>();
-            manaBarOutline.effectColor = CuteUIHelper.WarmBorder;
-            manaBarOutline.effectDistance = new Vector2(1, -1);
+            ApplyRoundedSprite(manaBarBgImg, 3);
 
             GameObject manaFillObj = new GameObject("ManaBarFill");
             manaFillObj.transform.SetParent(manaContainerObj.transform, false);
             RectTransform manaFillRect = manaFillObj.AddComponent<RectTransform>();
             manaFillRect.anchorMin = Vector2.zero;
             manaFillRect.anchorMax = Vector2.one;
-            manaFillRect.offsetMin = new Vector2(2, 2);
-            manaFillRect.offsetMax = new Vector2(-2, -2);
+            manaFillRect.offsetMin = new Vector2(1, 1);
+            manaFillRect.offsetMax = new Vector2(-1, -1);
 
             Image manaFillImg = manaFillObj.AddComponent<Image>();
             manaFillImg.color = GameSceneDesignTokens.ManaBarFill;
@@ -432,7 +446,7 @@ namespace LottoDefense.Gameplay
             emptyRect.offsetMin = Vector2.zero;
             emptyRect.offsetMax = Vector2.zero;
 
-            Text emptyText = CreateText(emptyStateObj, "\uC720\uB2DB\uC744 \uC120\uD0DD\uD558\uC138\uC694", 28, new Color(0.6f, 0.55f, 0.5f, 0.8f));
+            Text emptyText = CreateText(emptyStateObj, "\uC720\uB2DB\uC744 \uC120\uD0DD\uD558\uC138\uC694", 24, new Color(0.6f, 0.55f, 0.5f, 0.8f));
             emptyText.alignment = TextAnchor.MiddleCenter;
 
             UnitInfoPanel infoPanel = infoRow.AddComponent<UnitInfoPanel>();
@@ -445,7 +459,7 @@ namespace LottoDefense.Gameplay
             SetField(infoPanel, "defenseText", infoDefText);
             SetField(infoPanel, "skillText", infoSkillText);
             SetField(infoPanel, "manaBarFill", manaFillImg);
-            SetField(infoPanel, "manaBarContainer", manaContainerObj);
+            SetField(infoPanel, "manaBarContainer", manaRowObj);
             SetField(infoPanel, "statsContainer", statsContainer);
             SetField(infoPanel, "emptyStateText", emptyText);
 
@@ -736,7 +750,7 @@ namespace LottoDefense.Gameplay
             labelObj.transform.SetParent(container.transform, false);
             labelObj.AddComponent<RectTransform>();
             Text labelText = CreateText(labelObj, label, labelSize, labelColor);
-            labelText.fontStyle = FontStyle.Normal;
+            labelText.fontStyle = FontStyle.Bold;
             labelText.raycastTarget = false;
 
             GameObject valueObj = new GameObject("Value");

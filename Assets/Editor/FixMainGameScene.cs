@@ -3,6 +3,7 @@ using UnityEditor;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using UnityEditor.SceneManagement;
+using LottoDefense.UI;
 
 namespace LottoDefense.Editor
 {
@@ -96,9 +97,7 @@ namespace LottoDefense.Editor
             }
             
             // 버튼 생성
-            Font defaultFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            if (defaultFont == null)
-                defaultFont = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            Font defaultFont = GameFont.Get();
             
             // 1. 싱글 플레이 버튼 (중앙 왼쪽, 크게)
             Button singleButton = CreateButton("SinglePlayButton", "싱글 플레이", 

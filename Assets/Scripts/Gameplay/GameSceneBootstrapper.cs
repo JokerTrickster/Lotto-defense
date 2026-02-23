@@ -25,14 +25,7 @@ namespace LottoDefense.Gameplay
         private void Awake()
         {
 
-            // Unity 2022+ uses LegacyRuntime.ttf instead of Arial.ttf
-            defaultFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            if (defaultFont == null)
-            {
-                // Fallback to Arial.ttf for older Unity versions
-                defaultFont = Resources.GetBuiltinResource<Font>("Arial.ttf");
-            }
-
+            defaultFont = GameFont.Get();
             if (defaultFont == null)
                 Debug.LogError("[GameSceneBootstrapper] Failed to load default font!");
             else
@@ -309,6 +302,7 @@ namespace LottoDefense.Gameplay
             t.text = text;
             t.fontSize = fontSize;
             t.color = color;
+            t.fontStyle = FontStyle.Bold;
             t.alignment = TextAnchor.MiddleCenter;
             t.horizontalOverflow = HorizontalWrapMode.Overflow;
             t.verticalOverflow = VerticalWrapMode.Overflow;

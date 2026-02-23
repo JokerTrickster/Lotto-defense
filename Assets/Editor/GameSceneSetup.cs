@@ -49,7 +49,7 @@ public class GameSceneSetup : EditorWindow
         titleObj.transform.SetParent(canvasObj.transform, false);
         Text titleText = titleObj.AddComponent<Text>();
         titleText.text = "GAME SCREEN";
-        titleText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        titleText.font = GameFont.Get();
         titleText.fontSize = 60;
         titleText.alignment = TextAnchor.MiddleCenter;
         titleText.color = Color.white;
@@ -64,7 +64,7 @@ public class GameSceneSetup : EditorWindow
         gameAreaObj.transform.SetParent(canvasObj.transform, false);
         Text gameAreaText = gameAreaObj.AddComponent<Text>();
         gameAreaText.text = "Your game content goes here\n\n- Player\n- Enemies\n- Towers\n- etc...";
-        gameAreaText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        gameAreaText.font = GameFont.Get();
         gameAreaText.fontSize = 40;
         gameAreaText.alignment = TextAnchor.MiddleCenter;
         gameAreaText.color = new Color(0.7f, 0.7f, 0.7f, 1f);
@@ -92,7 +92,7 @@ public class GameSceneSetup : EditorWindow
         backTextObj.transform.SetParent(backButtonObj.transform, false);
         Text backText = backTextObj.AddComponent<Text>();
         backText.text = "메인 메뉴로";
-        backText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        backText.font = GameFont.Get();
         backText.fontSize = 40;
         backText.alignment = TextAnchor.MiddleCenter;
         backText.color = Color.white;

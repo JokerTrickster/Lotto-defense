@@ -111,7 +111,7 @@ namespace LottoDefense.VFX
             else
             {
                 messageText.fontSize = 32; // Normal size for other text
-                messageText.fontStyle = FontStyle.Normal;
+                messageText.fontStyle = FontStyle.Bold;
                 
                 // Smaller outline for normal text
                 var outline = messageText.gameObject.GetComponent<Outline>();

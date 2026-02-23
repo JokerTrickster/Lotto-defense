@@ -135,10 +135,7 @@ namespace LottoDefense.VFX
         
         private static Font GetFont()
         {
-            Font font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            if (font == null)
-                font = Resources.GetBuiltinResource<Font>("Arial.ttf");
-            return font;
+            return LottoDefense.UI.GameFont.Get();
         }
     }
     

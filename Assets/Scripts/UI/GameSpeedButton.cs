@@ -111,9 +111,7 @@ namespace LottoDefense.UI
 
             speedText = textObj.AddComponent<Text>();
             speedText.text = "x1";
-            speedText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            if (speedText.font == null)
-                speedText.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            speedText.font = GameFont.Get();
             speedText.fontSize = 22;
             speedText.color = CuteUIHelper.DarkText;
             speedText.alignment = TextAnchor.MiddleCenter;

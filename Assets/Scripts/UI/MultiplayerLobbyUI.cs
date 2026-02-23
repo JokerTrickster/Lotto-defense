@@ -48,9 +48,7 @@ namespace LottoDefense.UI
         #region Unity Lifecycle
         private void Start()
         {
-            defaultFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            if (defaultFont == null)
-                defaultFont = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            defaultFont = GameFont.Get();
 
             SetupButtonListeners();
             ShowConnectionPanel();
@@ -352,8 +350,7 @@ namespace LottoDefense.UI
                 return null;
             }
 
-            Font font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            if (font == null) font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            Font font = GameFont.Get();
 
             // Full-screen overlay
             GameObject root = new GameObject("MultiplayerLobbyUI");
@@ -557,6 +554,7 @@ namespace LottoDefense.UI
             t.text = text;
             t.fontSize = fontSize;
             t.color = color;
+            t.fontStyle = FontStyle.Bold;
             t.alignment = TextAnchor.MiddleCenter;
             t.horizontalOverflow = HorizontalWrapMode.Overflow;
             t.verticalOverflow = VerticalWrapMode.Overflow;
@@ -579,6 +577,7 @@ namespace LottoDefense.UI
             t.text = text;
             t.fontSize = fontSize;
             t.color = color;
+            t.fontStyle = FontStyle.Bold;
             t.alignment = TextAnchor.MiddleCenter;
             t.horizontalOverflow = HorizontalWrapMode.Overflow;
             t.verticalOverflow = VerticalWrapMode.Overflow;

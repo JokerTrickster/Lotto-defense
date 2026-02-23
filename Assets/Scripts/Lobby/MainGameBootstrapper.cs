@@ -60,9 +60,7 @@ namespace LottoDefense.Lobby
         #region Unity Lifecycle
         private void Awake()
         {
-            defaultFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            if (defaultFont == null)
-                defaultFont = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            defaultFont = GameFont.Get();
 
             DestroyBrokenCanvases();
             EnsureEventSystem();
@@ -718,6 +716,7 @@ namespace LottoDefense.Lobby
             t.text = text;
             t.fontSize = fontSize;
             t.color = color;
+            t.fontStyle = FontStyle.Bold;
             t.alignment = TextAnchor.MiddleCenter;
             t.horizontalOverflow = HorizontalWrapMode.Overflow;
             t.verticalOverflow = VerticalWrapMode.Overflow;

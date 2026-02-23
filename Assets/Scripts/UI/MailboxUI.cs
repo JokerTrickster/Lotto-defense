@@ -148,7 +148,7 @@ namespace LottoDefense.UI
             Text titleText = CreateText(titleObj, mail.title, LobbyDesignTokens.BodySize,
                 isRead ? LobbyDesignTokens.TextMuted : LobbyDesignTokens.TextPrimary);
             titleText.alignment = TextAnchor.MiddleLeft;
-            titleText.fontStyle = isRead ? FontStyle.Normal : FontStyle.Bold;
+            titleText.fontStyle = FontStyle.Bold;
 
             RectTransform titleRect = titleObj.GetComponent<RectTransform>();
             titleRect.anchorMin = new Vector2(0.07f, 0.3f);
@@ -333,6 +333,7 @@ namespace LottoDefense.UI
             t.text = text;
             t.fontSize = fontSize;
             t.color = color;
+            t.fontStyle = FontStyle.Bold;
             t.alignment = TextAnchor.MiddleCenter;
             t.horizontalOverflow = HorizontalWrapMode.Overflow;
             t.verticalOverflow = VerticalWrapMode.Overflow;
