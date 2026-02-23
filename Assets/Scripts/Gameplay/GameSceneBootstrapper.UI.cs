@@ -913,6 +913,11 @@ namespace LottoDefense.Gameplay
             rect.offsetMin = Vector2.zero;
             rect.offsetMax = Vector2.zero;
 
+            Canvas overrideCanvas = guideObj.AddComponent<Canvas>();
+            overrideCanvas.overrideSorting = true;
+            overrideCanvas.sortingOrder = 200;
+            guideObj.AddComponent<GraphicRaycaster>();
+
             Image bgImage = guideObj.AddComponent<Image>();
             bgImage.color = CuteUIHelper.WarmOverlay;
 
@@ -1339,6 +1344,11 @@ namespace LottoDefense.Gameplay
             rect.offsetMin = Vector2.zero;
             rect.offsetMax = Vector2.zero;
 
+            Canvas overrideCanvas = questObj.AddComponent<Canvas>();
+            overrideCanvas.overrideSorting = true;
+            overrideCanvas.sortingOrder = 200;
+            questObj.AddComponent<GraphicRaycaster>();
+
             Image bgImage = questObj.AddComponent<Image>();
             bgImage.color = CuteUIHelper.WarmOverlay;
 
@@ -1479,6 +1489,23 @@ namespace LottoDefense.Gameplay
 
             Text btnText = CreateText(textObj, "Q", 28, CuteUIHelper.DarkText);
             btnText.fontStyle = FontStyle.Bold;
+        }
+        #endregion
+
+        #region Game Speed Button
+        private void EnsureGameSpeedButton()
+        {
+            if (FindFirstObjectByType<GameSpeedButton>() != null) return;
+
+            // Ensure controller exists
+            if (GameSpeedController.Instance == null)
+            {
+                new GameObject("GameSpeedController").AddComponent<GameSpeedController>();
+            }
+
+            GameObject speedObj = new GameObject("GameSpeedButton");
+            speedObj.transform.SetParent(safeAreaRoot, false);
+            speedObj.AddComponent<GameSpeedButton>();
         }
         #endregion
 

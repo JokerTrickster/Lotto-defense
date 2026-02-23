@@ -61,6 +61,7 @@ namespace LottoDefense.Gameplay
             EnsureQuestButton();
             EnsureGameResultUI();
             EnsureOpponentStatusUI();
+            EnsureGameSpeedButton();
 
         }
 

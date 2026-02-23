@@ -34,7 +34,7 @@ namespace LottoDefense.Gameplay
 
         #region Fields
         private float currentSpeed = 1.0f;
-        private readonly float[] availableSpeeds = { 1.0f, 2.0f };
+        private readonly float[] availableSpeeds = { 1.0f, 2.0f, 3.0f };
         private int currentSpeedIndex = 0;
         #endregion
 

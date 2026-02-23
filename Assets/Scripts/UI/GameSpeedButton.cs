@@ -4,135 +4,95 @@ using LottoDefense.Gameplay;
 
 namespace LottoDefense.UI
 {
-    /// <summary>
-    /// 게임 배속 조절 버튼 UI
-    /// 우상단에 배치되어 ×1, ×2 배속 전환
-    /// </summary>
     public class GameSpeedButton : MonoBehaviour
     {
-        #region Inspector Fields
-        [Header("UI References")]
         [SerializeField] private Button speedButton;
         [SerializeField] private Text speedText;
-        
-        [Header("Visual Settings")]
+        [SerializeField] private Image buttonImage;
+
         [SerializeField] private Color normalSpeedColor = new Color(0.55f, 0.78f, 0.95f);
         [SerializeField] private Color fastSpeedColor = new Color(0.95f, 0.65f, 0.4f);
-        #endregion
+        [SerializeField] private Color maxSpeedColor = new Color(0.95f, 0.5f, 0.5f);
 
-        #region Unity Lifecycle
         private void Awake()
         {
-            // 버튼이 없으면 자동 생성
             if (speedButton == null)
-            {
                 CreateSpeedButton();
-            }
-            
-            // 버튼 클릭 이벤트 연결
+
             if (speedButton != null)
-            {
                 speedButton.onClick.AddListener(OnSpeedButtonClicked);
-            }
         }
 
         private void Start()
         {
-            // GameSpeedController 이벤트 구독
             if (GameSpeedController.Instance != null)
             {
                 GameSpeedController.Instance.OnSpeedChanged += OnSpeedChanged;
-                
-                // 초기 UI 업데이트
                 UpdateUI(GameSpeedController.Instance.CurrentSpeed);
             }
         }
 
         private void OnDestroy()
         {
-            // 이벤트 구독 해제
             if (GameSpeedController.Instance != null)
-            {
                 GameSpeedController.Instance.OnSpeedChanged -= OnSpeedChanged;
-            }
         }
-        #endregion
 
-        #region Button Events
         private void OnSpeedButtonClicked()
         {
             if (GameSpeedController.Instance != null)
-            {
                 GameSpeedController.Instance.ToggleSpeed();
-            }
         }
 
         private void OnSpeedChanged(float newSpeed)
         {
             UpdateUI(newSpeed);
         }
-        #endregion
 
-        #region UI Update
         private void UpdateUI(float speed)
         {
             if (speedText != null)
-            {
-                speedText.text = $"×{speed:F0}";
-            }
+                speedText.text = $"x{speed:F0}";
 
-            // 배속에 따라 색상 변경
-            if (speedButton != null)
+            if (buttonImage != null)
             {
-                Image buttonImage = speedButton.GetComponent<Image>();
-                if (buttonImage != null)
-                {
-                    buttonImage.color = speed > 1.0f ? fastSpeedColor : normalSpeedColor;
-                }
+                if (speed >= 3f)
+                    buttonImage.color = maxSpeedColor;
+                else if (speed >= 2f)
+                    buttonImage.color = fastSpeedColor;
+                else
+                    buttonImage.color = normalSpeedColor;
             }
         }
-        #endregion
 
-        #region Auto-Create UI
         private void CreateSpeedButton()
         {
-            Debug.Log("[GameSpeedButton] Auto-creating speed button UI");
-
-            // Canvas 찾기
-            Canvas canvas = FindFirstObjectByType<Canvas>();
-            if (canvas == null)
-            {
-                Debug.LogError("[GameSpeedButton] No Canvas found!");
-                return;
-            }
-
-            GameObject btnObj = new GameObject("SpeedButton");
-            btnObj.transform.SetParent(canvas.transform, false);
-            btnObj.transform.SetAsLastSibling();
+            RectTransform myRect = GetComponent<RectTransform>();
+            if (myRect == null)
+                myRect = gameObject.AddComponent<RectTransform>();
 
             float btnSize = GameSceneDesignTokens.UtilityButtonSize;
-            float yOffset = GameSceneDesignTokens.HudHeight + 8 + btnSize + 8 + btnSize + 8;
-            RectTransform btnRect = btnObj.AddComponent<RectTransform>();
-            btnRect.anchorMin = new Vector2(1f, 1f);
-            btnRect.anchorMax = new Vector2(1f, 1f);
-            btnRect.pivot = new Vector2(1f, 1f);
-            btnRect.anchoredPosition = new Vector2(-12, -yOffset);
-            btnRect.sizeDelta = new Vector2(btnSize, btnSize);
+            myRect.anchorMin = new Vector2(1f, 1f);
+            myRect.anchorMax = new Vector2(1f, 1f);
+            myRect.pivot = new Vector2(1f, 1f);
+            float yOffset = GameSceneDesignTokens.HudHeight + 8 + (btnSize + 8) * 2;
+            myRect.anchoredPosition = new Vector2(-12, -yOffset);
+            myRect.sizeDelta = new Vector2(btnSize, btnSize);
 
-            Image btnImage = btnObj.AddComponent<Image>();
-            btnImage.color = normalSpeedColor;
+            buttonImage = gameObject.AddComponent<Image>();
+            buttonImage.color = normalSpeedColor;
             Sprite rounded = CuteUIHelper.GetRoundedRectSprite(14);
             if (rounded != null)
             {
-                btnImage.sprite = rounded;
-                btnImage.type = Image.Type.Sliced;
+                buttonImage.sprite = rounded;
+                buttonImage.type = Image.Type.Sliced;
             }
 
-            Shadow btnShadow = btnObj.AddComponent<Shadow>();
-            btnShadow.effectColor = CuteUIHelper.SoftShadow;
-            btnShadow.effectDistance = new Vector2(2, -2);
+            Shadow shadow = gameObject.AddComponent<Shadow>();
+            shadow.effectColor = CuteUIHelper.SoftShadow;
+            shadow.effectDistance = new Vector2(2, -2);
 
-            speedButton = btnObj.AddComponent<Button>();
+            speedButton = gameObject.AddComponent<Button>();
             ColorBlock colors = speedButton.colors;
             colors.normalColor = Color.white;
             colors.highlightedColor = new Color(1f, 0.98f, 0.95f, 1f);
@@ -141,15 +101,16 @@ namespace LottoDefense.UI
             speedButton.colors = colors;
 
             GameObject textObj = new GameObject("Text");
-            textObj.transform.SetParent(btnObj.transform, false);
+            textObj.transform.SetParent(transform, false);
 
             RectTransform textRect = textObj.AddComponent<RectTransform>();
             textRect.anchorMin = Vector2.zero;
             textRect.anchorMax = Vector2.one;
-            textRect.sizeDelta = Vector2.zero;
+            textRect.offsetMin = new Vector2(2, 2);
+            textRect.offsetMax = new Vector2(-2, -2);
 
             speedText = textObj.AddComponent<Text>();
-            speedText.text = "×1";
+            speedText.text = "x1";
             speedText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             if (speedText.font == null)
                 speedText.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
@@ -157,9 +118,9 @@ namespace LottoDefense.UI
             speedText.color = CuteUIHelper.DarkText;
             speedText.alignment = TextAnchor.MiddleCenter;
             speedText.fontStyle = FontStyle.Bold;
-
-            Debug.Log("[GameSpeedButton] Speed button created at top-right corner");
+            speedText.resizeTextForBestFit = true;
+            speedText.resizeTextMinSize = 14;
+            speedText.resizeTextMaxSize = 22;
         }
-        #endregion
     }
 }
