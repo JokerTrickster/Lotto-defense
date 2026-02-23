@@ -77,6 +77,10 @@ namespace LottoDefense.Monsters
         private float freezeTimer;
         private bool isFrozen;
         private Color originalColor;
+
+        // Static sprite caches to avoid Texture2D leaks
+        private static readonly Dictionary<MonsterType, Sprite> s_defaultSprites = new Dictionary<MonsterType, Sprite>();
+        private static Sprite s_barSprite;
         #endregion
 
         #region Unity Lifecycle
@@ -319,21 +323,20 @@ namespace LottoDefense.Monsters
         /// </summary>
         private Sprite CreateDefaultSprite(MonsterType type)
         {
-            // Color based on monster type
+            if (s_defaultSprites.TryGetValue(type, out Sprite cached) && cached != null)
+                return cached;
+
             Color color = type switch
             {
                 MonsterType.Normal => Color.green,
                 MonsterType.Fast => Color.yellow,
-                MonsterType.Tank => new Color(0.6f, 0.3f, 0.1f), // Brown
+                MonsterType.Tank => new Color(0.6f, 0.3f, 0.1f),
                 MonsterType.Boss => Color.red,
                 _ => Color.white
             };
 
-            // Create a simple 32x32 texture
             Texture2D texture = new Texture2D(32, 32);
             Color[] pixels = new Color[32 * 32];
-
-            // Create a filled circle
             Vector2 center = new Vector2(16, 16);
             float radius = 14f;
 
@@ -343,20 +346,11 @@ namespace LottoDefense.Monsters
                 {
                     float distance = Vector2.Distance(new Vector2(x, y), center);
                     if (distance < radius)
-                    {
-                        // Inner color
                         pixels[y * 32 + x] = color;
-                    }
                     else if (distance < radius + 2)
-                    {
-                        // Border
                         pixels[y * 32 + x] = Color.black;
-                    }
                     else
-                    {
-                        // Transparent
                         pixels[y * 32 + x] = Color.clear;
-                    }
                 }
             }
 
@@ -364,7 +358,9 @@ namespace LottoDefense.Monsters
             texture.Apply();
             texture.filterMode = FilterMode.Point;
 
-            return Sprite.Create(texture, new Rect(0, 0, 32, 32), new Vector2(0.5f, 0.5f), 32f);
+            Sprite sprite = Sprite.Create(texture, new Rect(0, 0, 32, 32), new Vector2(0.5f, 0.5f), 32f);
+            s_defaultSprites[type] = sprite;
+            return sprite;
         }
         #endregion
 
@@ -461,12 +457,16 @@ namespace LottoDefense.Monsters
         /// <summary>
         /// Create a simple square sprite for HP bar.
         /// </summary>
-        private Sprite CreateBarSprite()
+        private static Sprite CreateBarSprite()
         {
+            if (s_barSprite != null)
+                return s_barSprite;
+
             Texture2D texture = new Texture2D(1, 1);
             texture.SetPixel(0, 0, Color.white);
             texture.Apply();
-            return Sprite.Create(texture, new Rect(0, 0, 1, 1), new Vector2(0.5f, 0.5f), 1f);
+            s_barSprite = Sprite.Create(texture, new Rect(0, 0, 1, 1), new Vector2(0.5f, 0.5f), 1f);
+            return s_barSprite;
         }
         #endregion
 
@@ -552,6 +552,8 @@ namespace LottoDefense.Monsters
         /// </summary>
         public void ResetForPool()
         {
+            StopAllCoroutines();
+
             IsActive = false;
             CurrentHealth = 0;
             MaxHealth = 0;
@@ -562,6 +564,10 @@ namespace LottoDefense.Monsters
             Data = null;
             OnDeath = null;
             OnReachEnd = null;
+
+            if (spriteRenderer != null)
+                spriteRenderer.color = Color.white;
+            transform.localScale = Vector3.one;
 
             // Clean up HP bar
             if (hpBarContainer != null)

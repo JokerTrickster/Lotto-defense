@@ -37,6 +37,8 @@ namespace LottoDefense.UI
             GameObject claimAllObj = new GameObject("ClaimAllButton");
             claimAllObj.transform.SetParent(panel.transform, false);
             Image claimAllBg = claimAllObj.AddComponent<Image>();
+            claimAllBg.sprite = CuteUIHelper.GetRoundedRectSprite();
+            claimAllBg.type = Image.Type.Sliced;
             claimAllBg.color = LobbyDesignTokens.ButtonPrimary;
             Button claimAllBtn = claimAllObj.AddComponent<Button>();
             claimAllBtn.onClick.AddListener(() =>
@@ -52,7 +54,7 @@ namespace LottoDefense.UI
 
             GameObject claimAllTextObj = new GameObject("Text");
             claimAllTextObj.transform.SetParent(claimAllObj.transform, false);
-            CreateText(claimAllTextObj, "전체 수령", LobbyDesignTokens.SmallSize, Color.white);
+            CreateText(claimAllTextObj, "전체 수령", LobbyDesignTokens.SmallSize, LobbyDesignTokens.ButtonText);
             RectTransform catRect = claimAllTextObj.GetComponent<RectTransform>();
             catRect.anchorMin = Vector2.zero;
             catRect.anchorMax = Vector2.one;
@@ -112,8 +114,10 @@ namespace LottoDefense.UI
             row.transform.SetParent(listArea.transform, false);
 
             Image rowBg = row.AddComponent<Image>();
+            rowBg.sprite = CuteUIHelper.GetRoundedRectSprite();
+            rowBg.type = Image.Type.Sliced;
             if (isClaimed || (mail.type == MailType.Notice && isRead))
-                rowBg.color = new Color(0.1f, 0.1f, 0.15f, 1f);
+                rowBg.color = new Color(0.94f, 0.9f, 0.85f, 0.9f);
             else
                 rowBg.color = LobbyDesignTokens.CardBg;
 
@@ -195,7 +199,7 @@ namespace LottoDefense.UI
             detailPanel = new GameObject("MailDetail");
             detailPanel.transform.SetParent(overlay.transform, false);
             Image detailBg = detailPanel.AddComponent<Image>();
-            detailBg.color = new Color(0f, 0f, 0f, 0.5f);
+            detailBg.color = CuteUIHelper.WarmOverlay;
 
             RectTransform detailRect = detailPanel.GetComponent<RectTransform>();
             detailRect.anchorMin = Vector2.zero;
@@ -206,6 +210,8 @@ namespace LottoDefense.UI
             GameObject panel = new GameObject("Panel");
             panel.transform.SetParent(detailPanel.transform, false);
             Image panelBg = panel.AddComponent<Image>();
+            panelBg.sprite = CuteUIHelper.GetRoundedRectSprite();
+            panelBg.type = Image.Type.Sliced;
             panelBg.color = LobbyDesignTokens.ModalPanelBg;
 
             RectTransform panelRect = panel.GetComponent<RectTransform>();
@@ -217,6 +223,8 @@ namespace LottoDefense.UI
             GameObject closeObj = new GameObject("Close");
             closeObj.transform.SetParent(panel.transform, false);
             Image closeBg = closeObj.AddComponent<Image>();
+            closeBg.sprite = CuteUIHelper.GetRoundedRectSprite();
+            closeBg.type = Image.Type.Sliced;
             closeBg.color = LobbyDesignTokens.ButtonClose;
             Button closeBtn = closeObj.AddComponent<Button>();
             closeBtn.onClick.AddListener(() => { Destroy(detailPanel); PopulateMailList(); });
@@ -230,7 +238,7 @@ namespace LottoDefense.UI
 
             GameObject closeTextObj = new GameObject("X");
             closeTextObj.transform.SetParent(closeObj.transform, false);
-            CreateText(closeTextObj, "X", LobbyDesignTokens.BodySize, Color.white);
+            CreateText(closeTextObj, "X", LobbyDesignTokens.BodySize, LobbyDesignTokens.BadgeText);
             RectTransform ctRect = closeTextObj.GetComponent<RectTransform>();
             ctRect.anchorMin = Vector2.zero;
             ctRect.anchorMax = Vector2.one;
@@ -286,6 +294,8 @@ namespace LottoDefense.UI
                 GameObject actionObj = new GameObject("ClaimButton");
                 actionObj.transform.SetParent(panel.transform, false);
                 Image actionBg = actionObj.AddComponent<Image>();
+                actionBg.sprite = CuteUIHelper.GetRoundedRectSprite();
+                actionBg.type = Image.Type.Sliced;
                 actionBg.color = claimed ? LobbyDesignTokens.ButtonDisabled : LobbyDesignTokens.ButtonSuccess;
 
                 RectTransform actionRect = actionObj.GetComponent<RectTransform>();
@@ -308,7 +318,7 @@ namespace LottoDefense.UI
                 string btnLabel = claimed ? "수령완료" : "수령";
                 GameObject btnTextObj = new GameObject("Text");
                 btnTextObj.transform.SetParent(actionObj.transform, false);
-                CreateText(btnTextObj, btnLabel, LobbyDesignTokens.ButtonFontSize, Color.white);
+                CreateText(btnTextObj, btnLabel, LobbyDesignTokens.ButtonFontSize, LobbyDesignTokens.BadgeText);
                 RectTransform btRect = btnTextObj.GetComponent<RectTransform>();
                 btRect.anchorMin = Vector2.zero;
                 btRect.anchorMax = Vector2.one;

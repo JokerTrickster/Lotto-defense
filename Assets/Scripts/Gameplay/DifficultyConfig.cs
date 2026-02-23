@@ -6,7 +6,7 @@ namespace LottoDefense.Gameplay
     /// Difficulty multipliers for HP and Defense stats at a specific round.
     /// </summary>
     [System.Serializable]
-    public struct DifficultyMultipliers
+    public struct RoundDifficultyMultipliers
     {
         public float hpMultiplier;
         public float defenseMultiplier;
@@ -52,7 +52,7 @@ namespace LottoDefense.Gameplay
         /// </summary>
         /// <param name="round">Round number (1-based)</param>
         /// <returns>Difficulty multipliers for HP and Defense</returns>
-        public DifficultyMultipliers GetMultipliersForRound(int round)
+        public RoundDifficultyMultipliers GetMultipliersForRound(int round)
         {
             // Clamp round to valid range
             int clampedRound = Mathf.Clamp(round, 1, maxRounds);
@@ -60,7 +60,7 @@ namespace LottoDefense.Gameplay
             // Normalize round to 0-1 range for curve evaluation
             float normalizedRound = maxRounds > 1 ? (clampedRound - 1f) / (maxRounds - 1f) : 0f;
 
-            return new DifficultyMultipliers
+            return new RoundDifficultyMultipliers
             {
                 hpMultiplier = baseHpMultiplier * hpCurve.Evaluate(normalizedRound),
                 defenseMultiplier = baseDefenseMultiplier * defenseCurve.Evaluate(normalizedRound)

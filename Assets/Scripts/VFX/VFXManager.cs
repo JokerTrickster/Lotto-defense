@@ -637,33 +637,12 @@ namespace LottoDefense.VFX
         private IEnumerator BossSpawnEffectRoutine(Vector3 worldPosition)
         {
 
-            // Create expanding ring using SpriteRenderer
             GameObject ring = new GameObject("BossSpawnRing");
             ring.transform.position = worldPosition;
             SpriteRenderer ringRenderer = ring.AddComponent<SpriteRenderer>();
             ringRenderer.sortingOrder = 50;
-
-            // Create ring texture (circle outline)
-            Texture2D ringTex = new Texture2D(64, 64);
-            Color[] pixels = new Color[64 * 64];
-            Vector2 center = new Vector2(32, 32);
-            for (int y = 0; y < 64; y++)
-            {
-                for (int x = 0; x < 64; x++)
-                {
-                    float dist = Vector2.Distance(new Vector2(x, y), center);
-                    if (dist > 26f && dist < 31f)
-                        pixels[y * 64 + x] = Color.white;
-                    else
-                        pixels[y * 64 + x] = Color.clear;
-                }
-            }
-            ringTex.SetPixels(pixels);
-            ringTex.Apply();
-            ringTex.filterMode = FilterMode.Bilinear;
-
-            ringRenderer.sprite = Sprite.Create(ringTex, new Rect(0, 0, 64, 64), new Vector2(0.5f, 0.5f), 64f);
-            ringRenderer.color = new Color(1f, 0.8f, 0.2f, 1f); // Gold
+            ringRenderer.sprite = GetOrCreateRingSprite();
+            ringRenderer.color = new Color(1f, 0.8f, 0.2f, 1f);
 
             // Show boss title
             ShowFloatingText(worldPosition + Vector3.up * 0.8f, "BOSS", new Color(1f, 0.8f, 0.2f));
@@ -895,27 +874,7 @@ namespace LottoDefense.VFX
 
             Image ringImg = ringObj.AddComponent<Image>();
             ringImg.raycastTarget = false;
-
-            // Create ring texture
-            Texture2D ringTex = new Texture2D(64, 64);
-            Color[] pixels = new Color[64 * 64];
-            Vector2 center = new Vector2(32, 32);
-            for (int y = 0; y < 64; y++)
-            {
-                for (int x = 0; x < 64; x++)
-                {
-                    float dist = Vector2.Distance(new Vector2(x, y), center);
-                    if (dist > 26f && dist < 31f)
-                        pixels[y * 64 + x] = Color.white;
-                    else
-                        pixels[y * 64 + x] = Color.clear;
-                }
-            }
-            ringTex.SetPixels(pixels);
-            ringTex.Apply();
-            ringTex.filterMode = FilterMode.Bilinear;
-
-            ringImg.sprite = Sprite.Create(ringTex, new Rect(0, 0, 64, 64), new Vector2(0.5f, 0.5f), 64f);
+            ringImg.sprite = GetOrCreateRingSprite();
             ringImg.color = new Color(1f, 0.84f, 0f, 1f);
 
             // Phase 1: Gold flash in (0.15s) + text scale up + ring start
@@ -1138,12 +1097,11 @@ namespace LottoDefense.VFX
         /// <summary>
         /// Create a world-space ring sprite at position.
         /// </summary>
-        private GameObject CreateWorldRing(Vector3 position, Color color)
+        private static Sprite s_ringSprite;
+        private static Sprite GetOrCreateRingSprite()
         {
-            GameObject ring = new GameObject("Ring");
-            ring.transform.position = position;
-            SpriteRenderer ringRenderer = ring.AddComponent<SpriteRenderer>();
-            ringRenderer.sortingOrder = 50;
+            if (s_ringSprite != null)
+                return s_ringSprite;
 
             Texture2D ringTex = new Texture2D(64, 64);
             Color[] pixels = new Color[64 * 64];
@@ -1162,8 +1120,17 @@ namespace LottoDefense.VFX
             ringTex.SetPixels(pixels);
             ringTex.Apply();
             ringTex.filterMode = FilterMode.Bilinear;
+            s_ringSprite = Sprite.Create(ringTex, new Rect(0, 0, 64, 64), new Vector2(0.5f, 0.5f), 64f);
+            return s_ringSprite;
+        }
 
-            ringRenderer.sprite = Sprite.Create(ringTex, new Rect(0, 0, 64, 64), new Vector2(0.5f, 0.5f), 64f);
+        private GameObject CreateWorldRing(Vector3 position, Color color)
+        {
+            GameObject ring = new GameObject("Ring");
+            ring.transform.position = position;
+            SpriteRenderer ringRenderer = ring.AddComponent<SpriteRenderer>();
+            ringRenderer.sortingOrder = 50;
+            ringRenderer.sprite = GetOrCreateRingSprite();
             ringRenderer.color = color;
             ring.transform.localScale = Vector3.one * 0.3f;
 
@@ -1178,7 +1145,15 @@ namespace LottoDefense.VFX
             get
             {
                 if (s_defaultSpriteMaterial == null)
-                    s_defaultSpriteMaterial = new Material(Shader.Find("Sprites/Default"));
+                {
+                    Shader shader = Shader.Find("Sprites/Default");
+                    if (shader == null)
+                    {
+                        Debug.LogError("[VFXManager] Sprites/Default shader not found");
+                        return null;
+                    }
+                    s_defaultSpriteMaterial = new Material(shader);
+                }
                 return s_defaultSpriteMaterial;
             }
         }

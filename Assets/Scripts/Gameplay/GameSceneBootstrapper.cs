@@ -89,7 +89,11 @@ namespace LottoDefense.Gameplay
         private void EnsureMainCanvas()
         {
             Canvas existingCanvas = FindFirstObjectByType<Canvas>();
-            if (existingCanvas != null && existingCanvas.gameObject.name != "GameCanvas")
+            if (existingCanvas != null && existingCanvas.gameObject.name == "GameCanvas")
+            {
+                mainCanvas = existingCanvas;
+            }
+            else if (existingCanvas != null)
             {
                 Destroy(existingCanvas.gameObject);
                 mainCanvas = null;

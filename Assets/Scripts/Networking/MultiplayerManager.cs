@@ -1,6 +1,8 @@
 using System;
 using UnityEngine;
 using LottoDefense.Gameplay;
+using LottoDefense.Monsters;
+using LottoDefense.Units;
 
 namespace LottoDefense.Networking
 {
@@ -248,13 +250,16 @@ namespace LottoDefense.Networking
             if (CurrentState != MultiplayerState.Playing) return;
             if (GameplayManager.Instance == null) return;
 
+            int killed = MonsterManager.Instance != null ? MonsterManager.Instance.TotalMonstersKilled : 0;
+            int units = UnitManager.Instance != null ? UnitManager.Instance.PlacedUnitCount : 0;
+
             wsClient.SendMessage(MessageType.GameStateUpdate, new GameStateUpdatePayload
             {
                 life = GameplayManager.Instance.CurrentLife,
                 round = GameplayManager.Instance.CurrentRound,
                 gold = GameplayManager.Instance.CurrentGold,
-                monstersKilled = 0,
-                unitCount = 0
+                monstersKilled = killed,
+                unitCount = units
             });
         }
         #endregion

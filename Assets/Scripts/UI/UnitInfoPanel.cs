@@ -62,6 +62,15 @@ namespace LottoDefense.UI
             if (emptyStateText != null) emptyStateText.gameObject.SetActive(true);
         }
 
+        private void OnDestroy()
+        {
+            if (currentUnit != null)
+            {
+                currentUnit.OnManaChanged -= HandleManaChanged;
+                currentUnit = null;
+            }
+        }
+
         /// <summary>
         /// Call externally after upgrades to refresh displayed stats.
         /// </summary>

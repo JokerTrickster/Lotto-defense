@@ -202,7 +202,7 @@ namespace LottoDefense.VFX
                 animationCoroutine = null;
             }
 
-            canvasGroup.alpha = 1f;
+            if (canvasGroup != null) canvasGroup.alpha = 1f;
             gameObject.SetActive(false);
         }
         #endregion

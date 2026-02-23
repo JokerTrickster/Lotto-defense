@@ -91,6 +91,13 @@ namespace LottoDefense.UI
                 guidePanel.SetActive(false);
             }
         }
+
+        private void OnDestroy()
+        {
+            if (closeButton != null) closeButton.onClick.RemoveListener(Hide);
+            if (prevPageButton != null) prevPageButton.onClick.RemoveListener(OnPrevPage);
+            if (nextPageButton != null) nextPageButton.onClick.RemoveListener(OnNextPage);
+        }
         #endregion
 
         #region Public Methods

@@ -12,13 +12,22 @@ namespace LottoDefense.Gameplay
     /// </summary>
     public partial class GameSceneBootstrapper
     {
+        private void ApplyRoundedSprite(Image image, int radius = 16)
+        {
+            Sprite rounded = CuteUIHelper.GetRoundedRectSprite(radius);
+            if (rounded != null)
+            {
+                image.sprite = rounded;
+                image.type = Image.Type.Sliced;
+            }
+        }
+
         #region Countdown UI
         private void EnsureCountdownUI()
         {
             CountdownUI countdown = FindFirstObjectByType<CountdownUI>();
             if (countdown != null) return;
 
-            // Full-screen overlay
             GameObject countdownObj = new GameObject("CountdownUI");
             countdownObj.transform.SetParent(safeAreaRoot, false);
 
@@ -28,7 +37,6 @@ namespace LottoDefense.Gameplay
             rect.offsetMin = Vector2.zero;
             rect.offsetMax = Vector2.zero;
 
-            // Semi-transparent dark overlay background
             Image overlayBg = countdownObj.AddComponent<Image>();
             overlayBg.color = GameSceneDesignTokens.CountdownOverlay;
             overlayBg.raycastTarget = false;
@@ -36,7 +44,6 @@ namespace LottoDefense.Gameplay
             CanvasGroup canvasGroup = countdownObj.AddComponent<CanvasGroup>();
             canvasGroup.alpha = 0f;
 
-            // Countdown number text
             GameObject textObj = new GameObject("CountdownText");
             textObj.transform.SetParent(countdownObj.transform, false);
 
@@ -46,7 +53,6 @@ namespace LottoDefense.Gameplay
             textRect.anchoredPosition = Vector2.zero;
             textRect.sizeDelta = new Vector2(400, 300);
 
-            // Drop shadow for countdown number
             GameObject shadowObj = new GameObject("Shadow");
             shadowObj.transform.SetParent(textObj.transform, false);
             RectTransform shadowRect = shadowObj.AddComponent<RectTransform>();
@@ -54,19 +60,17 @@ namespace LottoDefense.Gameplay
             shadowRect.anchorMax = Vector2.one;
             shadowRect.offsetMin = new Vector2(4, -4);
             shadowRect.offsetMax = new Vector2(4, -4);
-            Text shadowText = CreateText(shadowObj, "3", GameSceneDesignTokens.CountdownSize, new Color(0, 0, 0, 0.6f));
+            Text shadowText = CreateText(shadowObj, "3", GameSceneDesignTokens.CountdownSize, new Color(0.4f, 0.25f, 0.15f, 0.5f));
             shadowText.fontStyle = FontStyle.Bold;
             shadowText.raycastTarget = false;
 
             Text countdownText = CreateText(textObj, "3", GameSceneDesignTokens.CountdownSize, GameSceneDesignTokens.CountdownText);
             countdownText.fontStyle = FontStyle.Bold;
 
-            // Add Outline component for extra visibility
             Outline outline = textObj.AddComponent<Outline>();
-            outline.effectColor = new Color(0, 0, 0, 0.5f);
+            outline.effectColor = new Color(0.4f, 0.25f, 0.15f, 0.4f);
             outline.effectDistance = new Vector2(3, -3);
 
-            // "START!" text (hidden initially, shown after "1")
             GameObject startTextObj = new GameObject("StartText");
             startTextObj.transform.SetParent(countdownObj.transform, false);
 
@@ -81,10 +85,10 @@ namespace LottoDefense.Gameplay
             startText.raycastTarget = false;
 
             Outline startOutline = startTextObj.AddComponent<Outline>();
-            startOutline.effectColor = new Color(0, 0, 0, 0.5f);
+            startOutline.effectColor = new Color(0.4f, 0.25f, 0.15f, 0.4f);
             startOutline.effectDistance = new Vector2(3, -3);
 
-            startTextObj.SetActive(false); // Hidden initially
+            startTextObj.SetActive(false);
 
             countdown = countdownObj.AddComponent<CountdownUI>();
             SetField(countdown, "countdownText", countdownText);
@@ -99,7 +103,6 @@ namespace LottoDefense.Gameplay
             RoundStartUI roundStartUI = FindFirstObjectByType<RoundStartUI>();
             if (roundStartUI != null) return;
 
-            // Full-screen overlay for round start notification
             GameObject roundStartObj = new GameObject("RoundStartUI");
             roundStartObj.transform.SetParent(safeAreaRoot, false);
 
@@ -113,7 +116,6 @@ namespace LottoDefense.Gameplay
             canvasGroup.alpha = 0f;
             canvasGroup.blocksRaycasts = false;
 
-            // Round text container
             GameObject textObj = new GameObject("RoundText");
             textObj.transform.SetParent(roundStartObj.transform, false);
 
@@ -123,7 +125,6 @@ namespace LottoDefense.Gameplay
             textRect.anchoredPosition = Vector2.zero;
             textRect.sizeDelta = new Vector2(600, 200);
 
-            // Drop shadow for text
             GameObject shadowObj = new GameObject("Shadow");
             shadowObj.transform.SetParent(textObj.transform, false);
             RectTransform shadowRect = shadowObj.AddComponent<RectTransform>();
@@ -131,16 +132,15 @@ namespace LottoDefense.Gameplay
             shadowRect.anchorMax = Vector2.one;
             shadowRect.offsetMin = new Vector2(4, -4);
             shadowRect.offsetMax = new Vector2(4, -4);
-            Text shadowText = CreateText(shadowObj, "\uB77C\uC6B4\uB4DC 1", 80, new Color(0, 0, 0, 0.6f));
+            Text shadowText = CreateText(shadowObj, "\uB77C\uC6B4\uB4DC 1", 80, new Color(0.4f, 0.25f, 0.15f, 0.5f));
             shadowText.fontStyle = FontStyle.Bold;
             shadowText.raycastTarget = false;
 
-            Text roundText = CreateText(textObj, "\uB77C\uC6B4\uB4DC 1", 80, new Color(1f, 0.9f, 0.3f));
+            Text roundText = CreateText(textObj, "\uB77C\uC6B4\uB4DC 1", 80, new Color(0.9f, 0.6f, 0.2f));
             roundText.fontStyle = FontStyle.Bold;
 
-            // Add Outline component for extra visibility
             Outline outline = textObj.AddComponent<Outline>();
-            outline.effectColor = new Color(0, 0, 0, 0.5f);
+            outline.effectColor = new Color(0.4f, 0.25f, 0.15f, 0.4f);
             outline.effectDistance = new Vector2(4, -4);
 
             RoundStartUI component = roundStartObj.AddComponent<RoundStartUI>();
@@ -156,11 +156,9 @@ namespace LottoDefense.Gameplay
             UnitSelectionUI selectionUI = FindFirstObjectByType<UnitSelectionUI>();
             if (selectionUI != null) return;
 
-            // Always-active container for UnitSelectionUI component
             GameObject containerObj = new GameObject("UnitSelectionUIContainer");
             containerObj.transform.SetParent(safeAreaRoot, false);
 
-            // Floating name tag panel above unit
             GameObject selectionPanelObj = new GameObject("UnitSelectionPanel");
             selectionPanelObj.transform.SetParent(safeAreaRoot, false);
 
@@ -170,15 +168,14 @@ namespace LottoDefense.Gameplay
             panelRect.pivot = new Vector2(0.5f, 0f);
             panelRect.sizeDelta = new Vector2(180f, 35f);
 
-            // Dark background with gold border
             Image panelBg = selectionPanelObj.AddComponent<Image>();
             panelBg.color = GameSceneDesignTokens.SelectionPanelBg;
+            ApplyRoundedSprite(panelBg, 10);
 
             Outline panelOutline = selectionPanelObj.AddComponent<Outline>();
             panelOutline.effectColor = GameSceneDesignTokens.SelectionPanelBorder;
             panelOutline.effectDistance = new Vector2(2, -2);
 
-            // Unit name only (stats moved to bottom panel UnitInfoPanel)
             GameObject unitNameObj = new GameObject("UnitNameText");
             unitNameObj.transform.SetParent(selectionPanelObj.transform, false);
             RectTransform nameRect = unitNameObj.AddComponent<RectTransform>();
@@ -195,15 +192,13 @@ namespace LottoDefense.Gameplay
             unitNameText.resizeTextMaxSize = 18;
 
             Outline nameOutline = unitNameObj.AddComponent<Outline>();
-            nameOutline.effectColor = new Color(0f, 0f, 0f, 0.5f);
+            nameOutline.effectColor = new Color(1f, 1f, 1f, 0.4f);
             nameOutline.effectDistance = new Vector2(1, -1);
 
-            // Add UnitSelectionUI component on the always-active container
             UnitSelectionUI component = containerObj.AddComponent<UnitSelectionUI>();
             SetField(component, "selectionPanel", selectionPanelObj);
             SetField(component, "unitNameText", unitNameText);
 
-            // Start panel hidden (container stays active)
             selectionPanelObj.SetActive(false);
 
         }
@@ -213,14 +208,13 @@ namespace LottoDefense.Gameplay
             GameObject obj = new GameObject($"Info_{placeholder}");
             obj.transform.SetParent(parent, false);
 
-            Text t = CreateText(obj, placeholder, GameSceneDesignTokens.UnitInfoDetailSize, Color.white);
+            Text t = CreateText(obj, placeholder, GameSceneDesignTokens.UnitInfoDetailSize, CuteUIHelper.DarkText);
             t.alignment = TextAnchor.MiddleLeft;
             t.fontStyle = FontStyle.Bold;
             t.supportRichText = true;
             t.resizeTextForBestFit = true;
             t.resizeTextMinSize = 9;
             t.resizeTextMaxSize = GameSceneDesignTokens.UnitInfoDetailSize;
-            // Prevent text from overflowing into adjacent layout cells
             t.horizontalOverflow = HorizontalWrapMode.Wrap;
             t.verticalOverflow = VerticalWrapMode.Truncate;
 
@@ -237,7 +231,6 @@ namespace LottoDefense.Gameplay
             float panelH = GameSceneDesignTokens.CommandPanelHeight;
             float btnH = GameSceneDesignTokens.CommandButtonHeight;
 
-            // --- Root panel: fixed at bottom, h=200 ---
             GameObject bottomPanelObj = new GameObject("GameBottomUI");
             bottomPanelObj.transform.SetParent(safeAreaRoot, false);
 
@@ -249,13 +242,13 @@ namespace LottoDefense.Gameplay
             panelRect.sizeDelta = new Vector2(0, panelH);
 
             Image panelBg = bottomPanelObj.AddComponent<Image>();
-            panelBg.color = new Color(0.04f, 0.05f, 0.08f, 0.94f);
+            panelBg.color = CuteUIHelper.CreamBg;
+            ApplyRoundedSprite(panelBg, 20);
 
-            Outline panelOutline = bottomPanelObj.AddComponent<Outline>();
-            panelOutline.effectColor = new Color(0.3f, 0.35f, 0.45f, 0.5f);
-            panelOutline.effectDistance = new Vector2(0, 2);
+            Shadow panelShadow = bottomPanelObj.AddComponent<Shadow>();
+            panelShadow.effectColor = CuteUIHelper.SoftShadow;
+            panelShadow.effectDistance = new Vector2(0, 3);
 
-            // HorizontalLayoutGroup for 2-column split
             HorizontalLayoutGroup hLayout = bottomPanelObj.AddComponent<HorizontalLayoutGroup>();
             hLayout.padding = new RectOffset(8, 8, 6, 6);
             hLayout.spacing = 8;
@@ -271,13 +264,11 @@ namespace LottoDefense.Gameplay
             LayoutElement leftLE = leftCol.AddComponent<LayoutElement>();
             leftLE.flexibleWidth = 0.35f;
 
-            // The UnitInfoPanel lives here (always visible, toggles internal state)
-            // Add background for left column
             Image leftBg = leftCol.AddComponent<Image>();
-            leftBg.color = new Color(0.06f, 0.08f, 0.12f, 0.6f);
+            leftBg.color = new Color(0.96f, 0.93f, 0.88f, 0.7f);
             leftBg.raycastTarget = false;
+            ApplyRoundedSprite(leftBg, 12);
 
-            // --- statsContainer: visible when unit selected ---
             GameObject statsContainer = new GameObject("StatsContainer");
             statsContainer.transform.SetParent(leftCol.transform, false);
             RectTransform statsContainerRect = statsContainer.AddComponent<RectTransform>();
@@ -302,11 +293,12 @@ namespace LottoDefense.Gameplay
             portraitLE.preferredHeight = 70;
 
             Image portraitBg = portraitObj.AddComponent<Image>();
-            portraitBg.color = new Color(0.12f, 0.14f, 0.2f, 0.85f);
+            portraitBg.color = new Color(0.92f, 0.88f, 0.82f, 0.85f);
             portraitBg.raycastTarget = false;
+            ApplyRoundedSprite(portraitBg, 10);
 
             Outline portraitOutline = portraitObj.AddComponent<Outline>();
-            portraitOutline.effectColor = new Color(0.5f, 0.5f, 0.6f, 0.6f);
+            portraitOutline.effectColor = CuteUIHelper.WarmBorder;
             portraitOutline.effectDistance = new Vector2(1, -1);
 
             GameObject portraitCircleObj = new GameObject("PortraitCircle");
@@ -341,7 +333,7 @@ namespace LottoDefense.Gameplay
             LayoutElement nameRowLE = nameRowObj.AddComponent<LayoutElement>();
             nameRowLE.preferredHeight = 24f;
 
-            Text infoNameText = CreateText(nameRowObj, "", GameSceneDesignTokens.UnitInfoNameSize, Color.white);
+            Text infoNameText = CreateText(nameRowObj, "", GameSceneDesignTokens.UnitInfoNameSize, CuteUIHelper.DarkText);
             infoNameText.alignment = TextAnchor.MiddleLeft;
             infoNameText.fontStyle = FontStyle.Bold;
             infoNameText.horizontalOverflow = HorizontalWrapMode.Wrap;
@@ -424,9 +416,10 @@ namespace LottoDefense.Gameplay
             Image manaBarBgImg = manaContainerObj.AddComponent<Image>();
             manaBarBgImg.color = GameSceneDesignTokens.ManaBarBg;
             manaBarBgImg.raycastTarget = false;
+            ApplyRoundedSprite(manaBarBgImg, 6);
 
             Outline manaBarOutline = manaContainerObj.AddComponent<Outline>();
-            manaBarOutline.effectColor = new Color(0.3f, 0.4f, 0.6f, 0.5f);
+            manaBarOutline.effectColor = CuteUIHelper.WarmBorder;
             manaBarOutline.effectDistance = new Vector2(1, -1);
 
             GameObject manaFillObj = new GameObject("ManaBarFill");
@@ -453,10 +446,9 @@ namespace LottoDefense.Gameplay
             emptyRect.offsetMin = Vector2.zero;
             emptyRect.offsetMax = Vector2.zero;
 
-            Text emptyText = CreateText(emptyStateObj, "\uC720\uB2DB\uC744 \uC120\uD0DD\uD558\uC138\uC694", 16, new Color(0.5f, 0.5f, 0.55f, 0.8f));
+            Text emptyText = CreateText(emptyStateObj, "\uC720\uB2DB\uC744 \uC120\uD0DD\uD558\uC138\uC694", 16, new Color(0.6f, 0.55f, 0.5f, 0.8f));
             emptyText.alignment = TextAnchor.MiddleCenter;
 
-            // Add UnitInfoPanel component to leftCol
             UnitInfoPanel infoPanel = leftCol.AddComponent<UnitInfoPanel>();
             SetField(infoPanel, "portraitImage", portraitImage);
             SetField(infoPanel, "unitNameText", infoNameText);
@@ -471,7 +463,6 @@ namespace LottoDefense.Gameplay
             SetField(infoPanel, "statsContainer", statsContainer);
             SetField(infoPanel, "emptyStateText", emptyText);
 
-            // Start in empty state
             statsContainer.SetActive(false);
             emptyStateObj.SetActive(true);
 
@@ -482,7 +473,6 @@ namespace LottoDefense.Gameplay
             LayoutElement rightLE = rightCol.AddComponent<LayoutElement>();
             rightLE.flexibleWidth = 0.65f;
 
-            // 2 rows of 3 buttons each (adapts to screen width)
             VerticalLayoutGroup rightVLayout = rightCol.AddComponent<VerticalLayoutGroup>();
             rightVLayout.spacing = 8;
             rightVLayout.padding = new RectOffset(4, 4, 6, 6);
@@ -559,7 +549,6 @@ namespace LottoDefense.Gameplay
             SetField(component, "attackSpeedUpgradeButtonText", spdUpBtnText);
             SetField(component, "synthesisButtonText", synthBtnText);
 
-            // Link UnitInfoPanel to GameBottomUI
             component.SetUnitInfoPanel(infoPanel);
 
             bottomPanelObj.SetActive(true);
@@ -581,35 +570,33 @@ namespace LottoDefense.Gameplay
 
             Image buttonBg = buttonObj.AddComponent<Image>();
             buttonBg.color = bgColor;
-
-            Outline buttonOutline = buttonObj.AddComponent<Outline>();
-            buttonOutline.effectColor = borderColor;
-            buttonOutline.effectDistance = new Vector2(2, -2);
+            ApplyRoundedSprite(buttonBg, 12);
 
             Shadow buttonShadow = buttonObj.AddComponent<Shadow>();
-            buttonShadow.effectColor = new Color(0, 0, 0, 0.4f);
-            buttonShadow.effectDistance = new Vector2(2, -2);
+            buttonShadow.effectColor = CuteUIHelper.SoftShadow;
+            buttonShadow.effectDistance = new Vector2(2, -3);
 
             Button button = buttonObj.AddComponent<Button>();
             ColorBlock colors = button.colors;
             colors.normalColor = Color.white;
-            colors.highlightedColor = new Color(0.9f, 0.95f, 1f, 1f);
-            colors.pressedColor = new Color(0.55f, 0.55f, 0.55f, 1f);
+            colors.highlightedColor = new Color(1f, 0.98f, 0.95f, 1f);
+            colors.pressedColor = new Color(0.85f, 0.82f, 0.78f, 1f);
             colors.disabledColor = GameSceneDesignTokens.ActionBtnDisabled;
-            colors.fadeDuration = 0.06f;
+            colors.fadeDuration = 0.08f;
             button.colors = colors;
 
-            // Inner highlight strip
+            // Inner highlight strip (top half for soft bevel)
             GameObject highlightObj = new GameObject("Highlight");
             highlightObj.transform.SetParent(buttonObj.transform, false);
             RectTransform hlRect = highlightObj.AddComponent<RectTransform>();
             hlRect.anchorMin = new Vector2(0, 0.5f);
             hlRect.anchorMax = Vector2.one;
-            hlRect.offsetMin = new Vector2(2, 0);
-            hlRect.offsetMax = new Vector2(-2, -2);
+            hlRect.offsetMin = new Vector2(4, 0);
+            hlRect.offsetMax = new Vector2(-4, -3);
             Image hlImg = highlightObj.AddComponent<Image>();
-            hlImg.color = new Color(1f, 1f, 1f, 0.1f);
+            hlImg.color = new Color(1f, 1f, 1f, 0.18f);
             hlImg.raycastTarget = false;
+            ApplyRoundedSprite(hlImg, 8);
 
             // Button text
             GameObject textObj = new GameObject("Text");
@@ -621,17 +608,13 @@ namespace LottoDefense.Gameplay
             textRect.offsetMin = new Vector2(6, 4);
             textRect.offsetMax = new Vector2(-6, -4);
 
-            Text buttonText = CreateText(textObj, text, textSize, Color.white);
+            Text buttonText = CreateText(textObj, text, textSize, CuteUIHelper.DarkText);
             buttonText.alignment = TextAnchor.MiddleCenter;
             buttonText.fontStyle = FontStyle.Bold;
             buttonText.resizeTextForBestFit = true;
             buttonText.resizeTextMinSize = 12;
             buttonText.resizeTextMaxSize = textSize;
             buttonText.supportRichText = true;
-
-            Outline textOutline = textObj.AddComponent<Outline>();
-            textOutline.effectColor = new Color(0, 0, 0, 0.7f);
-            textOutline.effectDistance = new Vector2(1, -1);
 
             return buttonObj;
         }
@@ -642,7 +625,6 @@ namespace LottoDefense.Gameplay
         {
             if (FindFirstObjectByType<GameHUD>() != null) return;
 
-            // ---- Root HUD panel (top of screen) ----
             GameObject hudObj = new GameObject("GameHUD");
             hudObj.transform.SetParent(safeAreaRoot, false);
 
@@ -656,6 +638,11 @@ namespace LottoDefense.Gameplay
             Image hudBg = hudObj.AddComponent<Image>();
             hudBg.color = GameSceneDesignTokens.HudBackground;
             hudBg.raycastTarget = true;
+            ApplyRoundedSprite(hudBg, 20);
+
+            Shadow hudShadow = hudObj.AddComponent<Shadow>();
+            hudShadow.effectColor = CuteUIHelper.SoftShadow;
+            hudShadow.effectDistance = new Vector2(0, -3);
 
             VerticalLayoutGroup vlayout = hudObj.AddComponent<VerticalLayoutGroup>();
             int padH = Mathf.RoundToInt(GameSceneDesignTokens.HudPaddingH);
@@ -681,7 +668,6 @@ namespace LottoDefense.Gameplay
                 GameSceneDesignTokens.StatLabel, GameSceneDesignTokens.TimeColor,
                 GameSceneDesignTokens.StatLabelSize, GameSceneDesignTokens.StatValueSize);
 
-            // ---- Divider line ----
             CreateDivider(hudObj.transform);
 
             // ---- Row 2: LIFE | GOLD | MONSTERS | UNITS ----
@@ -704,7 +690,6 @@ namespace LottoDefense.Gameplay
             SetField(hud, "unitText", unitText);
             SetField(hud, "lifeText", lifeText);
 
-            // Stat containers for tooltip click detection
             RectTransform[] statContainers = new RectTransform[]
             {
                 roundText.transform.parent.GetComponent<RectTransform>(),
@@ -717,7 +702,7 @@ namespace LottoDefense.Gameplay
             };
             SetField(hud, "statContainers", statContainers);
 
-            // Tooltip panel (full-width bar below HUD)
+            // Tooltip panel
             GameObject tooltipObj = new GameObject("TooltipPanel");
             tooltipObj.transform.SetParent(safeAreaRoot, false);
 
@@ -729,8 +714,9 @@ namespace LottoDefense.Gameplay
             tooltipRect.sizeDelta = new Vector2(0, 44);
 
             Image tooltipBg = tooltipObj.AddComponent<Image>();
-            tooltipBg.color = new Color(0.08f, 0.1f, 0.15f, 0.95f);
+            tooltipBg.color = new Color(1f, 0.97f, 0.92f, 0.96f);
             tooltipBg.raycastTarget = true;
+            ApplyRoundedSprite(tooltipBg, 10);
 
             GameObject tooltipTextObj = new GameObject("Text");
             tooltipTextObj.transform.SetParent(tooltipObj.transform, false);
@@ -740,7 +726,7 @@ namespace LottoDefense.Gameplay
             textRect.offsetMin = new Vector2(16, 4);
             textRect.offsetMax = new Vector2(-16, -4);
 
-            Text tooltipTextComp = CreateText(tooltipTextObj, "", 24, Color.white);
+            Text tooltipTextComp = CreateText(tooltipTextObj, "", 24, CuteUIHelper.DarkText);
             tooltipTextComp.alignment = TextAnchor.MiddleCenter;
 
             tooltipObj.SetActive(false);
@@ -783,7 +769,6 @@ namespace LottoDefense.Gameplay
             vl.childControlHeight = true;
             vl.childAlignment = TextAnchor.MiddleCenter;
 
-            // Label text (small, dimmed)
             GameObject labelObj = new GameObject("Label");
             labelObj.transform.SetParent(container.transform, false);
             labelObj.AddComponent<RectTransform>();
@@ -791,7 +776,6 @@ namespace LottoDefense.Gameplay
             labelText.fontStyle = FontStyle.Normal;
             labelText.raycastTarget = false;
 
-            // Value text (large, vivid)
             GameObject valueObj = new GameObject("Value");
             valueObj.transform.SetParent(container.transform, false);
             valueObj.AddComponent<RectTransform>();
@@ -809,10 +793,10 @@ namespace LottoDefense.Gameplay
 
             RectTransform cardRect = card.AddComponent<RectTransform>();
 
-            // Card background
             Image cardBg = card.AddComponent<Image>();
             cardBg.color = GameSceneDesignTokens.HudStatCardBg;
             cardBg.raycastTarget = false;
+            ApplyRoundedSprite(cardBg, 10);
 
             HorizontalLayoutGroup hl = card.AddComponent<HorizontalLayoutGroup>();
             int pad = Mathf.RoundToInt(GameSceneDesignTokens.StatCardPadding);
@@ -824,7 +808,6 @@ namespace LottoDefense.Gameplay
             hl.childControlHeight = true;
             hl.childAlignment = TextAnchor.MiddleCenter;
 
-            // Icon
             GameObject iconObj = new GameObject("Icon");
             iconObj.transform.SetParent(card.transform, false);
             RectTransform iconRect = iconObj.AddComponent<RectTransform>();
@@ -834,13 +817,12 @@ namespace LottoDefense.Gameplay
             iconText.fontStyle = FontStyle.Bold;
             iconText.raycastTarget = false;
 
-            // Value
             GameObject valueObj = new GameObject("Value");
             valueObj.transform.SetParent(card.transform, false);
             valueObj.AddComponent<RectTransform>();
             LayoutElement valueLE = valueObj.AddComponent<LayoutElement>();
             valueLE.flexibleWidth = 1;
-            Text valueText = CreateText(valueObj, value, GameSceneDesignTokens.StatValueSize, Color.white);
+            Text valueText = CreateText(valueObj, value, GameSceneDesignTokens.StatValueSize, CuteUIHelper.DarkText);
             valueText.fontStyle = FontStyle.Bold;
             valueText.raycastTarget = false;
 
@@ -868,7 +850,6 @@ namespace LottoDefense.Gameplay
         #region Buttons
         private void EnsureSynthesisGuideButton()
         {
-            // Top-right corner icon button (52x52) positioned below HUD
             GameObject btnObj = new GameObject("SynthesisGuideButton");
             btnObj.transform.SetParent(safeAreaRoot, false);
 
@@ -881,20 +862,23 @@ namespace LottoDefense.Gameplay
             btnRect.sizeDelta = new Vector2(btnSize, btnSize);
 
             Image btnImage = btnObj.AddComponent<Image>();
-            btnImage.color = new Color(0.3f, 0.6f, 0.9f, 1f); // Blue
+            btnImage.color = new Color(0.55f, 0.75f, 0.95f, 1f);
+            ApplyRoundedSprite(btnImage, 14);
+
+            Shadow btnShadow = btnObj.AddComponent<Shadow>();
+            btnShadow.effectColor = CuteUIHelper.SoftShadow;
+            btnShadow.effectDistance = new Vector2(2, -2);
 
             Button button = btnObj.AddComponent<Button>();
             ColorBlock colors = button.colors;
             colors.normalColor = Color.white;
-            colors.highlightedColor = new Color(1.1f, 1.1f, 1.1f, 1f);
-            colors.pressedColor = new Color(0.7f, 0.7f, 0.7f, 1f);
+            colors.highlightedColor = new Color(1f, 0.98f, 0.95f, 1f);
+            colors.pressedColor = new Color(0.85f, 0.82f, 0.78f, 1f);
             colors.fadeDuration = 0.1f;
             button.colors = colors;
 
-            // Create SynthesisGuideUI first (before it gets deactivated)
             EnsureSynthesisGuideUI();
 
-            // Use lambda that finds the guide at click-time, since it may be inactive
             button.onClick.AddListener(() => {
                 SynthesisGuideUI guide = FindFirstObjectByType<SynthesisGuideUI>(FindObjectsInactive.Include);
                 if (guide != null)
@@ -903,7 +887,6 @@ namespace LottoDefense.Gameplay
                 }
             });
 
-            // Button icon ("?" as fallback - emoji may not render in legacy Text)
             GameObject textObj = new GameObject("Text");
             textObj.transform.SetParent(btnObj.transform, false);
             RectTransform textRect = textObj.AddComponent<RectTransform>();
@@ -912,12 +895,8 @@ namespace LottoDefense.Gameplay
             textRect.offsetMin = Vector2.zero;
             textRect.offsetMax = Vector2.zero;
 
-            Text btnText = CreateText(textObj, "?", 28, GameSceneDesignTokens.ButtonText);
+            Text btnText = CreateText(textObj, "?", 28, CuteUIHelper.DarkText);
             btnText.fontStyle = FontStyle.Bold;
-
-            Outline outline = textObj.AddComponent<Outline>();
-            outline.effectColor = new Color(0, 0, 0, 0.5f);
-            outline.effectDistance = new Vector2(2, -2);
         }
 
         private void EnsureSynthesisGuideUI()
@@ -925,7 +904,6 @@ namespace LottoDefense.Gameplay
             SynthesisGuideUI existingUI = FindFirstObjectByType<SynthesisGuideUI>();
             if (existingUI != null) return;
 
-            // Create guide panel
             GameObject guideObj = new GameObject("SynthesisGuideUI");
             guideObj.transform.SetParent(safeAreaRoot, false);
 
@@ -935,9 +913,8 @@ namespace LottoDefense.Gameplay
             rect.offsetMin = Vector2.zero;
             rect.offsetMax = Vector2.zero;
 
-            // Semi-transparent background
             Image bgImage = guideObj.AddComponent<Image>();
-            bgImage.color = new Color(0f, 0f, 0f, 0.7f);
+            bgImage.color = CuteUIHelper.WarmOverlay;
 
             // Main panel
             GameObject panelObj = new GameObject("Panel");
@@ -950,7 +927,12 @@ namespace LottoDefense.Gameplay
             panelRect.sizeDelta = new Vector2(700, 800);
 
             Image panelImage = panelObj.AddComponent<Image>();
-            panelImage.color = new Color(0.15f, 0.15f, 0.2f, 0.95f);
+            panelImage.color = CuteUIHelper.PeachBg;
+            ApplyRoundedSprite(panelImage, 24);
+
+            Shadow panelShadow = panelObj.AddComponent<Shadow>();
+            panelShadow.effectColor = new Color(0.4f, 0.3f, 0.2f, 0.3f);
+            panelShadow.effectDistance = new Vector2(4, -4);
 
             // Close button (top right)
             GameObject closeBtn = new GameObject("CloseButton");
@@ -963,7 +945,8 @@ namespace LottoDefense.Gameplay
             closeBtnRect.sizeDelta = new Vector2(60, 60);
 
             Image closeBtnImage = closeBtn.AddComponent<Image>();
-            closeBtnImage.color = new Color(0.8f, 0.2f, 0.2f, 1f);
+            closeBtnImage.color = new Color(0.95f, 0.5f, 0.5f, 1f);
+            ApplyRoundedSprite(closeBtnImage, 14);
 
             Button closeBtnButton = closeBtn.AddComponent<Button>();
 
@@ -988,7 +971,7 @@ namespace LottoDefense.Gameplay
             titleRect.anchoredPosition = new Vector2(0, -30);
             titleRect.sizeDelta = new Vector2(600, 50);
 
-            Text titleText = CreateText(titleObj, "\uD569\uC131 \uB808\uC2DC\uD53C", 40, new Color(1f, 0.9f, 0.5f));
+            Text titleText = CreateText(titleObj, "\uD569\uC131 \uB808\uC2DC\uD53C", 40, new Color(0.7f, 0.5f, 0.15f));
             titleText.fontStyle = FontStyle.Bold;
 
             // Page number
@@ -1001,7 +984,7 @@ namespace LottoDefense.Gameplay
             pageNumRect.anchoredPosition = new Vector2(0, -90);
             pageNumRect.sizeDelta = new Vector2(200, 30);
 
-            Text pageNumText = CreateText(pageNumObj, "1 / 6", 24, Color.white);
+            Text pageNumText = CreateText(pageNumObj, "1 / 6", 24, CuteUIHelper.DarkText);
 
             // Source unit section (left side)
             GameObject sourceSection = CreateUnitDisplaySection(panelObj.transform, "Source", new Vector2(-200, -250), "\uC18C\uC2A4 \uC720\uB2DB");
@@ -1016,7 +999,7 @@ namespace LottoDefense.Gameplay
             arrowRect.anchoredPosition = new Vector2(0, -50);
             arrowRect.sizeDelta = new Vector2(100, 50);
 
-            Text arrowText = CreateText(arrowObj, "\u2192", 50, Color.yellow); // Right arrow
+            Text arrowText = CreateText(arrowObj, "\u2192", 50, new Color(0.9f, 0.6f, 0.2f));
 
             // Result unit section (right side)
             GameObject resultSection = CreateUnitDisplaySection(panelObj.transform, "Result", new Vector2(200, -250), "\uACB0\uACFC \uC720\uB2DB");
@@ -1031,7 +1014,7 @@ namespace LottoDefense.Gameplay
             reqCountRect.anchoredPosition = new Vector2(0, 150);
             reqCountRect.sizeDelta = new Vector2(600, 40);
 
-            Text reqCountText = CreateText(reqCountObj, "2\uAC1C \uD544\uC694", 28, new Color(1f, 0.8f, 0.3f));
+            Text reqCountText = CreateText(reqCountObj, "2\uAC1C \uD544\uC694", 28, new Color(0.8f, 0.55f, 0.15f));
             reqCountText.fontStyle = FontStyle.Bold;
 
             // Synthesis info text
@@ -1044,7 +1027,7 @@ namespace LottoDefense.Gameplay
             infoRect.anchoredPosition = new Vector2(0, 100);
             infoRect.sizeDelta = new Vector2(600, 60);
 
-            Text infoText = CreateText(infoObj, "\uAC19\uC740 \uC720\uB2DB 2\uAC1C\uB97C \uBAA8\uC544\uC11C \uD569\uC131\uD558\uC138\uC694!", 20, Color.white);
+            Text infoText = CreateText(infoObj, "\uAC19\uC740 \uC720\uB2DB 2\uAC1C\uB97C \uBAA8\uC544\uC11C \uD569\uC131\uD558\uC138\uC694!", 20, CuteUIHelper.DarkText);
 
             // Previous page button (left arrow)
             GameObject prevBtn = CreatePageButton(panelObj.transform, "PrevButton", new Vector2(50, 400), "\u25C0");
@@ -1052,10 +1035,8 @@ namespace LottoDefense.Gameplay
             // Next page button (right arrow)
             GameObject nextBtn = CreatePageButton(panelObj.transform, "NextButton", new Vector2(650, 400), "\u25B6");
 
-            // Add SynthesisGuideUI component
             SynthesisGuideUI guideUI = guideObj.AddComponent<SynthesisGuideUI>();
 
-            // Wire up references via reflection (since fields are private)
             var guidePanelField = typeof(SynthesisGuideUI).GetField("guidePanel", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             var closeButtonField = typeof(SynthesisGuideUI).GetField("closeButton", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             var prevPageButtonField = typeof(SynthesisGuideUI).GetField("prevPageButton", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
@@ -1078,7 +1059,6 @@ namespace LottoDefense.Gameplay
             pageNumberTextField?.SetValue(guideUI, pageNumText);
             recipeTitleTextField?.SetValue(guideUI, titleText);
 
-            // Source unit references
             var sourceIcon = sourceSection.transform.Find("Icon")?.GetComponent<Image>();
             var sourceName = sourceSection.transform.Find("Name")?.GetComponent<Text>();
             var sourceStats = sourceSection.transform.Find("Stats")?.GetComponent<Text>();
@@ -1086,7 +1066,6 @@ namespace LottoDefense.Gameplay
             sourceUnitNameTextField?.SetValue(guideUI, sourceName);
             sourceUnitStatsTextField?.SetValue(guideUI, sourceStats);
 
-            // Result unit references
             var resultIcon = resultSection.transform.Find("Icon")?.GetComponent<Image>();
             var resultName = resultSection.transform.Find("Name")?.GetComponent<Text>();
             var resultStats = resultSection.transform.Find("Stats")?.GetComponent<Text>();
@@ -1097,7 +1076,6 @@ namespace LottoDefense.Gameplay
             requiredCountTextField?.SetValue(guideUI, reqCountText);
             synthesisInfoTextField?.SetValue(guideUI, infoText);
 
-            // IMPORTANT: Start with guide hidden
             guideObj.SetActive(false);
         }
 
@@ -1136,7 +1114,7 @@ namespace LottoDefense.Gameplay
             nameRect.anchoredPosition = new Vector2(0, -145);
             nameRect.sizeDelta = new Vector2(240, 40);
 
-            Text nameText = CreateText(nameObj, label, 22, Color.white);
+            Text nameText = CreateText(nameObj, label, 22, CuteUIHelper.DarkText);
             nameText.fontStyle = FontStyle.Bold;
 
             // Stats
@@ -1149,7 +1127,7 @@ namespace LottoDefense.Gameplay
             statsRect.anchoredPosition = new Vector2(0, -195);
             statsRect.sizeDelta = new Vector2(240, 140);
 
-            Text statsText = CreateText(statsObj, "\uACF5\uACA9\uB825: ?\n\uACF5\uACA9\uC18D\uB3C4: ?\n\uC0AC\uAC70\uB9AC: ?\nDPS: ?", 18, Color.white);
+            Text statsText = CreateText(statsObj, "\uACF5\uACA9\uB825: ?\n\uACF5\uACA9\uC18D\uB3C4: ?\n\uC0AC\uAC70\uB9AC: ?\nDPS: ?", 18, CuteUIHelper.DarkText);
 
             return section;
         }
@@ -1167,13 +1145,14 @@ namespace LottoDefense.Gameplay
             btnRect.sizeDelta = new Vector2(80, 80);
 
             Image btnImage = btnObj.AddComponent<Image>();
-            btnImage.color = new Color(0.3f, 0.3f, 0.4f, 1f);
+            btnImage.color = new Color(0.8f, 0.75f, 0.85f, 1f);
+            ApplyRoundedSprite(btnImage, 14);
 
             Button button = btnObj.AddComponent<Button>();
             ColorBlock colors = button.colors;
             colors.normalColor = Color.white;
-            colors.highlightedColor = new Color(1.2f, 1.2f, 1.2f, 1f);
-            colors.pressedColor = new Color(0.8f, 0.8f, 0.8f, 1f);
+            colors.highlightedColor = new Color(1f, 0.98f, 0.95f, 1f);
+            colors.pressedColor = new Color(0.85f, 0.82f, 0.78f, 1f);
             button.colors = colors;
 
             GameObject textObj = new GameObject("Text");
@@ -1184,7 +1163,7 @@ namespace LottoDefense.Gameplay
             textRect.offsetMin = Vector2.zero;
             textRect.offsetMax = Vector2.zero;
 
-            Text btnText = CreateText(textObj, text, 36, Color.white);
+            Text btnText = CreateText(textObj, text, 36, CuteUIHelper.DarkText);
             btnText.fontStyle = FontStyle.Bold;
 
             return btnObj;
@@ -1195,7 +1174,6 @@ namespace LottoDefense.Gameplay
             GameResultUI resultUI = FindFirstObjectByType<GameResultUI>();
             if (resultUI != null) return;
 
-            // Full-screen overlay for game result
             GameObject resultObj = new GameObject("GameResultUI");
             resultObj.transform.SetParent(safeAreaRoot, false);
 
@@ -1205,7 +1183,6 @@ namespace LottoDefense.Gameplay
             rect.offsetMin = Vector2.zero;
             rect.offsetMax = Vector2.zero;
 
-            // Override sorting to render above mana bars and other dynamic UI
             Canvas overrideCanvas = resultObj.AddComponent<Canvas>();
             overrideCanvas.overrideSorting = true;
             overrideCanvas.sortingOrder = 200;
@@ -1216,9 +1193,8 @@ namespace LottoDefense.Gameplay
             canvasGroup.interactable = false;
             canvasGroup.blocksRaycasts = false;
 
-            // Semi-transparent background
             Image bgImage = resultObj.AddComponent<Image>();
-            bgImage.color = new Color(0f, 0f, 0f, 0.85f);
+            bgImage.color = new Color(0.3f, 0.2f, 0.15f, 0.75f);
 
             // Result panel
             GameObject panelObj = new GameObject("ResultPanel");
@@ -1232,7 +1208,12 @@ namespace LottoDefense.Gameplay
             panelRect.sizeDelta = new Vector2(600, 500);
 
             Image panelImage = panelObj.AddComponent<Image>();
-            panelImage.color = new Color(0.15f, 0.15f, 0.2f, 0.95f);
+            panelImage.color = CuteUIHelper.PeachBg;
+            ApplyRoundedSprite(panelImage, 24);
+
+            Shadow panelShadow = panelObj.AddComponent<Shadow>();
+            panelShadow.effectColor = new Color(0.4f, 0.3f, 0.2f, 0.3f);
+            panelShadow.effectDistance = new Vector2(4, -4);
 
             // Title text
             GameObject titleObj = new GameObject("TitleText");
@@ -1244,7 +1225,7 @@ namespace LottoDefense.Gameplay
             titleRect.anchoredPosition = new Vector2(0, -80);
             titleRect.sizeDelta = new Vector2(500, 100);
 
-            Text titleText = CreateText(titleObj, "\uAC8C\uC784 \uC624\uBC84", 60, Color.white);
+            Text titleText = CreateText(titleObj, "\uAC8C\uC784 \uC624\uBC84", 60, CuteUIHelper.DarkText);
             titleText.fontStyle = FontStyle.Bold;
 
             // Round text
@@ -1257,7 +1238,7 @@ namespace LottoDefense.Gameplay
             roundRect.anchoredPosition = new Vector2(0, 50);
             roundRect.sizeDelta = new Vector2(500, 60);
 
-            Text roundText = CreateText(roundObj, "\uB3C4\uB2EC \uB77C\uC6B4\uB4DC: 1", 36, new Color(0.9f, 0.9f, 0.9f));
+            Text roundText = CreateText(roundObj, "\uB3C4\uB2EC \uB77C\uC6B4\uB4DC: 1", 36, new Color(0.4f, 0.35f, 0.3f));
 
             // Contribution text
             GameObject contribObj = new GameObject("ContributionText");
@@ -1269,7 +1250,7 @@ namespace LottoDefense.Gameplay
             contribRect.anchoredPosition = new Vector2(0, -30);
             contribRect.sizeDelta = new Vector2(500, 60);
 
-            Text contribText = CreateText(contribObj, "\uAE30\uC5EC\uB3C4: 0\uC810", 36, new Color(1f, 0.8f, 0.2f));
+            Text contribText = CreateText(contribObj, "\uAE30\uC5EC\uB3C4: 0\uC810", 36, new Color(0.85f, 0.6f, 0.15f));
 
             // Reward text
             GameObject rewardObj = new GameObject("RewardText");
@@ -1281,7 +1262,7 @@ namespace LottoDefense.Gameplay
             rewardRect.anchoredPosition = new Vector2(0, -100);
             rewardRect.sizeDelta = new Vector2(500, 50);
 
-            Text rewardText = CreateText(rewardObj, "", 32, new Color(0.3f, 1f, 0.4f));
+            Text rewardText = CreateText(rewardObj, "", 32, new Color(0.3f, 0.75f, 0.4f));
 
             // Confirm button
             GameObject btnObj = new GameObject("ConfirmButton");
@@ -1294,17 +1275,21 @@ namespace LottoDefense.Gameplay
             btnRect.sizeDelta = new Vector2(300, 80);
 
             Image btnImage = btnObj.AddComponent<Image>();
-            btnImage.color = new Color(0.2f, 0.6f, 0.3f);
+            btnImage.color = new Color(0.45f, 0.82f, 0.55f);
+            ApplyRoundedSprite(btnImage, 16);
+
+            Shadow btnShadow = btnObj.AddComponent<Shadow>();
+            btnShadow.effectColor = CuteUIHelper.SoftShadow;
+            btnShadow.effectDistance = new Vector2(2, -3);
 
             Button button = btnObj.AddComponent<Button>();
             ColorBlock colors = button.colors;
             colors.normalColor = Color.white;
-            colors.highlightedColor = new Color(1.1f, 1.1f, 1.1f, 1f);
-            colors.pressedColor = new Color(0.7f, 0.7f, 0.7f, 1f);
+            colors.highlightedColor = new Color(1f, 0.98f, 0.95f, 1f);
+            colors.pressedColor = new Color(0.85f, 0.82f, 0.78f, 1f);
             colors.fadeDuration = 0.1f;
             button.colors = colors;
 
-            // Button text
             GameObject btnTextObj = new GameObject("Text");
             btnTextObj.transform.SetParent(btnObj.transform, false);
 
@@ -1314,13 +1299,11 @@ namespace LottoDefense.Gameplay
             btnTextRect.offsetMin = Vector2.zero;
             btnTextRect.offsetMax = Vector2.zero;
 
-            Text btnText = CreateText(btnTextObj, "\uD655\uC778", 40, Color.white);
+            Text btnText = CreateText(btnTextObj, "\uD655\uC778", 40, CuteUIHelper.DarkText);
             btnText.fontStyle = FontStyle.Bold;
 
-            // Add GameResultUI component
             GameResultUI resultUIComponent = resultObj.AddComponent<GameResultUI>();
 
-            // Assign references using reflection
             SetField(resultUIComponent, "canvasGroup", canvasGroup);
             SetField(resultUIComponent, "resultPanel", panelObj);
             SetField(resultUIComponent, "titleText", titleText);
@@ -1339,7 +1322,6 @@ namespace LottoDefense.Gameplay
             if (FindFirstObjectByType<QuestManager>() == null)
                 new GameObject("QuestManager").AddComponent<QuestManager>();
 
-            // Initialize quests for this game session
             QuestManager.Instance?.InitializeQuests();
         }
 
@@ -1348,7 +1330,6 @@ namespace LottoDefense.Gameplay
             QuestUI existingUI = FindFirstObjectByType<QuestUI>();
             if (existingUI != null) return;
 
-            // Full-screen overlay (same pattern as SynthesisGuideUI)
             GameObject questObj = new GameObject("QuestUI");
             questObj.transform.SetParent(safeAreaRoot, false);
 
@@ -1359,7 +1340,7 @@ namespace LottoDefense.Gameplay
             rect.offsetMax = Vector2.zero;
 
             Image bgImage = questObj.AddComponent<Image>();
-            bgImage.color = new Color(0f, 0f, 0f, 0.7f);
+            bgImage.color = CuteUIHelper.WarmOverlay;
 
             // Main panel (centered)
             GameObject panelObj = new GameObject("Panel");
@@ -1373,6 +1354,11 @@ namespace LottoDefense.Gameplay
 
             Image panelImage = panelObj.AddComponent<Image>();
             panelImage.color = GameSceneDesignTokens.QuestPanelBg;
+            ApplyRoundedSprite(panelImage, 24);
+
+            Shadow panelShadow = panelObj.AddComponent<Shadow>();
+            panelShadow.effectColor = new Color(0.4f, 0.3f, 0.2f, 0.3f);
+            panelShadow.effectDistance = new Vector2(4, -4);
 
             // Close button (top right)
             GameObject closeBtn = new GameObject("CloseButton");
@@ -1385,7 +1371,8 @@ namespace LottoDefense.Gameplay
             closeBtnRect.sizeDelta = new Vector2(60, 60);
 
             Image closeBtnImage = closeBtn.AddComponent<Image>();
-            closeBtnImage.color = new Color(0.8f, 0.2f, 0.2f, 1f);
+            closeBtnImage.color = new Color(0.95f, 0.5f, 0.5f, 1f);
+            ApplyRoundedSprite(closeBtnImage, 14);
 
             Button closeBtnButton = closeBtn.AddComponent<Button>();
 
@@ -1410,7 +1397,7 @@ namespace LottoDefense.Gameplay
             titleRect.anchoredPosition = new Vector2(0, -30);
             titleRect.sizeDelta = new Vector2(600, 50);
 
-            Text titleText = CreateText(titleObj, "\uD788\uB4E0 \uD038\uC2A4\uD2B8", 40, new Color(1f, 0.85f, 0.3f));
+            Text titleText = CreateText(titleObj, "\uD788\uB4E0 \uD038\uC2A4\uD2B8", 40, new Color(0.7f, 0.5f, 0.15f));
             titleText.fontStyle = FontStyle.Bold;
 
             // Scroll content area
@@ -1422,7 +1409,6 @@ namespace LottoDefense.Gameplay
             contentRect.offsetMin = new Vector2(20, 20);
             contentRect.offsetMax = new Vector2(-20, -100);
 
-            // Vertical layout for quest items
             VerticalLayoutGroup vlg = contentArea.AddComponent<VerticalLayoutGroup>();
             vlg.spacing = 10;
             vlg.padding = new RectOffset(10, 10, 10, 10);
@@ -1432,27 +1418,22 @@ namespace LottoDefense.Gameplay
             vlg.childControlHeight = false;
             vlg.childAlignment = TextAnchor.UpperCenter;
 
-            // Content size fitter for scrolling
             ContentSizeFitter csf = contentArea.AddComponent<ContentSizeFitter>();
             csf.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
 
-            // Add QuestUI component and wire references
             QuestUI questUI = questObj.AddComponent<QuestUI>();
             SetField(questUI, "questPanel", questObj);
             SetField(questUI, "closeButton", closeBtnButton);
             SetField(questUI, "contentParent", contentArea.transform);
 
-            // Start hidden
             questObj.SetActive(false);
         }
 
         private void EnsureQuestButton()
         {
-            // Ensure quest manager and UI exist first
             EnsureQuestManager();
             EnsureQuestUI();
 
-            // Button positioned below SynthesisGuideButton (top-right, below HUD)
             GameObject btnObj = new GameObject("QuestButton");
             btnObj.transform.SetParent(safeAreaRoot, false);
 
@@ -1461,22 +1442,25 @@ namespace LottoDefense.Gameplay
             btnRect.anchorMin = new Vector2(1, 1);
             btnRect.anchorMax = new Vector2(1, 1);
             btnRect.pivot = new Vector2(1, 1);
-            // Position below the synthesis guide button (guide is at HudHeight+8, this is at HudHeight+8+btnSize+8)
             btnRect.anchoredPosition = new Vector2(-12, -(GameSceneDesignTokens.HudHeight + 8 + btnSize + 8));
             btnRect.sizeDelta = new Vector2(btnSize, btnSize);
 
             Image btnImage = btnObj.AddComponent<Image>();
             btnImage.color = GameSceneDesignTokens.QuestBtnBg;
+            ApplyRoundedSprite(btnImage, 14);
+
+            Shadow btnShadow = btnObj.AddComponent<Shadow>();
+            btnShadow.effectColor = CuteUIHelper.SoftShadow;
+            btnShadow.effectDistance = new Vector2(2, -2);
 
             Button button = btnObj.AddComponent<Button>();
             ColorBlock colors = button.colors;
             colors.normalColor = Color.white;
-            colors.highlightedColor = new Color(1.1f, 1.1f, 1.1f, 1f);
-            colors.pressedColor = new Color(0.7f, 0.7f, 0.7f, 1f);
+            colors.highlightedColor = new Color(1f, 0.98f, 0.95f, 1f);
+            colors.pressedColor = new Color(0.85f, 0.82f, 0.78f, 1f);
             colors.fadeDuration = 0.1f;
             button.colors = colors;
 
-            // Click handler - find QuestUI at click time (may be inactive)
             button.onClick.AddListener(() => {
                 QuestUI questUI = FindFirstObjectByType<QuestUI>(FindObjectsInactive.Include);
                 if (questUI != null)
@@ -1485,7 +1469,6 @@ namespace LottoDefense.Gameplay
                 }
             });
 
-            // Button icon ("Q" for Quest)
             GameObject textObj = new GameObject("Text");
             textObj.transform.SetParent(btnObj.transform, false);
             RectTransform textRect = textObj.AddComponent<RectTransform>();
@@ -1494,19 +1477,14 @@ namespace LottoDefense.Gameplay
             textRect.offsetMin = Vector2.zero;
             textRect.offsetMax = Vector2.zero;
 
-            Text btnText = CreateText(textObj, "Q", 28, GameSceneDesignTokens.ButtonText);
+            Text btnText = CreateText(textObj, "Q", 28, CuteUIHelper.DarkText);
             btnText.fontStyle = FontStyle.Bold;
-
-            Outline outline = textObj.AddComponent<Outline>();
-            outline.effectColor = new Color(0, 0, 0, 0.5f);
-            outline.effectDistance = new Vector2(2, -2);
         }
         #endregion
 
         #region Opponent Status UI (Multiplayer)
         private void EnsureOpponentStatusUI()
         {
-            // Only create in multiplayer mode
             if (MultiplayerManager.Instance == null || !MultiplayerManager.Instance.IsMultiplayer)
                 return;
 

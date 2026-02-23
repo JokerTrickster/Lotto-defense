@@ -16,8 +16,8 @@ namespace LottoDefense.UI
         [SerializeField] private Text speedText;
         
         [Header("Visual Settings")]
-        [SerializeField] private Color normalSpeedColor = new Color(0.3f, 0.7f, 1f); // 파란색 (눈에 잘 띔)
-        [SerializeField] private Color fastSpeedColor = new Color(1f, 0.5f, 0.2f); // 주황색
+        [SerializeField] private Color normalSpeedColor = new Color(0.55f, 0.78f, 0.95f);
+        [SerializeField] private Color fastSpeedColor = new Color(0.95f, 0.65f, 0.4f);
         #endregion
 
         #region Unity Lifecycle
@@ -119,14 +119,27 @@ namespace LottoDefense.UI
             btnRect.anchoredPosition = new Vector2(-20, -20); // 우상단 코너에 바로 붙임
             btnRect.sizeDelta = new Vector2(120, 80); // 더 크게 (눈에 잘 띄게)
 
-            // Image 컴포넌트
             Image btnImage = btnObj.AddComponent<Image>();
             btnImage.color = normalSpeedColor;
+            Sprite rounded = CuteUIHelper.GetRoundedRectSprite(14);
+            if (rounded != null)
+            {
+                btnImage.sprite = rounded;
+                btnImage.type = Image.Type.Sliced;
+            }
 
-            // Button 컴포넌트
+            Shadow btnShadow = btnObj.AddComponent<Shadow>();
+            btnShadow.effectColor = CuteUIHelper.SoftShadow;
+            btnShadow.effectDistance = new Vector2(2, -2);
+
             speedButton = btnObj.AddComponent<Button>();
+            ColorBlock colors = speedButton.colors;
+            colors.normalColor = Color.white;
+            colors.highlightedColor = new Color(1f, 0.98f, 0.95f, 1f);
+            colors.pressedColor = new Color(0.85f, 0.82f, 0.78f, 1f);
+            colors.fadeDuration = 0.08f;
+            speedButton.colors = colors;
 
-            // 텍스트 생성
             GameObject textObj = new GameObject("Text");
             textObj.transform.SetParent(btnObj.transform, false);
 
@@ -140,15 +153,10 @@ namespace LottoDefense.UI
             speedText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             if (speedText.font == null)
                 speedText.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
-            speedText.fontSize = 36; // 더 크게
-            speedText.color = Color.white;
+            speedText.fontSize = 36;
+            speedText.color = CuteUIHelper.DarkText;
             speedText.alignment = TextAnchor.MiddleCenter;
             speedText.fontStyle = FontStyle.Bold;
-            
-            // 외곽선 추가 (가독성 향상)
-            Outline outline = textObj.AddComponent<Outline>();
-            outline.effectColor = Color.black;
-            outline.effectDistance = new Vector2(2, 2);
 
             Debug.Log("[GameSpeedButton] Speed button created at top-right corner");
         }

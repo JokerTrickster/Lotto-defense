@@ -69,7 +69,7 @@ namespace LottoDefense.UI
             if (opponentStatusText != null)
             {
                 opponentStatusText.text = $"탈락! (R{finalRound})";
-                opponentStatusText.color = new Color(1f, 0.3f, 0.3f);
+                opponentStatusText.color = new Color(0.9f, 0.4f, 0.4f);
             }
 
             if (opponentLifeText != null)
@@ -85,8 +85,8 @@ namespace LottoDefense.UI
             {
                 opponentStatusText.text = result.isWinner ? "패배" : "승리";
                 opponentStatusText.color = result.isWinner
-                    ? new Color(0.3f, 1f, 0.3f)
-                    : new Color(1f, 0.3f, 0.3f);
+                    ? new Color(0.4f, 0.8f, 0.5f)
+                    : new Color(0.9f, 0.4f, 0.4f);
             }
         }
         #endregion
@@ -102,7 +102,7 @@ namespace LottoDefense.UI
                 if (opponentStatusText != null)
                 {
                     opponentStatusText.text = "대기중";
-                    opponentStatusText.color = new Color(0.7f, 0.7f, 0.7f);
+                    opponentStatusText.color = new Color(0.55f, 0.5f, 0.45f);
                 }
                 return;
             }
@@ -114,8 +114,8 @@ namespace LottoDefense.UI
             {
                 opponentLifeText.text = state.life.ToString();
                 opponentLifeText.color = state.life > 5
-                    ? new Color(0.3f, 1f, 0.3f)
-                    : new Color(1f, 0.4f, 0.3f);
+                    ? new Color(0.4f, 0.8f, 0.5f)
+                    : new Color(0.9f, 0.45f, 0.4f);
             }
 
             if (opponentRoundText != null)
@@ -125,8 +125,8 @@ namespace LottoDefense.UI
             {
                 opponentStatusText.text = state.isAlive ? "생존" : "탈락";
                 opponentStatusText.color = state.isAlive
-                    ? new Color(0.3f, 1f, 0.3f)
-                    : new Color(1f, 0.3f, 0.3f);
+                    ? new Color(0.4f, 0.8f, 0.5f)
+                    : new Color(0.9f, 0.4f, 0.4f);
             }
         }
         #endregion
@@ -151,12 +151,18 @@ namespace LottoDefense.UI
             rootRect.sizeDelta = new Vector2(0, 40);
 
             Image bg = root.AddComponent<Image>();
-            bg.color = new Color(0.1f, 0.1f, 0.15f, 0.85f);
+            bg.color = new Color(1f, 0.96f, 0.92f, 0.92f);
             bg.raycastTarget = false;
+            Sprite rounded = CuteUIHelper.GetRoundedRectSprite(10);
+            if (rounded != null)
+            {
+                bg.sprite = rounded;
+                bg.type = Image.Type.Sliced;
+            }
 
-            Outline outline = root.AddComponent<Outline>();
-            outline.effectColor = new Color(0.8f, 0.3f, 0.3f, 0.5f);
-            outline.effectDistance = new Vector2(1, -1);
+            Shadow shadow = root.AddComponent<Shadow>();
+            shadow.effectColor = CuteUIHelper.SoftShadow;
+            shadow.effectDistance = new Vector2(1, -2);
 
             HorizontalLayoutGroup hlg = root.AddComponent<HorizontalLayoutGroup>();
             hlg.padding = new RectOffset(8, 8, 4, 4);
@@ -167,27 +173,22 @@ namespace LottoDefense.UI
             hlg.childForceExpandHeight = true;
             hlg.childAlignment = TextAnchor.MiddleLeft;
 
-            // Label
             Text labelText = CreateText(root.transform, "Label", "VS", 16,
-                new Color(1f, 0.5f, 0.5f), font, 30);
+                new Color(0.9f, 0.45f, 0.45f), font, 30);
             labelText.fontStyle = FontStyle.Bold;
 
-            // Opponent name
             Text nameText = CreateText(root.transform, "OpponentName", "상대", 16,
-                Color.white, font, 60);
+                CuteUIHelper.DarkText, font, 60);
 
-            // Opponent life
             Text lifeText = CreateText(root.transform, "OpponentLife", "--", 16,
-                new Color(1f, 0.4f, 0.4f), font, 30);
+                new Color(0.9f, 0.4f, 0.4f), font, 30);
             lifeText.fontStyle = FontStyle.Bold;
 
-            // Opponent round
             Text roundText = CreateText(root.transform, "OpponentRound", "R--", 16,
-                new Color(1f, 0.9f, 0.4f), font, 35);
+                new Color(0.85f, 0.65f, 0.2f), font, 35);
 
-            // Status
             Text statusText = CreateText(root.transform, "OpponentStatus", "대기중", 14,
-                new Color(0.7f, 0.7f, 0.7f), font, 50);
+                new Color(0.55f, 0.5f, 0.45f), font, 50);
 
             CanvasGroup cg = root.AddComponent<CanvasGroup>();
 

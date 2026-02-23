@@ -336,11 +336,9 @@ namespace LottoDefense.Grid
         /// <returns>GridCell component, or null if invalid position</returns>
         public GridCell GetCellAt(int x, int y)
         {
-            if (IsValidPosition(x, y))
-            {
-                return gridCells[x, y];
-            }
-            return null;
+            if (gridCells == null || !IsValidPosition(x, y))
+                return null;
+            return gridCells[x, y];
         }
 
         /// <summary>

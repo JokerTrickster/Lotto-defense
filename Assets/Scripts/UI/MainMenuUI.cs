@@ -59,6 +59,15 @@ namespace LottoDefense.UI
                 settingsButton.onClick.AddListener(OnSettingsClicked);
         }
 
+        private void OnDestroy()
+        {
+            if (singlePlayButton != null) singlePlayButton.onClick.RemoveListener(OnSinglePlayClicked);
+            if (coopPlayButton != null) coopPlayButton.onClick.RemoveListener(OnCoopPlayClicked);
+            if (rankingButton != null) rankingButton.onClick.RemoveListener(OnRankingClicked);
+            if (myStatsButton != null) myStatsButton.onClick.RemoveListener(OnMyStatsClicked);
+            if (settingsButton != null) settingsButton.onClick.RemoveListener(OnSettingsClicked);
+        }
+
         private void OnSinglePlayClicked()
         {
             Debug.Log("[MainMenuUI] 싱글 플레이 시작!");

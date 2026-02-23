@@ -328,7 +328,7 @@ namespace LottoDefense.UI
             if (errorText != null)
             {
                 errorText.text = message;
-                errorText.color = new Color(1f, 0.3f, 0.3f);
+                errorText.color = new Color(0.9f, 0.4f, 0.4f);
             }
         }
 
@@ -365,9 +365,9 @@ namespace LottoDefense.UI
             rootRect.offsetMin = Vector2.zero;
             rootRect.offsetMax = Vector2.zero;
 
-            // Dark background
+            // Background overlay
             Image bgImage = root.AddComponent<Image>();
-            bgImage.color = new Color(0f, 0f, 0f, 0.85f);
+            bgImage.color = CuteUIHelper.WarmOverlay;
 
             // Main panel
             GameObject panel = new GameObject("Panel");
@@ -380,21 +380,23 @@ namespace LottoDefense.UI
             panelRect.sizeDelta = new Vector2(700, 900);
 
             Image panelBg = panel.AddComponent<Image>();
-            panelBg.color = new Color(0.12f, 0.14f, 0.2f, 0.98f);
+            panelBg.sprite = CuteUIHelper.GetRoundedRectSprite();
+            panelBg.type = Image.Type.Sliced;
+            panelBg.color = CuteUIHelper.PeachBg;
 
-            Outline panelOutline = panel.AddComponent<Outline>();
-            panelOutline.effectColor = new Color(0.4f, 0.5f, 0.8f, 0.6f);
-            panelOutline.effectDistance = new Vector2(2, -2);
+            Shadow panelShadow = panel.AddComponent<Shadow>();
+            panelShadow.effectColor = CuteUIHelper.SoftShadow;
+            panelShadow.effectDistance = new Vector2(2, -2);
 
             // Title
             Text titleText = CreateUIText(panel.transform, "Title",
-                "멀티플레이", 42, new Color(1f, 0.9f, 0.4f), font,
+                "멀티플레이", 42, CuteUIHelper.DarkText, font,
                 new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0, -30), new Vector2(600, 60));
             titleText.fontStyle = FontStyle.Bold;
 
             // Close button (top right)
             Button closeBtn = CreateUIButton(panel.transform, "CloseButton", "X",
-                new Color(0.8f, 0.2f, 0.2f), font,
+                LobbyDesignTokens.ButtonClose, font,
                 new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(1f, 1f),
                 new Vector2(-15, -15), new Vector2(50, 50));
 
@@ -419,7 +421,7 @@ namespace LottoDefense.UI
 
             // Connection status
             Text statusText = CreateUIText(panel.transform, "ConnectionStatus",
-                "", 20, Color.white, font,
+                "", 20, CuteUIHelper.DarkText, font,
                 new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0, -310), new Vector2(560, 30));
 
             // --- Room Actions Panel (hidden initially) ---
@@ -489,12 +491,12 @@ namespace LottoDefense.UI
 
             // Room code display
             Text codeDisplay = CreateLayoutText(waitingPnl.transform, "RoomCodeDisplay",
-                "방 코드: ----", 36, new Color(1f, 0.9f, 0.4f), font, 50);
+                "방 코드: ----", 36, CuteUIHelper.DarkText, font, 50);
             codeDisplay.fontStyle = FontStyle.Bold;
 
             // Waiting status
             Text waitStatus = CreateLayoutText(waitingPnl.transform, "WaitingStatus",
-                "상대를 기다리는 중...", 24, Color.white, font, 40);
+                "상대를 기다리는 중...", 24, CuteUIHelper.DarkText, font, 40);
 
             // Ready button
             Button readyBtn = CreateLayoutButton(waitingPnl.transform, "ReadyButton",
@@ -508,7 +510,7 @@ namespace LottoDefense.UI
 
             // Error text (bottom area)
             Text errText = CreateUIText(panel.transform, "ErrorText",
-                "", 18, new Color(1f, 0.3f, 0.3f), font,
+                "", 18, new Color(0.9f, 0.4f, 0.4f), font,
                 new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0, 40), new Vector2(560, 40));
 
             // Add component and wire references
@@ -599,6 +601,8 @@ namespace LottoDefense.UI
             rect.sizeDelta = size;
 
             Image img = obj.AddComponent<Image>();
+            img.sprite = CuteUIHelper.GetRoundedRectSprite();
+            img.type = Image.Type.Sliced;
             img.color = bgColor;
 
             Button btn = obj.AddComponent<Button>();
@@ -621,7 +625,7 @@ namespace LottoDefense.UI
             t.font = font;
             t.text = text;
             t.fontSize = 28;
-            t.color = Color.white;
+            t.color = LobbyDesignTokens.ButtonText;
             t.alignment = TextAnchor.MiddleCenter;
             t.fontStyle = FontStyle.Bold;
             t.raycastTarget = false;
@@ -643,6 +647,8 @@ namespace LottoDefense.UI
             }
 
             Image img = obj.AddComponent<Image>();
+            img.sprite = CuteUIHelper.GetRoundedRectSprite();
+            img.type = Image.Type.Sliced;
             img.color = bgColor;
 
             Button btn = obj.AddComponent<Button>();
@@ -665,7 +671,7 @@ namespace LottoDefense.UI
             t.font = font;
             t.text = text;
             t.fontSize = 26;
-            t.color = Color.white;
+            t.color = LobbyDesignTokens.ButtonText;
             t.alignment = TextAnchor.MiddleCenter;
             t.fontStyle = FontStyle.Bold;
             t.raycastTarget = false;
@@ -687,7 +693,9 @@ namespace LottoDefense.UI
             rect.sizeDelta = size;
 
             Image bg = obj.AddComponent<Image>();
-            bg.color = new Color(0.2f, 0.22f, 0.3f, 1f);
+            bg.sprite = CuteUIHelper.GetRoundedRectSprite();
+            bg.type = Image.Type.Sliced;
+            bg.color = CuteUIHelper.CreamBg;
 
             // Text child
             GameObject textObj = new GameObject("Text");
@@ -702,7 +710,7 @@ namespace LottoDefense.UI
             inputText.font = font;
             inputText.text = "";
             inputText.fontSize = 22;
-            inputText.color = Color.white;
+            inputText.color = CuteUIHelper.DarkText;
             inputText.alignment = TextAnchor.MiddleLeft;
             inputText.supportRichText = false;
 
@@ -739,7 +747,9 @@ namespace LottoDefense.UI
             obj.AddComponent<RectTransform>();
 
             Image bg = obj.AddComponent<Image>();
-            bg.color = new Color(0.2f, 0.22f, 0.3f, 1f);
+            bg.sprite = CuteUIHelper.GetRoundedRectSprite();
+            bg.type = Image.Type.Sliced;
+            bg.color = CuteUIHelper.CreamBg;
 
             // Text child
             GameObject textObj = new GameObject("Text");
@@ -754,7 +764,7 @@ namespace LottoDefense.UI
             inputText.font = font;
             inputText.text = "";
             inputText.fontSize = 22;
-            inputText.color = Color.white;
+            inputText.color = CuteUIHelper.DarkText;
             inputText.alignment = TextAnchor.MiddleLeft;
             inputText.supportRichText = false;
 

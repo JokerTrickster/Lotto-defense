@@ -116,7 +116,7 @@ namespace LottoDefense.UI
             popupOverlay.transform.SetParent(canvas.transform, false);
 
             Image overlayBg = popupOverlay.AddComponent<Image>();
-            overlayBg.color = new Color(0f, 0f, 0f, 0.7f);
+            overlayBg.color = CuteUIHelper.WarmOverlay;
             overlayBg.raycastTarget = true;
 
             RectTransform overlayRect = popupOverlay.GetComponent<RectTransform>();
@@ -128,7 +128,9 @@ namespace LottoDefense.UI
             GameObject panel = new GameObject("Panel");
             panel.transform.SetParent(popupOverlay.transform, false);
             Image panelBg = panel.AddComponent<Image>();
-            panelBg.color = new Color(0.12f, 0.12f, 0.22f, 1f);
+            panelBg.sprite = CuteUIHelper.GetRoundedRectSprite();
+            panelBg.type = Image.Type.Sliced;
+            panelBg.color = CuteUIHelper.PeachBg;
 
             RectTransform panelRect = panel.GetComponent<RectTransform>();
             panelRect.anchorMin = new Vector2(0.15f, 0.35f);
@@ -145,7 +147,7 @@ namespace LottoDefense.UI
             msgText.font = font;
             msgText.text = "입장권이 부족합니다\n\n일일 보상, 퀘스트, 우편함에서\n입장권을 획득할 수 있습니다.";
             msgText.fontSize = 28;
-            msgText.color = Color.white;
+            msgText.color = CuteUIHelper.DarkText;
             msgText.alignment = TextAnchor.MiddleCenter;
             msgText.raycastTarget = false;
 
@@ -158,6 +160,8 @@ namespace LottoDefense.UI
             GameObject okObj = new GameObject("OKButton");
             okObj.transform.SetParent(panel.transform, false);
             Image okBg = okObj.AddComponent<Image>();
+            okBg.sprite = CuteUIHelper.GetRoundedRectSprite();
+            okBg.type = Image.Type.Sliced;
             okBg.color = new Color(0.26f, 0.52f, 0.96f, 1f);
 
             Button okBtn = okObj.AddComponent<Button>();
@@ -174,7 +178,7 @@ namespace LottoDefense.UI
             okText.font = font;
             okText.text = "확인";
             okText.fontSize = 30;
-            okText.color = Color.white;
+            okText.color = CuteUIHelper.DarkText;
             okText.alignment = TextAnchor.MiddleCenter;
             okText.raycastTarget = false;
 

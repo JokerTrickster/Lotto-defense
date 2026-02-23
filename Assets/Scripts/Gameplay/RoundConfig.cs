@@ -86,6 +86,11 @@ namespace LottoDefense.Gameplay
             }
 
             // 설정이 없으면 기본값 생성
+            if (defaultMonster == null)
+            {
+                Debug.LogError($"[RoundConfig] Round {roundNumber} configuration not found and defaultMonster is null! Attempting to load fallback from Resources.");
+                defaultMonster = Resources.Load<MonsterData>("Monsters/DefaultMonster");
+            }
             Debug.LogWarning($"[RoundConfig] Round {roundNumber} configuration not found, using default settings");
             return new RoundMonsterConfig
             {

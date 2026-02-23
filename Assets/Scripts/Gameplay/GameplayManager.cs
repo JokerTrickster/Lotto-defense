@@ -379,8 +379,7 @@ namespace LottoDefense.Gameplay
         /// </summary>
         private void SendGameResultToBackend(bool isVictory)
         {
-            // Skip if not logged in
-            if (!APIManager.Instance.IsLoggedIn)
+            if (APIManager.Instance == null || !APIManager.Instance.IsLoggedIn)
             {
                 Debug.Log("[GameplayManager] Not logged in, skipping result upload");
                 return;
@@ -435,6 +434,7 @@ namespace LottoDefense.Gameplay
             DestroyIfExists<MobileOptimizationManager>();
             DestroyIfExists<QuestManager>();
             DestroyIfExists<MultiplayerManager>();
+            DestroyIfExists<GameSpeedController>();
             DestroyIfExists<GameSceneBootstrapper>();
 
             // Destroy GameCanvas if it exists (created by bootstrapper with sortingOrder 100)

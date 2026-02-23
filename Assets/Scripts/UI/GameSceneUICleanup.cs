@@ -64,7 +64,7 @@ namespace LottoDefense.UI
                 
                 // 게임 UI 버튼은 건너뛰기
                 if (name.Contains("Summon") || name.Contains("Sell") || 
-                    name.Contains("Upgrade") || name.Contains("Start") && name.Contains("Wave"))
+                    name.Contains("Upgrade") || (name.Contains("Start") && name.Contains("Wave")))
                 {
                     continue;
                 }

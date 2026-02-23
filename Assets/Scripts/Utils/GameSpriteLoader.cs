@@ -41,14 +41,17 @@ namespace LottoDefense.Utils
                 return cached;
             }
 
-            Texture2D tex = Resources.Load<Texture2D>(key);
-            if (tex == null)
+            Texture2D originalTex = Resources.Load<Texture2D>(key);
+            if (originalTex == null)
             {
                 return null;
             }
 
+            // Copy the texture to avoid mutating the shared Resources asset
+            Texture2D tex = new Texture2D(originalTex.width, originalTex.height, originalTex.format, originalTex.mipmapCount > 1);
+            Graphics.CopyTexture(originalTex, tex);
             tex.filterMode = FilterMode.Point;
-            // pixelsPerUnit = tex.width so the sprite is 1 world unit wide
+
             Sprite sprite = Sprite.Create(
                 tex,
                 new Rect(0, 0, tex.width, tex.height),

@@ -27,7 +27,9 @@ namespace LottoDefense.VFX
             RectTransform rect = effectObj.AddComponent<RectTransform>();
             
             // Convert world position to screen position
-            Vector3 screenPos = Camera.main.WorldToScreenPoint(worldPosition);
+            Camera cam = Camera.main;
+            if (cam == null) { Destroy(effectObj); return; }
+            Vector3 screenPos = cam.WorldToScreenPoint(worldPosition);
             rect.position = screenPos;
             rect.sizeDelta = new Vector2(300, 120);
             

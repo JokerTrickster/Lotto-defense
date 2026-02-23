@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using LottoDefense.Backend.Models;
+using LottoDefense.UI;
 
 namespace LottoDefense.Backend.UI
 {
@@ -32,6 +33,12 @@ namespace LottoDefense.Backend.UI
                 statsPanel.SetActive(false);
         }
 
+        private void OnDestroy()
+        {
+            if (closeButton != null) closeButton.onClick.RemoveListener(Hide);
+            if (refreshButton != null) refreshButton.onClick.RemoveListener(LoadStats);
+        }
+
         public void Show()
         {
             if (statsPanel != null)
@@ -48,7 +55,7 @@ namespace LottoDefense.Backend.UI
 
         private void LoadStats()
         {
-            if (!APIManager.Instance.IsLoggedIn)
+            if (APIManager.Instance == null || !APIManager.Instance.IsLoggedIn)
             {
                 ShowStatus("로그인이 필요합니다", true);
                 return;
@@ -73,7 +80,9 @@ namespace LottoDefense.Backend.UI
 
         private void DisplayStats(UserStatsResponse stats)
         {
-            if (singleStatsText != null)
+            if (stats == null) return;
+
+            if (singleStatsText != null && stats.single != null)
             {
                 singleStatsText.text = string.Format(
                     "<b>싱글 플레이</b>\n" +
@@ -88,9 +97,9 @@ namespace LottoDefense.Backend.UI
                 );
             }
 
-            if (coopStatsText != null)
+            if (coopStatsText != null && stats.coop != null)
             {
-                singleStatsText.text = string.Format(
+                coopStatsText.text = string.Format(
                     "<b>협동 플레이</b>\n" +
                     "최고 라운드: {0}\n" +
                     "총 게임 수: {1}\n" +
@@ -105,7 +114,7 @@ namespace LottoDefense.Backend.UI
                 );
             }
 
-            if (goldText != null)
+            if (goldText != null && stats.gold != null)
             {
                 goldText.text = string.Format(
                     "<b>골드</b>\n" +
@@ -122,7 +131,7 @@ namespace LottoDefense.Backend.UI
             if (statusText != null)
             {
                 statusText.text = message;
-                statusText.color = isError ? Color.red : Color.white;
+                statusText.color = isError ? new Color(0.9f, 0.4f, 0.4f) : CuteUIHelper.DarkText;
             }
         }
 

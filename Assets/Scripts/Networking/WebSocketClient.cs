@@ -76,13 +76,28 @@ namespace LottoDefense.Networking
             intentionalDisconnect = true;
             StopHeartbeat();
 
-            if (websocket != null && websocket.State == WebSocketState.Open)
+            if (websocket != null)
             {
-                Debug.Log("[WebSocketClient] Disconnecting...");
-                await websocket.Close();
-            }
+                websocket.OnOpen -= HandleOpen;
+                websocket.OnMessage -= HandleMessage;
+                websocket.OnError -= HandleError;
+                websocket.OnClose -= HandleClose;
 
-            websocket = null;
+                if (websocket.State == WebSocketState.Open)
+                {
+                    Debug.Log("[WebSocketClient] Disconnecting...");
+                    try
+                    {
+                        await websocket.Close();
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.LogWarning($"[WebSocketClient] Close error: {e.Message}");
+                    }
+                }
+
+                websocket = null;
+            }
         }
         #endregion
 

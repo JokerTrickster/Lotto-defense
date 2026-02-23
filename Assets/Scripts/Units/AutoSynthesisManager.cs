@@ -185,13 +185,6 @@ namespace LottoDefense.Units
                 }
             }
 
-            if (totalSynthesisCount > 0)
-            {
-            }
-            else
-            {
-            }
-
             return totalSynthesisCount;
         }
 

@@ -200,7 +200,7 @@ namespace LottoDefense.VFX
                 animationCoroutine = null;
             }
 
-            canvasGroup.alpha = 1f;
+            if (canvasGroup != null) canvasGroup.alpha = 1f;
             transform.localScale = Vector3.one;
             gameObject.SetActive(false);
         }

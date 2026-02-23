@@ -42,7 +42,7 @@ namespace LottoDefense.UI
 
         private void OnDisable()
         {
-            var questManager = FindFirstObjectByType<QuestManager>();
+            var questManager = QuestManager.Instance;
             if (questManager != null)
                 questManager.OnQuestCompleted -= OnQuestCompleted;
         }

@@ -68,62 +68,53 @@ namespace LottoDefense.UI
         #region UI Setup
         private void CreateButtonUI()
         {
-            // Outer border glow
             Image borderImage = gameObject.AddComponent<Image>();
-            borderImage.color = GameSceneDesignTokens.SynthFloatBtnBorder;
+            borderImage.color = GameSceneDesignTokens.SynthFloatBtnBg;
             borderImage.raycastTarget = true;
+            Sprite rounded = CuteUIHelper.GetRoundedRectSprite(12);
+            if (rounded != null)
+            {
+                borderImage.sprite = rounded;
+                borderImage.type = Image.Type.Sliced;
+            }
 
-            Outline borderOutline = gameObject.AddComponent<Outline>();
-            borderOutline.effectColor = new Color(0f, 0f, 0f, 0.6f);
-            borderOutline.effectDistance = new Vector2(2, -2);
-
-            // Inner button panel (child for visual depth)
-            GameObject innerObj = new GameObject("Inner");
-            innerObj.transform.SetParent(transform, false);
-            RectTransform innerRect = innerObj.AddComponent<RectTransform>();
-            innerRect.anchorMin = Vector2.zero;
-            innerRect.anchorMax = Vector2.one;
-            innerRect.offsetMin = new Vector2(2, 2);
-            innerRect.offsetMax = new Vector2(-2, -2);
-
-            Image innerBg = innerObj.AddComponent<Image>();
-            innerBg.color = GameSceneDesignTokens.SynthFloatBtnBg;
-            innerBg.raycastTarget = false;
-
-            // Top highlight strip for depth
+            // Inner highlight strip for depth
             GameObject highlightObj = new GameObject("Highlight");
-            highlightObj.transform.SetParent(innerObj.transform, false);
+            highlightObj.transform.SetParent(transform, false);
             RectTransform highlightRect = highlightObj.AddComponent<RectTransform>();
-            highlightRect.anchorMin = new Vector2(0, 0.55f);
+            highlightRect.anchorMin = new Vector2(0, 0.5f);
             highlightRect.anchorMax = Vector2.one;
-            highlightRect.offsetMin = new Vector2(1, 0);
-            highlightRect.offsetMax = new Vector2(-1, -1);
+            highlightRect.offsetMin = new Vector2(3, 0);
+            highlightRect.offsetMax = new Vector2(-3, -2);
 
             Image highlightImg = highlightObj.AddComponent<Image>();
             highlightImg.color = new Color(1f, 1f, 1f, 0.2f);
             highlightImg.raycastTarget = false;
+            Sprite hlRounded = CuteUIHelper.GetRoundedRectSprite(8);
+            if (hlRounded != null)
+            {
+                highlightImg.sprite = hlRounded;
+                highlightImg.type = Image.Type.Sliced;
+            }
 
-            // Button component on root
             Button button = gameObject.AddComponent<Button>();
             button.targetGraphic = borderImage;
 
             ColorBlock colors = button.colors;
             colors.normalColor = Color.white;
-            colors.highlightedColor = new Color(1.15f, 1.15f, 1.15f, 1f);
-            colors.pressedColor = new Color(0.8f, 0.8f, 0.8f, 1f);
+            colors.highlightedColor = new Color(1f, 0.98f, 0.95f, 1f);
+            colors.pressedColor = new Color(0.85f, 0.82f, 0.78f, 1f);
             colors.fadeDuration = 0.08f;
             button.colors = colors;
 
             button.onClick.AddListener(OnButtonClicked);
 
-            // Shadow for floating effect
             Shadow shadow = gameObject.AddComponent<Shadow>();
-            shadow.effectColor = new Color(0f, 0f, 0f, 0.5f);
-            shadow.effectDistance = new Vector2(3, -3);
+            shadow.effectColor = CuteUIHelper.SoftShadow;
+            shadow.effectDistance = new Vector2(2, -3);
 
-            // Text label
             GameObject textObj = new GameObject("Text");
-            textObj.transform.SetParent(innerObj.transform, false);
+            textObj.transform.SetParent(transform, false);
 
             RectTransform textRect = textObj.AddComponent<RectTransform>();
             textRect.anchorMin = Vector2.zero;
@@ -132,7 +123,7 @@ namespace LottoDefense.UI
             textRect.offsetMax = Vector2.zero;
 
             Text label = textObj.AddComponent<Text>();
-            label.text = "\u2728 \uC870\uD569"; // ✨ 조합
+            label.text = "\u2728 \uC870\uD569";
             label.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             label.fontSize = 22;
             label.fontStyle = FontStyle.Bold;
@@ -141,11 +132,6 @@ namespace LottoDefense.UI
             label.horizontalOverflow = HorizontalWrapMode.Overflow;
             label.verticalOverflow = VerticalWrapMode.Overflow;
             label.raycastTarget = false;
-
-            // Text outline for readability
-            Outline textOutline = textObj.AddComponent<Outline>();
-            textOutline.effectColor = new Color(1f, 1f, 1f, 0.3f);
-            textOutline.effectDistance = new Vector2(1, -1);
         }
         #endregion
 

@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using LottoDefense.Backend.Models;
+using LottoDefense.UI;
 using System.Text;
 
 namespace LottoDefense.Backend.UI
@@ -151,7 +152,7 @@ namespace LottoDefense.Backend.UI
             if (statusText != null)
             {
                 statusText.text = message;
-                statusText.color = isError ? Color.red : Color.white;
+                statusText.color = isError ? new Color(0.9f, 0.4f, 0.4f) : CuteUIHelper.DarkText;
             }
         }
 

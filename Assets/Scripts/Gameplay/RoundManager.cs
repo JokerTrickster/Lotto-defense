@@ -532,11 +532,11 @@ namespace LottoDefense.Gameplay
         /// <summary>
         /// Get difficulty multipliers for the current round.
         /// </summary>
-        public DifficultyMultipliers GetCurrentDifficultyMultipliers()
+        public RoundDifficultyMultipliers GetCurrentDifficultyMultipliers()
         {
             if (difficultyConfig == null)
             {
-                return new DifficultyMultipliers
+                return new RoundDifficultyMultipliers
                 {
                     hpMultiplier = 1f,
                     defenseMultiplier = 1f

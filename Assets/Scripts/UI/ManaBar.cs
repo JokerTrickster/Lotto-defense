@@ -17,8 +17,8 @@ namespace LottoDefense.UI
         [SerializeField] private CanvasGroup canvasGroup;
 
         [Header("Visual Settings")]
-        [SerializeField] private Color manaColor = new Color(0.2f, 0.5f, 1f, 1f); // Blue
-        [SerializeField] private Color fullManaColor = new Color(0.4f, 0.7f, 1f, 1f); // Bright blue when full
+        [SerializeField] private Color manaColor = new Color(0.5f, 0.7f, 0.95f, 1f);
+        [SerializeField] private Color fullManaColor = new Color(0.6f, 0.85f, 1f, 1f);
         [SerializeField] private float heightPadding = 0.05f; // Extra padding above unit sprite
         [SerializeField] private Vector2 barSize = new Vector2(0.8f, 0.1f); // Bar dimensions
         #endregion
@@ -28,6 +28,19 @@ namespace LottoDefense.UI
         private RectTransform rectTransform;
         private Camera cachedCamera;
         private bool isInitialized = false;
+
+        private static Sprite s_whiteSprite;
+        private static Sprite GetOrCreateWhiteSprite()
+        {
+            if (s_whiteSprite == null)
+            {
+                Texture2D tex = new Texture2D(1, 1);
+                tex.SetPixel(0, 0, Color.white);
+                tex.Apply();
+                s_whiteSprite = Sprite.Create(tex, new Rect(0, 0, 1, 1), new Vector2(0.5f, 0.5f));
+            }
+            return s_whiteSprite;
+        }
         #endregion
 
         #region Unity Lifecycle
@@ -143,11 +156,7 @@ namespace LottoDefense.UI
             // Ensure sprite is set (required for Filled type)
             if (fillImage.sprite == null)
             {
-                // Create a white sprite as default
-                Texture2D whiteTex = new Texture2D(1, 1);
-                whiteTex.SetPixel(0, 0, Color.white);
-                whiteTex.Apply();
-                fillImage.sprite = Sprite.Create(whiteTex, new Rect(0, 0, 1, 1), new Vector2(0.5f, 0.5f));
+                fillImage.sprite = GetOrCreateWhiteSprite();
                 Debug.LogWarning("[ManaBar] Created default white sprite for fillImage");
             }
             

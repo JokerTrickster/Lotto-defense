@@ -27,6 +27,7 @@ namespace LottoDefense.Monsters
         private Queue<Monster> availableMonsters;
         private List<Monster> activeMonsters;
         private Transform poolContainer;
+        private static Sprite s_poolPlaceholderSprite;
         #endregion
 
         #region Properties
@@ -188,11 +189,21 @@ namespace LottoDefense.Monsters
             GameObject obj = new GameObject("Monster");
             obj.transform.SetParent(poolContainer);
 
-            // Add SpriteRenderer
             SpriteRenderer sr = obj.AddComponent<SpriteRenderer>();
             sr.sortingOrder = 10;
+            sr.sprite = GetOrCreatePlaceholderSprite();
 
-            // Create simple circle sprite
+            CircleCollider2D collider = obj.AddComponent<CircleCollider2D>();
+            collider.radius = 0.5f;
+
+            return obj;
+        }
+
+        private static Sprite GetOrCreatePlaceholderSprite()
+        {
+            if (s_poolPlaceholderSprite != null)
+                return s_poolPlaceholderSprite;
+
             Texture2D texture = new Texture2D(32, 32);
             Color monsterColor = new Color(1f, 0.3f, 0.3f, 1f);
 
@@ -203,26 +214,13 @@ namespace LottoDefense.Monsters
                     float dx = x - 16f;
                     float dy = y - 16f;
                     float distance = Mathf.Sqrt(dx * dx + dy * dy);
-
-                    if (distance < 14f)
-                    {
-                        texture.SetPixel(x, y, monsterColor);
-                    }
-                    else
-                    {
-                        texture.SetPixel(x, y, Color.clear);
-                    }
+                    texture.SetPixel(x, y, distance < 14f ? monsterColor : Color.clear);
                 }
             }
 
             texture.Apply();
-            sr.sprite = Sprite.Create(texture, new Rect(0, 0, 32, 32), new Vector2(0.5f, 0.5f), 32f);
-
-            // Add collider for future combat
-            CircleCollider2D collider = obj.AddComponent<CircleCollider2D>();
-            collider.radius = 0.5f;
-
-            return obj;
+            s_poolPlaceholderSprite = Sprite.Create(texture, new Rect(0, 0, 32, 32), new Vector2(0.5f, 0.5f), 32f);
+            return s_poolPlaceholderSprite;
         }
         #endregion
 

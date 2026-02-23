@@ -149,15 +149,6 @@ namespace LottoDefense.Units
                 LoadUnitsFromResources();
             }
 
-            // Verify skills were assigned
-            var allPools = new[] { normalUnits, rareUnits, epicUnits, legendaryUnits };
-            foreach (var pool in allPools)
-            {
-                foreach (var unit in pool)
-                {
-                }
-            }
-
             ValidateUnitPools();
         }
 
@@ -204,21 +195,20 @@ namespace LottoDefense.Units
                 return null;
             }
 
-            // Deduct gold cost
-            GameplayManager.Instance.ModifyGold(-gachaCost);
-
             // Perform weighted random selection
             UnitData drawnUnit = PerformWeightedDraw();
 
             if (drawnUnit != null)
             {
+                // Deduct gold cost only on successful draw
+                GameplayManager.Instance.ModifyGold(-gachaCost);
+
                 // Add to inventory
                 AddUnit(drawnUnit);
 
                 // Notify listeners
                 int remainingGold = GameplayManager.Instance.CurrentGold;
                 OnUnitDrawn?.Invoke(drawnUnit, remainingGold);
-
             }
             else
             {

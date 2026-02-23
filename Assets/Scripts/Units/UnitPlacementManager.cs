@@ -124,11 +124,6 @@ namespace LottoDefense.Units
                 CancelPlacement();
             }
 
-            // Update grid cell highlights in placement mode
-            if (IsPlacementMode && SelectedUnitData != null)
-            {
-                UpdateGridHighlights();
-            }
         }
 
         private void OnEnable()
@@ -492,6 +487,7 @@ namespace LottoDefense.Units
             ClearPendingEmptyCell();
             pendingEmptyCell = pos;
 
+            if (GridManager.Instance == null) return;
             GridCell cell = GridManager.Instance.GetCellAt(pos);
             if (cell != null)
             {
@@ -532,7 +528,7 @@ namespace LottoDefense.Units
         /// </summary>
         private void SwapUnits(Unit unit1, Unit unit2)
         {
-            if (unit1 == null || unit2 == null)
+            if (unit1 == null || unit2 == null || GridManager.Instance == null)
                 return;
 
             Vector2Int pos1 = unit1.GridPosition;
@@ -615,18 +611,12 @@ namespace LottoDefense.Units
         /// <summary>
         /// Update grid cell highlights based on current placement mode.
         /// </summary>
-        private void UpdateGridHighlights()
-        {
-            // This would highlight all valid/invalid cells
-            // For now, individual cells handle highlights on hover via GridCell.OnMouseEnter
-            // Future enhancement: Show all valid cells when in placement mode
-        }
-
         /// <summary>
         /// Highlight a specific cell with a color based on placement validity.
         /// </summary>
         public void HighlightCell(Vector2Int gridPos, bool isValid)
         {
+            if (GridManager.Instance == null) return;
             GridCell cell = GridManager.Instance.GetCellAt(gridPos);
             if (cell != null)
             {
@@ -640,6 +630,7 @@ namespace LottoDefense.Units
         /// </summary>
         public void ClearCellHighlight(Vector2Int gridPos)
         {
+            if (GridManager.Instance == null) return;
             GridCell cell = GridManager.Instance.GetCellAt(gridPos);
             if (cell != null)
             {

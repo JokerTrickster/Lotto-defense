@@ -13,6 +13,7 @@ namespace LottoDefense.UI
     {
         private Canvas canvas;
         private GameObject popupPanel;
+        private GameObject backgroundOverlay;
         private Action<GameDifficulty> onDifficultySelected;
         private bool isCoopMode;
 
@@ -50,11 +51,11 @@ namespace LottoDefense.UI
             if (defaultFont == null)
                 defaultFont = Resources.GetBuiltinResource<Font>("Arial.ttf");
 
-            // 배경 (어두운 오버레이)
             GameObject bgObj = new GameObject("Background");
             bgObj.transform.SetParent(canvas.transform, false);
+            backgroundOverlay = bgObj;
             Image bgImage = bgObj.AddComponent<Image>();
-            bgImage.color = new Color(0f, 0f, 0f, 0.7f);
+            bgImage.color = CuteUIHelper.WarmOverlay;
             bgImage.raycastTarget = true;
 
             RectTransform bgRect = bgObj.GetComponent<RectTransform>();
@@ -62,7 +63,6 @@ namespace LottoDefense.UI
             bgRect.anchorMax = Vector2.one;
             bgRect.sizeDelta = Vector2.zero;
 
-            // 팝업 패널
             popupPanel = new GameObject("DifficultyPopup");
             popupPanel.transform.SetParent(bgObj.transform, false);
 
@@ -74,16 +74,25 @@ namespace LottoDefense.UI
             panelRect.sizeDelta = new Vector2(800, 600);
 
             Image panelImage = popupPanel.AddComponent<Image>();
-            panelImage.color = new Color(0.2f, 0.2f, 0.25f);
+            panelImage.color = CuteUIHelper.PeachBg;
+            Sprite rounded = CuteUIHelper.GetRoundedRectSprite(24);
+            if (rounded != null)
+            {
+                panelImage.sprite = rounded;
+                panelImage.type = Image.Type.Sliced;
+            }
 
-            // 제목
+            Shadow panelShadow = popupPanel.AddComponent<Shadow>();
+            panelShadow.effectColor = new Color(0.4f, 0.3f, 0.2f, 0.3f);
+            panelShadow.effectDistance = new Vector2(4, -4);
+
             GameObject titleObj = new GameObject("Title");
             titleObj.transform.SetParent(popupPanel.transform, false);
             Text titleText = titleObj.AddComponent<Text>();
             titleText.text = "난이도 선택";
             titleText.font = defaultFont;
             titleText.fontSize = 56;
-            titleText.color = Color.white;
+            titleText.color = CuteUIHelper.DarkText;
             titleText.alignment = TextAnchor.MiddleCenter;
             titleText.fontStyle = FontStyle.Bold;
 
@@ -92,12 +101,10 @@ namespace LottoDefense.UI
             titleRect.anchorMax = new Vector2(0.9f, 0.9f);
             titleRect.sizeDelta = Vector2.zero;
 
-            // 난이도 버튼 3개
-            CreateDifficultyButton(GameDifficulty.Normal, new Vector2(0, 80), new Color(0.3f, 0.7f, 0.3f), defaultFont);
-            CreateDifficultyButton(GameDifficulty.Hard, new Vector2(0, -40), new Color(1f, 0.6f, 0.2f), defaultFont);
-            CreateDifficultyButton(GameDifficulty.VeryHard, new Vector2(0, -160), new Color(0.9f, 0.2f, 0.2f), defaultFont);
+            CreateDifficultyButton(GameDifficulty.Normal, new Vector2(0, 80), new Color(0.45f, 0.82f, 0.55f), defaultFont);
+            CreateDifficultyButton(GameDifficulty.Hard, new Vector2(0, -40), new Color(0.95f, 0.7f, 0.4f), defaultFont);
+            CreateDifficultyButton(GameDifficulty.VeryHard, new Vector2(0, -160), new Color(0.95f, 0.5f, 0.5f), defaultFont);
 
-            // 취소 버튼
             CreateCancelButton(defaultFont);
         }
 
@@ -115,23 +122,33 @@ namespace LottoDefense.UI
 
             Image btnImage = btnObj.AddComponent<Image>();
             btnImage.color = color;
+            Sprite btnRounded = CuteUIHelper.GetRoundedRectSprite(16);
+            if (btnRounded != null)
+            {
+                btnImage.sprite = btnRounded;
+                btnImage.type = Image.Type.Sliced;
+            }
+
+            Shadow btnShadow = btnObj.AddComponent<Shadow>();
+            btnShadow.effectColor = CuteUIHelper.SoftShadow;
+            btnShadow.effectDistance = new Vector2(2, -3);
 
             Button btn = btnObj.AddComponent<Button>();
             ColorBlock colors = btn.colors;
             colors.normalColor = Color.white;
-            colors.highlightedColor = new Color(1.2f, 1.2f, 1.2f);
-            colors.pressedColor = new Color(0.8f, 0.8f, 0.8f);
+            colors.highlightedColor = new Color(1f, 0.98f, 0.95f);
+            colors.pressedColor = new Color(0.85f, 0.82f, 0.78f);
+            colors.fadeDuration = 0.08f;
             btn.colors = colors;
             btn.onClick.AddListener(() => OnDifficultyClicked(difficulty));
 
-            // 버튼 텍스트
             GameObject textObj = new GameObject("Text");
             textObj.transform.SetParent(btnObj.transform, false);
             Text text = textObj.AddComponent<Text>();
             text.text = GetDifficultyDescription(difficulty);
             text.font = font;
             text.fontSize = 40;
-            text.color = Color.white;
+            text.color = CuteUIHelper.DarkText;
             text.alignment = TextAnchor.MiddleCenter;
             text.fontStyle = FontStyle.Bold;
 
@@ -154,7 +171,13 @@ namespace LottoDefense.UI
             btnRect.sizeDelta = new Vector2(300, 80);
 
             Image btnImage = btnObj.AddComponent<Image>();
-            btnImage.color = new Color(0.5f, 0.5f, 0.5f);
+            btnImage.color = new Color(0.8f, 0.75f, 0.72f);
+            Sprite cancelRounded = CuteUIHelper.GetRoundedRectSprite(14);
+            if (cancelRounded != null)
+            {
+                btnImage.sprite = cancelRounded;
+                btnImage.type = Image.Type.Sliced;
+            }
 
             Button btn = btnObj.AddComponent<Button>();
             btn.onClick.AddListener(Close);
@@ -165,7 +188,7 @@ namespace LottoDefense.UI
             text.text = "취소";
             text.font = font;
             text.fontSize = 36;
-            text.color = Color.white;
+            text.color = CuteUIHelper.DarkText;
             text.alignment = TextAnchor.MiddleCenter;
 
             RectTransform textRect = textObj.GetComponent<RectTransform>();
@@ -198,7 +221,8 @@ namespace LottoDefense.UI
 
         private void Close()
         {
-            Destroy(transform.parent.gameObject); // 배경 포함 삭제
+            if (backgroundOverlay != null)
+                Destroy(backgroundOverlay);
             Destroy(gameObject);
         }
     }

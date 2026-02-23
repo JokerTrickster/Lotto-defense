@@ -114,10 +114,10 @@ namespace LottoDefense.UI
             // 1. 싱글 플레이 버튼 (중앙 왼쪽, 크게)
             Button singleButton = CreateButton("SinglePlayButton", "싱글 플레이", 
                 new Vector2(0.5f, 0.5f), new Vector2(400, 150),
-                new Color(0.2f, 0.6f, 1f), defaultFont, canvas.transform);
+                new Color(0.5f, 0.72f, 0.95f), defaultFont, canvas.transform);
             
             RectTransform singleRect = singleButton.GetComponent<RectTransform>();
-            singleRect.anchoredPosition = new Vector2(-220, -50); // 약간 아래로
+            singleRect.anchoredPosition = new Vector2(-220, -50);
             
             singleButton.onClick.AddListener(() => 
             {
@@ -128,10 +128,10 @@ namespace LottoDefense.UI
             // 2. 협동 플레이 버튼 (중앙 오른쪽, 크게)
             Button coopButton = CreateButton("CoopPlayButton", "협동 플레이", 
                 new Vector2(0.5f, 0.5f), new Vector2(400, 150),
-                new Color(0.9f, 0.5f, 0.2f), defaultFont, canvas.transform);
+                new Color(0.95f, 0.65f, 0.4f), defaultFont, canvas.transform);
             
             RectTransform coopRect = coopButton.GetComponent<RectTransform>();
-            coopRect.anchoredPosition = new Vector2(220, -50); // 약간 아래로
+            coopRect.anchoredPosition = new Vector2(220, -50);
             
             coopButton.onClick.AddListener(() => 
             {
@@ -142,10 +142,10 @@ namespace LottoDefense.UI
             // 3. 랭킹 버튼 (헤더 우측)
             Button rankingButton = CreateButton("RankingButton", "랭킹", 
                 new Vector2(1f, 1f), new Vector2(120, 60),
-                new Color(0.3f, 0.7f, 0.3f), defaultFont, canvas.transform);
+                new Color(0.45f, 0.8f, 0.55f), defaultFont, canvas.transform);
             
             RectTransform rankingRect = rankingButton.GetComponent<RectTransform>();
-            rankingRect.anchoredPosition = new Vector2(-20, -40); // 헤더 우측 상단
+            rankingRect.anchoredPosition = new Vector2(-20, -40);
             
             Text rankingText = rankingButton.GetComponentInChildren<Text>();
             if (rankingText != null) rankingText.fontSize = 32;
@@ -175,10 +175,25 @@ namespace LottoDefense.UI
 
             Image btnImage = btnObj.AddComponent<Image>();
             btnImage.color = color;
+            Sprite rounded = CuteUIHelper.GetRoundedRectSprite(20);
+            if (rounded != null)
+            {
+                btnImage.sprite = rounded;
+                btnImage.type = Image.Type.Sliced;
+            }
+
+            Shadow btnShadow = btnObj.AddComponent<Shadow>();
+            btnShadow.effectColor = CuteUIHelper.SoftShadow;
+            btnShadow.effectDistance = new Vector2(3, -4);
 
             Button btn = btnObj.AddComponent<Button>();
+            ColorBlock colors = btn.colors;
+            colors.normalColor = Color.white;
+            colors.highlightedColor = new Color(1f, 0.98f, 0.95f, 1f);
+            colors.pressedColor = new Color(0.85f, 0.82f, 0.78f, 1f);
+            colors.fadeDuration = 0.08f;
+            btn.colors = colors;
 
-            // 버튼 텍스트
             GameObject textObj = new GameObject("Text");
             textObj.transform.SetParent(btnObj.transform, false);
 
@@ -190,11 +205,11 @@ namespace LottoDefense.UI
             Text btnText = textObj.AddComponent<Text>();
             btnText.text = text;
             btnText.font = font;
-            btnText.fontSize = 48; // 모바일에서 보기 쉽게 크게
-            btnText.color = Color.white;
+            btnText.fontSize = 48;
+            btnText.color = CuteUIHelper.DarkText;
             btnText.alignment = TextAnchor.MiddleCenter;
             btnText.fontStyle = FontStyle.Bold;
-            btnText.resizeTextForBestFit = true; // 자동 크기 조정
+            btnText.resizeTextForBestFit = true;
             btnText.resizeTextMinSize = 24;
             btnText.resizeTextMaxSize = 48;
 

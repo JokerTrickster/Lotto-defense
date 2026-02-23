@@ -54,13 +54,15 @@ namespace LottoDefense.UI
             GameObject permTab = new GameObject("PermanentTab");
             permTab.transform.SetParent(tabBar.transform, false);
             permanentTabImg = permTab.AddComponent<Image>();
+            permanentTabImg.sprite = CuteUIHelper.GetRoundedRectSprite();
+            permanentTabImg.type = Image.Type.Sliced;
             permanentTabImg.color = LobbyDesignTokens.TabActive;
             Button permBtn = permTab.AddComponent<Button>();
             permBtn.onClick.AddListener(() => { showDaily = false; RefreshTabs(); PopulateQuests(); });
 
             GameObject permTextObj = new GameObject("Text");
             permTextObj.transform.SetParent(permTab.transform, false);
-            Text permText = CreateText(permTextObj, "영구", LobbyDesignTokens.SmallSize, Color.white);
+            Text permText = CreateText(permTextObj, "영구", LobbyDesignTokens.SmallSize, LobbyDesignTokens.BadgeText);
             RectTransform ptRect = permTextObj.GetComponent<RectTransform>();
             ptRect.anchorMin = Vector2.zero;
             ptRect.anchorMax = Vector2.one;
@@ -70,13 +72,15 @@ namespace LottoDefense.UI
             GameObject dailyTab = new GameObject("DailyTab");
             dailyTab.transform.SetParent(tabBar.transform, false);
             dailyTabImg = dailyTab.AddComponent<Image>();
+            dailyTabImg.sprite = CuteUIHelper.GetRoundedRectSprite();
+            dailyTabImg.type = Image.Type.Sliced;
             dailyTabImg.color = LobbyDesignTokens.TabInactive;
             Button dailyBtn = dailyTab.AddComponent<Button>();
             dailyBtn.onClick.AddListener(() => { showDaily = true; RefreshTabs(); PopulateQuests(); });
 
             GameObject dailyTextObj = new GameObject("Text");
             dailyTextObj.transform.SetParent(dailyTab.transform, false);
-            Text dailyText = CreateText(dailyTextObj, "일일", LobbyDesignTokens.SmallSize, Color.white);
+            Text dailyText = CreateText(dailyTextObj, "일일", LobbyDesignTokens.SmallSize, LobbyDesignTokens.BadgeText);
             RectTransform dtRect = dailyTextObj.GetComponent<RectTransform>();
             dtRect.anchorMin = Vector2.zero;
             dtRect.anchorMax = Vector2.one;
@@ -151,7 +155,9 @@ namespace LottoDefense.UI
             row.transform.SetParent(contentArea.transform, false);
 
             Image rowBg = row.AddComponent<Image>();
-            rowBg.color = claimed ? new Color(0.12f, 0.2f, 0.12f, 1f) : LobbyDesignTokens.CardBg;
+            rowBg.sprite = CuteUIHelper.GetRoundedRectSprite();
+            rowBg.type = Image.Type.Sliced;
+            rowBg.color = claimed ? new Color(0.4f, 0.8f, 0.5f, 0.9f) : LobbyDesignTokens.CardBg;
 
             LayoutElement rowLE = row.AddComponent<LayoutElement>();
             rowLE.preferredHeight = 120;
@@ -228,6 +234,8 @@ namespace LottoDefense.UI
             else if (canClaim)
             {
                 Image actionBg = actionObj.AddComponent<Image>();
+                actionBg.sprite = CuteUIHelper.GetRoundedRectSprite();
+                actionBg.type = Image.Type.Sliced;
                 actionBg.color = LobbyDesignTokens.ButtonSuccess;
                 Button actionBtn = actionObj.AddComponent<Button>();
                 string questId = quest.id;
@@ -240,7 +248,7 @@ namespace LottoDefense.UI
 
                 GameObject btnTextObj = new GameObject("Text");
                 btnTextObj.transform.SetParent(actionObj.transform, false);
-                CreateText(btnTextObj, "수령", LobbyDesignTokens.SmallSize - 2, Color.white);
+                CreateText(btnTextObj, "수령", LobbyDesignTokens.SmallSize - 2, LobbyDesignTokens.BadgeText);
                 RectTransform btRect = btnTextObj.GetComponent<RectTransform>();
                 btRect.anchorMin = Vector2.zero;
                 btRect.anchorMax = Vector2.one;

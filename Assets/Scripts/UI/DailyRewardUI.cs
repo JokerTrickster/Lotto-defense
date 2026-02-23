@@ -102,8 +102,10 @@ namespace LottoDefense.UI
             card.transform.SetParent(contentArea.transform, false);
 
             Image cardBg = card.AddComponent<Image>();
+            cardBg.sprite = CuteUIHelper.GetRoundedRectSprite();
+            cardBg.type = Image.Type.Sliced;
             if (claimed)
-                cardBg.color = new Color(0.15f, 0.3f, 0.15f, 1f);
+                cardBg.color = new Color(0.4f, 0.8f, 0.5f, 0.9f);
             else if (achieved)
                 cardBg.color = LobbyDesignTokens.CardBgHighlight;
             else
@@ -159,6 +161,8 @@ namespace LottoDefense.UI
             else if (canClaim)
             {
                 Image actionBg = actionObj.AddComponent<Image>();
+                actionBg.sprite = CuteUIHelper.GetRoundedRectSprite();
+                actionBg.type = Image.Type.Sliced;
                 actionBg.color = LobbyDesignTokens.ButtonSuccess;
                 Button actionBtn = actionObj.AddComponent<Button>();
                 int idx = stageIndex;
@@ -170,7 +174,7 @@ namespace LottoDefense.UI
 
                 GameObject btnTextObj = new GameObject("Text");
                 btnTextObj.transform.SetParent(actionObj.transform, false);
-                CreateText(btnTextObj, "수령", LobbyDesignTokens.SmallSize - 2, Color.white);
+                CreateText(btnTextObj, "수령", LobbyDesignTokens.SmallSize - 2, LobbyDesignTokens.BadgeText);
                 RectTransform btRect = btnTextObj.GetComponent<RectTransform>();
                 btRect.anchorMin = Vector2.zero;
                 btRect.anchorMax = Vector2.one;

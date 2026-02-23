@@ -172,25 +172,6 @@ namespace LottoDefense.UI
             activeSynthesisButtons.Add(controller);
         }
 
-        private void OnSynthesisFloatingClicked(Unit source, Unit target)
-        {
-            if (source == null || target == null) return;
-
-            if (SynthesisManager.Instance == null)
-            {
-                Debug.LogError("[UnitSelectionUI] SynthesisManager not found!");
-                return;
-            }
-
-            bool success = SynthesisManager.Instance.TrySynthesize(source, target);
-            if (success)
-            {
-                Debug.Log("[UnitSelectionUI] 1-click synthesis successful!");
-            }
-
-            HideUI();
-        }
-
         /// <summary>
         /// 자동 조합: 맵에서 같은 유닛을 앞에서부터 찾아서 조합
         /// </summary>
@@ -314,6 +295,7 @@ namespace LottoDefense.UI
 
             Vector3 worldPos = unit.transform.position + Vector3.up * 0.45f;
             if (cachedCamera == null) cachedCamera = Camera.main;
+            if (cachedCamera == null) return;
             Vector3 screenPos = cachedCamera.WorldToScreenPoint(worldPos);
 
             RectTransform panelRect = selectionPanel.GetComponent<RectTransform>();

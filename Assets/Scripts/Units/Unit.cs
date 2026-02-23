@@ -101,6 +101,8 @@ namespace LottoDefense.Units
         private const int MAX_OUT_OF_RANGE_TICKS = 20; // 2 seconds before target switch
         private float activeDamageBuff = 1f;
         private float activeSpeedBuff = 1f;
+        private Coroutine damageBuffCoroutine;
+        private Coroutine speedBuffCoroutine;
 
         /// <summary>
         /// Attack range converted from grid units to world-space units.
@@ -183,7 +185,9 @@ namespace LottoDefense.Units
 
         private void OnDestroy()
         {
-            // Clean up mana bar
+            if (damageBuffCoroutine != null) StopCoroutine(damageBuffCoroutine);
+            if (speedBuffCoroutine != null) StopCoroutine(speedBuffCoroutine);
+
             if (manaBar != null)
             {
                 Destroy(manaBar.gameObject);
@@ -351,27 +355,8 @@ namespace LottoDefense.Units
         /// </summary>
         /// <param name="newLevel">New upgrade level (must be greater than current)</param>
         /// <param name="attackMultiplier">Multiplier to apply to base attack</param>
-        public void ApplyUpgrade(int newLevel, float attackMultiplier)
-        {
-            if (newLevel <= UpgradeLevel)
-            {
-                Debug.LogWarning($"[Unit] Cannot apply upgrade - new level {newLevel} <= current level {UpgradeLevel}");
-                return;
-            }
 
-            if (newLevel > 10)
-            {
-                Debug.LogWarning($"[Unit] Cannot apply upgrade - level {newLevel} exceeds maximum (10)");
-                return;
-            }
 
-            int oldLevel = UpgradeLevel;
-            int oldAttack = CurrentAttack;
-
-            UpgradeLevel = newLevel;
-            CurrentAttack = Mathf.RoundToInt(Data.attack * attackMultiplier);
-
-        }
 
         /// <summary>
         /// Get the current attack multiplier based on upgrade level.
@@ -832,13 +817,15 @@ namespace LottoDefense.Units
             // Apply damage multiplier temporarily
             if (skill.damageMultiplier > 1f)
             {
-                StartCoroutine(ApplyTemporaryDamageBuff(skill.damageMultiplier, skill.effectDuration));
+                if (damageBuffCoroutine != null) StopCoroutine(damageBuffCoroutine);
+                damageBuffCoroutine = StartCoroutine(ApplyTemporaryDamageBuff(skill.damageMultiplier, skill.effectDuration));
             }
 
             // Apply attack speed buff temporarily
             if (skill.attackSpeedMultiplier > 1f)
             {
-                StartCoroutine(ApplyTemporaryAttackSpeedBuff(skill.attackSpeedMultiplier, skill.effectDuration));
+                if (speedBuffCoroutine != null) StopCoroutine(speedBuffCoroutine);
+                speedBuffCoroutine = StartCoroutine(ApplyTemporaryAttackSpeedBuff(skill.attackSpeedMultiplier, skill.effectDuration));
             }
 
             // Apply crowd control to all active monsters in range
@@ -960,8 +947,28 @@ namespace LottoDefense.Units
             get
             {
                 if (s_defaultSpriteMaterial == null)
-                    s_defaultSpriteMaterial = new Material(Shader.Find("Sprites/Default"));
+                {
+                    Shader shader = Shader.Find("Sprites/Default");
+                    if (shader != null)
+                        s_defaultSpriteMaterial = new Material(shader);
+                }
                 return s_defaultSpriteMaterial;
+            }
+        }
+
+        private static Sprite s_whiteSprite;
+        private static Sprite WhiteSprite
+        {
+            get
+            {
+                if (s_whiteSprite == null)
+                {
+                    Texture2D tex = new Texture2D(1, 1);
+                    tex.SetPixel(0, 0, Color.white);
+                    tex.Apply();
+                    s_whiteSprite = Sprite.Create(tex, new Rect(0, 0, 1, 1), new Vector2(0.5f, 0.5f));
+                }
+                return s_whiteSprite;
             }
         }
         #endregion
@@ -1140,11 +1147,7 @@ namespace LottoDefense.Units
             bgObj.transform.SetParent(manaBarObj.transform, false);
             UnityEngine.UI.Image bgImage = bgObj.AddComponent<UnityEngine.UI.Image>();
             
-            // Background also needs a sprite
-            Texture2D bgTex = new Texture2D(1, 1);
-            bgTex.SetPixel(0, 0, Color.white);
-            bgTex.Apply();
-            bgImage.sprite = Sprite.Create(bgTex, new Rect(0, 0, 1, 1), new Vector2(0.5f, 0.5f));
+            bgImage.sprite = WhiteSprite;
             
             bgImage.color = new Color(0.2f, 0.2f, 0.2f, 0.8f); // Dark background
             bgImage.raycastTarget = false; // Don't block clicks on units
@@ -1161,11 +1164,7 @@ namespace LottoDefense.Units
             fillObj.transform.SetParent(manaBarObj.transform, false);
             UnityEngine.UI.Image fillImage = fillObj.AddComponent<UnityEngine.UI.Image>();
             
-            // CRITICAL: Filled type requires a sprite
-            Texture2D fillTex = new Texture2D(1, 1);
-            fillTex.SetPixel(0, 0, Color.white);
-            fillTex.Apply();
-            fillImage.sprite = Sprite.Create(fillTex, new Rect(0, 0, 1, 1), new Vector2(0.5f, 0.5f));
+            fillImage.sprite = WhiteSprite;
             
             fillImage.color = new Color(0.2f, 0.5f, 1f, 1f); // Blue mana color
             fillImage.raycastTarget = false; // Don't block clicks on units

@@ -93,6 +93,13 @@ namespace LottoDefense.UI
 
         private void OnDestroy()
         {
+            if (summonButton != null) summonButton.onClick.RemoveListener(OnSummonClicked);
+            if (autoSynthesisButton != null) autoSynthesisButton.onClick.RemoveListener(OnAutoSynthesisClicked);
+            if (sellButton != null) sellButton.onClick.RemoveListener(OnSellButtonClicked);
+            if (attackUpgradeButton != null) attackUpgradeButton.onClick.RemoveListener(OnAttackUpgradeClicked);
+            if (attackSpeedUpgradeButton != null) attackSpeedUpgradeButton.onClick.RemoveListener(OnAttackSpeedUpgradeClicked);
+            if (synthesisButton != null) synthesisButton.onClick.RemoveListener(OnSynthesisButtonClicked);
+
             if (GameplayManager.Instance != null)
             {
                 GameplayManager.Instance.OnStateChanged -= HandleStateChanged;
@@ -201,13 +208,7 @@ namespace LottoDefense.UI
         {
             if (AutoSynthesisManager.Instance != null)
             {
-                int count = AutoSynthesisManager.Instance.PerformAutoSynthesis();
-                if (count > 0)
-                {
-                }
-                else
-                {
-                }
+                AutoSynthesisManager.Instance.PerformAutoSynthesis();
             }
         }
 
