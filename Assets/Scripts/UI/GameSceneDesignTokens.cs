@@ -67,8 +67,8 @@ namespace LottoDefense.UI
         public static readonly Color ManaBarFill = new Color(0.5f, 0.7f, 0.95f, 1f);
         public static readonly Color UnitInfoDefense = new Color(0.65f, 0.6f, 0.5f, 1f);
         public const float UnitInfoPanelHeight = 130f;
-        public const int UnitInfoNameSize = 32;
-        public const int UnitInfoDetailSize = 24;
+        public const int UnitInfoNameSize = 36;
+        public const int UnitInfoDetailSize = 28;
         #endregion
 
         #region Synthesis Floating Button Colors
@@ -108,9 +108,9 @@ namespace LottoDefense.UI
         public const float ButtonGap = 18f;
         public const float ButtonMarginH = 0.03f;
         public const float BottomPanelHeight = 130f;
-        public const float CommandPanelHeight = 280f;
-        public const float CommandButtonHeight = 80f;
-        public const int CommandButtonTextSize = 28;
+        public const float CommandPanelHeight = 340f;
+        public const float CommandButtonHeight = 70f;
+        public const int CommandButtonTextSize = 30;
         public const float SynthFloatBtnWidth = 100f;
         public const float SynthFloatBtnHeight = 44f;
         #endregion

@@ -1266,6 +1266,7 @@ namespace LottoDefense.VFX
         {
 
             Color rarityColor = UnitData.GetRarityColor(rarity);
+            Color flashColor = Color.Lerp(Color.white, rarityColor, 0.3f);
 
             // Pulse all same-rarity units on grid and show "UP!" on each immediately
             if (GridManager.Instance != null)
@@ -1277,7 +1278,7 @@ namespace LottoDefense.VFX
                         Unit unit = GridManager.Instance.GetUnitAt(x, y);
                         if (unit != null && unit.Data != null && unit.Data.rarity == rarity)
                         {
-                            StartCoroutine(PulseUnitColor(unit, rarityColor));
+                            StartCoroutine(PulseUnitColor(unit, flashColor));
                             ShowFloatingText(unit.transform.position + Vector3.up * 0.5f, "UP!", rarityColor);
                         }
                     }

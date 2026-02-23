@@ -209,14 +209,14 @@ namespace LottoDefense.Gameplay
             obj.transform.SetParent(parent, false);
 
             Text t = CreateText(obj, placeholder, GameSceneDesignTokens.UnitInfoDetailSize, CuteUIHelper.DarkText);
-            t.alignment = TextAnchor.MiddleLeft;
+            t.alignment = TextAnchor.MiddleCenter;
             t.fontStyle = FontStyle.Bold;
             t.supportRichText = true;
             t.resizeTextForBestFit = true;
-            t.resizeTextMinSize = 16;
+            t.resizeTextMinSize = 18;
             t.resizeTextMaxSize = GameSceneDesignTokens.UnitInfoDetailSize;
-            t.horizontalOverflow = HorizontalWrapMode.Wrap;
-            t.verticalOverflow = VerticalWrapMode.Truncate;
+            t.horizontalOverflow = HorizontalWrapMode.Overflow;
+            t.verticalOverflow = VerticalWrapMode.Overflow;
 
             return t;
         }
@@ -252,7 +252,7 @@ namespace LottoDefense.Gameplay
             // Vertical layout: unit info on top, buttons below
             VerticalLayoutGroup mainVLayout = bottomPanelObj.AddComponent<VerticalLayoutGroup>();
             mainVLayout.padding = new RectOffset(14, 14, 10, 10);
-            mainVLayout.spacing = 12;
+            mainVLayout.spacing = 8;
             mainVLayout.childControlWidth = true;
             mainVLayout.childControlHeight = false;
             mainVLayout.childForceExpandWidth = true;
@@ -325,31 +325,31 @@ namespace LottoDefense.Gameplay
             statsVLayout.childControlWidth = true;
             statsVLayout.childControlHeight = true;
             statsVLayout.childForceExpandWidth = true;
-            statsVLayout.childForceExpandHeight = false;
+            statsVLayout.childForceExpandHeight = true;
 
             // Name row
             GameObject nameRowObj = new GameObject("InfoNameRow");
             nameRowObj.transform.SetParent(statsAreaObj.transform, false);
             LayoutElement nameRowLE = nameRowObj.AddComponent<LayoutElement>();
-            nameRowLE.preferredHeight = 38f;
+            nameRowLE.preferredHeight = 40f;
 
-            Text infoNameText = CreateText(nameRowObj, "", 32, CuteUIHelper.DarkText);
+            Text infoNameText = CreateText(nameRowObj, "", 36, CuteUIHelper.DarkText);
             infoNameText.alignment = TextAnchor.MiddleLeft;
             infoNameText.fontStyle = FontStyle.Bold;
-            infoNameText.horizontalOverflow = HorizontalWrapMode.Wrap;
-            infoNameText.verticalOverflow = VerticalWrapMode.Truncate;
+            infoNameText.horizontalOverflow = HorizontalWrapMode.Overflow;
+            infoNameText.verticalOverflow = VerticalWrapMode.Overflow;
             infoNameText.resizeTextForBestFit = true;
-            infoNameText.resizeTextMinSize = 20;
-            infoNameText.resizeTextMaxSize = 32;
+            infoNameText.resizeTextMinSize = 26;
+            infoNameText.resizeTextMaxSize = 36;
 
             // ATK | SPD | RNG | TYPE | DEF (single row, full width)
             GameObject statsRow1Obj = new GameObject("StatsRow1");
             statsRow1Obj.transform.SetParent(statsAreaObj.transform, false);
             LayoutElement statsRow1LE = statsRow1Obj.AddComponent<LayoutElement>();
-            statsRow1LE.preferredHeight = 32f;
+            statsRow1LE.preferredHeight = 36f;
 
             HorizontalLayoutGroup statsRow1H = statsRow1Obj.AddComponent<HorizontalLayoutGroup>();
-            statsRow1H.spacing = 10f;
+            statsRow1H.spacing = 6f;
             statsRow1H.childControlWidth = true;
             statsRow1H.childControlHeight = true;
             statsRow1H.childForceExpandWidth = true;
@@ -370,7 +370,7 @@ namespace LottoDefense.Gameplay
             GameObject skillRowObj = new GameObject("SkillRow");
             skillRowObj.transform.SetParent(statsAreaObj.transform, false);
             LayoutElement skillRowLE = skillRowObj.AddComponent<LayoutElement>();
-            skillRowLE.preferredHeight = 32f;
+            skillRowLE.preferredHeight = 36f;
 
             HorizontalLayoutGroup skillRowH = skillRowObj.AddComponent<HorizontalLayoutGroup>();
             skillRowH.spacing = 8f;
@@ -384,13 +384,13 @@ namespace LottoDefense.Gameplay
             LayoutElement skillTextLE = skillTextObj.AddComponent<LayoutElement>();
             skillTextLE.flexibleWidth = 1f;
 
-            Text infoSkillText = CreateText(skillTextObj, "", 24, GameSceneDesignTokens.UnitInfoSkillColor);
+            Text infoSkillText = CreateText(skillTextObj, "", 28, GameSceneDesignTokens.UnitInfoSkillColor);
             infoSkillText.alignment = TextAnchor.MiddleLeft;
-            infoSkillText.horizontalOverflow = HorizontalWrapMode.Wrap;
-            infoSkillText.verticalOverflow = VerticalWrapMode.Truncate;
+            infoSkillText.horizontalOverflow = HorizontalWrapMode.Overflow;
+            infoSkillText.verticalOverflow = VerticalWrapMode.Overflow;
             infoSkillText.resizeTextForBestFit = true;
-            infoSkillText.resizeTextMinSize = 16;
-            infoSkillText.resizeTextMaxSize = 24;
+            infoSkillText.resizeTextMinSize = 20;
+            infoSkillText.resizeTextMaxSize = 28;
             infoSkillText.supportRichText = true;
 
             GameObject manaContainerObj = new GameObject("ManaBarContainer");
@@ -452,36 +452,50 @@ namespace LottoDefense.Gameplay
             statsContainer.SetActive(false);
             emptyStateObj.SetActive(true);
 
-            // ========== BOTTOM: Single row of 4 buttons ==========
-            GameObject buttonRow = new GameObject("ButtonRow");
-            buttonRow.transform.SetParent(bottomPanelObj.transform, false);
-            LayoutElement buttonRowLE = buttonRow.AddComponent<LayoutElement>();
-            buttonRowLE.preferredHeight = 80;
+            // ========== BOTTOM: 2 rows of buttons ==========
+            // Row 1: Summon + Sell (primary actions, larger tap targets)
+            GameObject buttonRow1 = new GameObject("ButtonRow1");
+            buttonRow1.transform.SetParent(bottomPanelObj.transform, false);
+            LayoutElement buttonRow1LE = buttonRow1.AddComponent<LayoutElement>();
+            buttonRow1LE.preferredHeight = btnH;
 
-            HorizontalLayoutGroup rowH = buttonRow.AddComponent<HorizontalLayoutGroup>();
-            rowH.spacing = 10;
-            rowH.childControlWidth = true;
-            rowH.childControlHeight = true;
-            rowH.childForceExpandWidth = true;
-            rowH.childForceExpandHeight = true;
+            HorizontalLayoutGroup row1H = buttonRow1.AddComponent<HorizontalLayoutGroup>();
+            row1H.spacing = 12;
+            row1H.childControlWidth = true;
+            row1H.childControlHeight = true;
+            row1H.childForceExpandWidth = true;
+            row1H.childForceExpandHeight = true;
 
-            GameObject summonBtnObj = CreateCommandButton(buttonRow.transform, "SummonButton",
+            GameObject summonBtnObj = CreateCommandButton(buttonRow1.transform, "SummonButton",
                 "\uC18C\uD658 5G", GameSceneDesignTokens.SummonButtonBg, GameSceneDesignTokens.SummonButtonBorder);
             Button summonBtn = summonBtnObj.GetComponent<Button>();
             Text summonBtnText = summonBtnObj.GetComponentInChildren<Text>();
             summonBtnText.supportRichText = true;
 
-            GameObject sellBtnObj = CreateCommandButton(buttonRow.transform, "SellButton",
+            GameObject sellBtnObj = CreateCommandButton(buttonRow1.transform, "SellButton",
                 "\uD310\uB9E4", GameSceneDesignTokens.SellBtnBg, GameSceneDesignTokens.SellBtnBorder);
             Button sellBtn = sellBtnObj.GetComponent<Button>();
             Text sellBtnText = sellBtnObj.GetComponentInChildren<Text>();
 
-            GameObject atkUpBtnObj = CreateCommandButton(buttonRow.transform, "AttackUpgradeButton",
+            // Row 2: Attack Upgrade + Speed Upgrade
+            GameObject buttonRow2 = new GameObject("ButtonRow2");
+            buttonRow2.transform.SetParent(bottomPanelObj.transform, false);
+            LayoutElement buttonRow2LE = buttonRow2.AddComponent<LayoutElement>();
+            buttonRow2LE.preferredHeight = btnH;
+
+            HorizontalLayoutGroup row2H = buttonRow2.AddComponent<HorizontalLayoutGroup>();
+            row2H.spacing = 12;
+            row2H.childControlWidth = true;
+            row2H.childControlHeight = true;
+            row2H.childForceExpandWidth = true;
+            row2H.childForceExpandHeight = true;
+
+            GameObject atkUpBtnObj = CreateCommandButton(buttonRow2.transform, "AttackUpgradeButton",
                 "\uACF5\uACA9\u2191", GameSceneDesignTokens.AttackUpBtnBg, GameSceneDesignTokens.AttackUpBtnBorder);
             Button atkUpBtn = atkUpBtnObj.GetComponent<Button>();
             Text atkUpBtnText = atkUpBtnObj.GetComponentInChildren<Text>();
 
-            GameObject spdUpBtnObj = CreateCommandButton(buttonRow.transform, "AttackSpeedUpgradeButton",
+            GameObject spdUpBtnObj = CreateCommandButton(buttonRow2.transform, "AttackSpeedUpgradeButton",
                 "\uACF5\uC18D\u2191", GameSceneDesignTokens.SpeedUpBtnBg, GameSceneDesignTokens.SpeedUpBtnBorder);
             Button spdUpBtn = spdUpBtnObj.GetComponent<Button>();
             Text spdUpBtnText = spdUpBtnObj.GetComponentInChildren<Text>();
@@ -554,14 +568,14 @@ namespace LottoDefense.Gameplay
             RectTransform textRect = textObj.AddComponent<RectTransform>();
             textRect.anchorMin = Vector2.zero;
             textRect.anchorMax = Vector2.one;
-            textRect.offsetMin = new Vector2(6, 4);
-            textRect.offsetMax = new Vector2(-6, -4);
+            textRect.offsetMin = new Vector2(4, 2);
+            textRect.offsetMax = new Vector2(-4, -2);
 
             Text buttonText = CreateText(textObj, text, textSize, CuteUIHelper.DarkText);
             buttonText.alignment = TextAnchor.MiddleCenter;
             buttonText.fontStyle = FontStyle.Bold;
             buttonText.resizeTextForBestFit = true;
-            buttonText.resizeTextMinSize = 18;
+            buttonText.resizeTextMinSize = 20;
             buttonText.resizeTextMaxSize = textSize;
             buttonText.supportRichText = true;
 
