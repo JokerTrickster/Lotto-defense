@@ -139,16 +139,13 @@ namespace LottoDefense.UI
                 navigator.ShowMultiplayerLobby();
             });
 
-            // 3. 랭킹 버튼 (헤더 우측)
+            // 3. 랭킹 버튼 (메인 버튼 아래 중앙, 같은 스타일)
             Button rankingButton = CreateButton("RankingButton", "랭킹", 
-                new Vector2(1f, 1f), new Vector2(120, 60),
+                new Vector2(0.5f, 0.5f), new Vector2(400, 120),
                 new Color(0.45f, 0.8f, 0.55f), defaultFont, canvas.transform);
             
             RectTransform rankingRect = rankingButton.GetComponent<RectTransform>();
-            rankingRect.anchoredPosition = new Vector2(-20, -40);
-            
-            Text rankingText = rankingButton.GetComponentInChildren<Text>();
-            if (rankingText != null) rankingText.fontSize = 32;
+            rankingRect.anchoredPosition = new Vector2(0, -200);
             
             rankingButton.onClick.AddListener(() => 
             {
