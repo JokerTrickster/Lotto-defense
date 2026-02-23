@@ -166,7 +166,7 @@ namespace LottoDefense.Gameplay
             panelRect.anchorMin = Vector2.zero;
             panelRect.anchorMax = Vector2.zero;
             panelRect.pivot = new Vector2(0.5f, 0f);
-            panelRect.sizeDelta = new Vector2(180f, 35f);
+            panelRect.sizeDelta = new Vector2(240f, 42f);
 
             Image panelBg = selectionPanelObj.AddComponent<Image>();
             panelBg.color = GameSceneDesignTokens.SelectionPanelBg;
@@ -924,7 +924,7 @@ namespace LottoDefense.Gameplay
             panelRect.anchorMin = new Vector2(0.5f, 0.5f);
             panelRect.anchorMax = new Vector2(0.5f, 0.5f);
             panelRect.anchoredPosition = Vector2.zero;
-            panelRect.sizeDelta = new Vector2(700, 800);
+            panelRect.sizeDelta = new Vector2(700, 850);
 
             Image panelImage = panelObj.AddComponent<Image>();
             panelImage.color = CuteUIHelper.PeachBg;
@@ -941,12 +941,12 @@ namespace LottoDefense.Gameplay
             closeBtnRect.anchorMin = new Vector2(1f, 1f);
             closeBtnRect.anchorMax = new Vector2(1f, 1f);
             closeBtnRect.pivot = new Vector2(1f, 1f);
-            closeBtnRect.anchoredPosition = new Vector2(-20, -20);
-            closeBtnRect.sizeDelta = new Vector2(60, 60);
+            closeBtnRect.anchoredPosition = new Vector2(-16, -16);
+            closeBtnRect.sizeDelta = new Vector2(52, 52);
 
             Image closeBtnImage = closeBtn.AddComponent<Image>();
             closeBtnImage.color = new Color(0.95f, 0.5f, 0.5f, 1f);
-            ApplyRoundedSprite(closeBtnImage, 14);
+            ApplyRoundedSprite(closeBtnImage, 12);
 
             Button closeBtnButton = closeBtn.AddComponent<Button>();
 
@@ -958,7 +958,7 @@ namespace LottoDefense.Gameplay
             closeBtnTextRect.offsetMin = Vector2.zero;
             closeBtnTextRect.offsetMax = Vector2.zero;
 
-            Text closeBtnTextComponent = CreateText(closeBtnText, "X", 32, Color.white);
+            Text closeBtnTextComponent = CreateText(closeBtnText, "X", 28, Color.white);
             closeBtnTextComponent.fontStyle = FontStyle.Bold;
 
             // Title
@@ -968,10 +968,10 @@ namespace LottoDefense.Gameplay
             titleRect.anchorMin = new Vector2(0.5f, 1f);
             titleRect.anchorMax = new Vector2(0.5f, 1f);
             titleRect.pivot = new Vector2(0.5f, 1f);
-            titleRect.anchoredPosition = new Vector2(0, -30);
-            titleRect.sizeDelta = new Vector2(600, 50);
+            titleRect.anchoredPosition = new Vector2(0, -24);
+            titleRect.sizeDelta = new Vector2(580, 56);
 
-            Text titleText = CreateText(titleObj, "\uD569\uC131 \uB808\uC2DC\uD53C", 40, new Color(0.7f, 0.5f, 0.15f));
+            Text titleText = CreateText(titleObj, "\uD569\uC131 \uB808\uC2DC\uD53C", 42, new Color(0.7f, 0.5f, 0.15f));
             titleText.fontStyle = FontStyle.Bold;
 
             // Page number
@@ -1205,7 +1205,7 @@ namespace LottoDefense.Gameplay
             panelRect.anchorMin = new Vector2(0.5f, 0.5f);
             panelRect.anchorMax = new Vector2(0.5f, 0.5f);
             panelRect.anchoredPosition = Vector2.zero;
-            panelRect.sizeDelta = new Vector2(600, 500);
+            panelRect.sizeDelta = new Vector2(700, 580);
 
             Image panelImage = panelObj.AddComponent<Image>();
             panelImage.color = CuteUIHelper.PeachBg;
@@ -1222,10 +1222,10 @@ namespace LottoDefense.Gameplay
             RectTransform titleRect = titleObj.AddComponent<RectTransform>();
             titleRect.anchorMin = new Vector2(0.5f, 1f);
             titleRect.anchorMax = new Vector2(0.5f, 1f);
-            titleRect.anchoredPosition = new Vector2(0, -80);
-            titleRect.sizeDelta = new Vector2(500, 100);
+            titleRect.anchoredPosition = new Vector2(0, -70);
+            titleRect.sizeDelta = new Vector2(600, 90);
 
-            Text titleText = CreateText(titleObj, "\uAC8C\uC784 \uC624\uBC84", 60, CuteUIHelper.DarkText);
+            Text titleText = CreateText(titleObj, "\uAC8C\uC784 \uC624\uBC84", 52, CuteUIHelper.DarkText);
             titleText.fontStyle = FontStyle.Bold;
 
             // Round text
@@ -1271,8 +1271,8 @@ namespace LottoDefense.Gameplay
             RectTransform btnRect = btnObj.AddComponent<RectTransform>();
             btnRect.anchorMin = new Vector2(0.5f, 0f);
             btnRect.anchorMax = new Vector2(0.5f, 0f);
-            btnRect.anchoredPosition = new Vector2(0, 80);
-            btnRect.sizeDelta = new Vector2(300, 80);
+            btnRect.anchoredPosition = new Vector2(0, 70);
+            btnRect.sizeDelta = new Vector2(400, 90);
 
             Image btnImage = btnObj.AddComponent<Image>();
             btnImage.color = new Color(0.45f, 0.82f, 0.55f);
@@ -1287,7 +1287,7 @@ namespace LottoDefense.Gameplay
             colors.normalColor = Color.white;
             colors.highlightedColor = new Color(1f, 0.98f, 0.95f, 1f);
             colors.pressedColor = new Color(0.85f, 0.82f, 0.78f, 1f);
-            colors.fadeDuration = 0.1f;
+            colors.fadeDuration = 0.08f;
             button.colors = colors;
 
             GameObject btnTextObj = new GameObject("Text");
@@ -1296,10 +1296,10 @@ namespace LottoDefense.Gameplay
             RectTransform btnTextRect = btnTextObj.AddComponent<RectTransform>();
             btnTextRect.anchorMin = Vector2.zero;
             btnTextRect.anchorMax = Vector2.one;
-            btnTextRect.offsetMin = Vector2.zero;
-            btnTextRect.offsetMax = Vector2.zero;
+            btnTextRect.offsetMin = new Vector2(8, 4);
+            btnTextRect.offsetMax = new Vector2(-8, -4);
 
-            Text btnText = CreateText(btnTextObj, "\uD655\uC778", 40, CuteUIHelper.DarkText);
+            Text btnText = CreateText(btnTextObj, "\uD655\uC778", 38, CuteUIHelper.DarkText);
             btnText.fontStyle = FontStyle.Bold;
 
             GameResultUI resultUIComponent = resultObj.AddComponent<GameResultUI>();
@@ -1350,7 +1350,7 @@ namespace LottoDefense.Gameplay
             panelRect.anchorMin = new Vector2(0.5f, 0.5f);
             panelRect.anchorMax = new Vector2(0.5f, 0.5f);
             panelRect.anchoredPosition = Vector2.zero;
-            panelRect.sizeDelta = new Vector2(700, 900);
+            panelRect.sizeDelta = new Vector2(700, 850);
 
             Image panelImage = panelObj.AddComponent<Image>();
             panelImage.color = GameSceneDesignTokens.QuestPanelBg;
@@ -1360,19 +1360,19 @@ namespace LottoDefense.Gameplay
             panelShadow.effectColor = new Color(0.4f, 0.3f, 0.2f, 0.3f);
             panelShadow.effectDistance = new Vector2(4, -4);
 
-            // Close button (top right)
+            // Close button (top right) - 52x52 to match utility buttons
             GameObject closeBtn = new GameObject("CloseButton");
             closeBtn.transform.SetParent(panelObj.transform, false);
             RectTransform closeBtnRect = closeBtn.AddComponent<RectTransform>();
             closeBtnRect.anchorMin = new Vector2(1f, 1f);
             closeBtnRect.anchorMax = new Vector2(1f, 1f);
             closeBtnRect.pivot = new Vector2(1f, 1f);
-            closeBtnRect.anchoredPosition = new Vector2(-20, -20);
-            closeBtnRect.sizeDelta = new Vector2(60, 60);
+            closeBtnRect.anchoredPosition = new Vector2(-16, -16);
+            closeBtnRect.sizeDelta = new Vector2(52, 52);
 
             Image closeBtnImage = closeBtn.AddComponent<Image>();
             closeBtnImage.color = new Color(0.95f, 0.5f, 0.5f, 1f);
-            ApplyRoundedSprite(closeBtnImage, 14);
+            ApplyRoundedSprite(closeBtnImage, 12);
 
             Button closeBtnButton = closeBtn.AddComponent<Button>();
 
@@ -1384,7 +1384,7 @@ namespace LottoDefense.Gameplay
             closeBtnTextRect.offsetMin = Vector2.zero;
             closeBtnTextRect.offsetMax = Vector2.zero;
 
-            Text closeBtnTextComponent = CreateText(closeBtnText, "X", 32, Color.white);
+            Text closeBtnTextComponent = CreateText(closeBtnText, "X", 28, Color.white);
             closeBtnTextComponent.fontStyle = FontStyle.Bold;
 
             // Title
@@ -1394,10 +1394,10 @@ namespace LottoDefense.Gameplay
             titleRect.anchorMin = new Vector2(0.5f, 1f);
             titleRect.anchorMax = new Vector2(0.5f, 1f);
             titleRect.pivot = new Vector2(0.5f, 1f);
-            titleRect.anchoredPosition = new Vector2(0, -30);
-            titleRect.sizeDelta = new Vector2(600, 50);
+            titleRect.anchoredPosition = new Vector2(0, -24);
+            titleRect.sizeDelta = new Vector2(580, 56);
 
-            Text titleText = CreateText(titleObj, "\uD788\uB4E0 \uD038\uC2A4\uD2B8", 40, new Color(0.7f, 0.5f, 0.15f));
+            Text titleText = CreateText(titleObj, "\uD788\uB4E0 \uD038\uC2A4\uD2B8", 42, new Color(0.7f, 0.5f, 0.15f));
             titleText.fontStyle = FontStyle.Bold;
 
             // Scroll content area

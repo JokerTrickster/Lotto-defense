@@ -106,18 +106,18 @@ namespace LottoDefense.UI
                 return;
             }
 
-            // 버튼 GameObject 생성
             GameObject btnObj = new GameObject("SpeedButton");
             btnObj.transform.SetParent(canvas.transform, false);
-            btnObj.transform.SetAsLastSibling(); // 최상위로 (다른 UI 위에 표시)
+            btnObj.transform.SetAsLastSibling();
 
-            // RectTransform 설정 (우상단, 눈에 잘 띄게)
+            float btnSize = GameSceneDesignTokens.UtilityButtonSize;
+            float yOffset = GameSceneDesignTokens.HudHeight + 8 + btnSize + 8 + btnSize + 8;
             RectTransform btnRect = btnObj.AddComponent<RectTransform>();
-            btnRect.anchorMin = new Vector2(1f, 1f); // 우상단
+            btnRect.anchorMin = new Vector2(1f, 1f);
             btnRect.anchorMax = new Vector2(1f, 1f);
             btnRect.pivot = new Vector2(1f, 1f);
-            btnRect.anchoredPosition = new Vector2(-20, -20); // 우상단 코너에 바로 붙임
-            btnRect.sizeDelta = new Vector2(120, 80); // 더 크게 (눈에 잘 띄게)
+            btnRect.anchoredPosition = new Vector2(-12, -yOffset);
+            btnRect.sizeDelta = new Vector2(btnSize, btnSize);
 
             Image btnImage = btnObj.AddComponent<Image>();
             btnImage.color = normalSpeedColor;
@@ -153,7 +153,7 @@ namespace LottoDefense.UI
             speedText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             if (speedText.font == null)
                 speedText.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
-            speedText.fontSize = 36;
+            speedText.fontSize = 22;
             speedText.color = CuteUIHelper.DarkText;
             speedText.alignment = TextAnchor.MiddleCenter;
             speedText.fontStyle = FontStyle.Bold;

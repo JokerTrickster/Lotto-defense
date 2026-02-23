@@ -147,7 +147,7 @@ namespace LottoDefense.UI
             rootRect.anchorMin = new Vector2(0f, 1f);
             rootRect.anchorMax = new Vector2(0.55f, 1f);
             rootRect.pivot = new Vector2(0f, 1f);
-            rootRect.anchoredPosition = new Vector2(8, -140);
+            rootRect.anchoredPosition = new Vector2(8, -(GameSceneDesignTokens.HudHeight + 8));
             rootRect.sizeDelta = new Vector2(0, 40);
 
             Image bg = root.AddComponent<Image>();

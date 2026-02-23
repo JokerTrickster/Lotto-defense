@@ -110,7 +110,7 @@ namespace LottoDefense.UI
         public const float BottomPanelHeight = 130f;
         public const float CommandPanelHeight = 220f;
         public const float CommandButtonHeight = 66f;
-        public const int CommandButtonTextSize = 16;
+        public const int CommandButtonTextSize = 24;
         public const float SynthFloatBtnWidth = 100f;
         public const float SynthFloatBtnHeight = 44f;
         #endregion
