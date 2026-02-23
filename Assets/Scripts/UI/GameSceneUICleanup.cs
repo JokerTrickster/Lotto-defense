@@ -42,7 +42,9 @@ namespace LottoDefense.UI
                 "RankingButton",
                 "MyStatsButton",
                 "StartGameButton",
-                "StartButton"
+                "StartButton",
+                "PlayButtonsContainer",
+                "MainMenuContainer"
             };
 
             foreach (string btnName in buttonNames)

@@ -344,19 +344,6 @@ namespace LottoDefense.Lobby
             GameObject mailBtn = CreateIconButton(rightObj.transform, "Mailbox", "Ma");
             mailBtn.GetComponent<Button>().onClick.AddListener(OnMailboxClicked);
             mailBadge = NotificationBadge.Create(mailBtn.transform, defaultFont);
-
-            // Ranking button (랭킹)
-            GameObject rankingBtn = CreateIconButton(rightObj.transform, "Ranking", "랭킹");
-            rankingBtn.GetComponent<Button>().onClick.AddListener(() => {
-                Debug.Log("[MainGameBootstrapper] Ranking clicked - TODO: Show rankings");
-            });
-            // 랭킹 버튼은 약간 크게
-            LayoutElement rankingLE = rankingBtn.GetComponent<LayoutElement>();
-            rankingLE.preferredWidth = 120;
-            rankingLE.preferredHeight = 60;
-            // 텍스트 크기 조정
-            Text rankingText = rankingBtn.GetComponentInChildren<Text>();
-            if (rankingText != null) rankingText.fontSize = 32;
         }
 
         private GameObject CreateIconButton(Transform parent, string name, string label)
@@ -366,29 +353,42 @@ namespace LottoDefense.Lobby
 
             Image bg = btnObj.AddComponent<Image>();
             bg.color = LobbyDesignTokens.ButtonSecondary;
+            Sprite rounded = CuteUIHelper.GetRoundedRectSprite(14);
+            if (rounded != null)
+            {
+                bg.sprite = rounded;
+                bg.type = Image.Type.Sliced;
+            }
+
+            Shadow shadow = btnObj.AddComponent<Shadow>();
+            shadow.effectColor = CuteUIHelper.SoftShadow;
+            shadow.effectDistance = new Vector2(1, -2);
 
             Button btn = btnObj.AddComponent<Button>();
             ColorBlock colors = btn.colors;
             colors.normalColor = Color.white;
-            colors.highlightedColor = new Color(0.9f, 0.95f, 1f, 1f);
-            colors.pressedColor = new Color(0.55f, 0.55f, 0.55f, 1f);
-            colors.fadeDuration = 0.06f;
+            colors.highlightedColor = new Color(1f, 0.98f, 0.95f, 1f);
+            colors.pressedColor = new Color(0.85f, 0.82f, 0.78f, 1f);
+            colors.fadeDuration = 0.08f;
             btn.colors = colors;
 
             LayoutElement le = btnObj.AddComponent<LayoutElement>();
             le.preferredWidth = LobbyDesignTokens.IconButtonSize;
             le.preferredHeight = LobbyDesignTokens.IconButtonSize;
 
-            // Label
             GameObject labelObj = new GameObject("Label");
             labelObj.transform.SetParent(btnObj.transform, false);
             Text text = CreateText(labelObj, label, LobbyDesignTokens.IconButtonFontSize, LobbyDesignTokens.TextPrimary);
             text.fontStyle = FontStyle.Bold;
+            text.resizeTextForBestFit = true;
+            text.resizeTextMinSize = 16;
+            text.resizeTextMaxSize = LobbyDesignTokens.IconButtonFontSize;
 
             RectTransform labelRect = labelObj.GetComponent<RectTransform>();
             labelRect.anchorMin = Vector2.zero;
             labelRect.anchorMax = Vector2.one;
-            labelRect.sizeDelta = Vector2.zero;
+            labelRect.offsetMin = new Vector2(4, 4);
+            labelRect.offsetMax = new Vector2(-4, -4);
 
             return btnObj;
         }
@@ -401,131 +401,169 @@ namespace LottoDefense.Lobby
             titleText.fontStyle = FontStyle.Bold;
 
             RectTransform rect = titleObj.GetComponent<RectTransform>();
-            rect.anchorMin = new Vector2(0.05f, 0.45f);
-            rect.anchorMax = new Vector2(0.95f, 0.6f);
+            rect.anchorMin = new Vector2(0.05f, 0.46f);
+            rect.anchorMax = new Vector2(0.95f, 0.58f);
             rect.sizeDelta = Vector2.zero;
         }
 
         private void CreateGameStartButton()
         {
-            // ===== 싱글 플레이 버튼 (중앙 왼쪽) =====
-            GameObject singleBtn = new GameObject("SinglePlayButton");
-            singleBtn.transform.SetParent(safeAreaRoot, false);
+            GameObject container = new GameObject("PlayButtonsContainer");
+            container.transform.SetParent(safeAreaRoot, false);
 
-            RectTransform singleRect = singleBtn.AddComponent<RectTransform>();
-            singleRect.anchorMin = new Vector2(0.5f, 0.4f);
-            singleRect.anchorMax = new Vector2(0.5f, 0.4f);
-            singleRect.pivot = new Vector2(0.5f, 0.5f);
-            singleRect.anchoredPosition = new Vector2(-220, 0); // 왼쪽으로
-            singleRect.sizeDelta = new Vector2(400, 150);
+            RectTransform containerRect = container.AddComponent<RectTransform>();
+            containerRect.anchorMin = new Vector2(0.08f, 0.22f);
+            containerRect.anchorMax = new Vector2(0.92f, 0.42f);
+            containerRect.sizeDelta = Vector2.zero;
 
-            Image singleBg = singleBtn.AddComponent<Image>();
-            singleBg.color = new Color(0.2f, 0.6f, 1f); // 파란색
+            VerticalLayoutGroup vlg = container.AddComponent<VerticalLayoutGroup>();
+            vlg.spacing = 20;
+            vlg.padding = new RectOffset(0, 0, 0, 0);
+            vlg.childControlWidth = true;
+            vlg.childControlHeight = false;
+            vlg.childForceExpandWidth = true;
+            vlg.childForceExpandHeight = false;
+            vlg.childAlignment = TextAnchor.MiddleCenter;
 
-            Button singleButton = singleBtn.AddComponent<Button>();
-            ColorBlock singleColors = singleButton.colors;
-            singleColors.normalColor = Color.white;
-            singleColors.highlightedColor = new Color(0.9f, 0.95f, 1f, 1f);
-            singleColors.pressedColor = new Color(0.55f, 0.55f, 0.55f, 1f);
-            singleColors.fadeDuration = 0.06f;
-            singleButton.colors = singleColors;
-            singleButton.onClick.AddListener(() => OnSinglePlayClicked());
+            // Row: Single + Coop side by side
+            GameObject topRow = new GameObject("PlayRow");
+            topRow.transform.SetParent(container.transform, false);
+            LayoutElement topRowLE = topRow.AddComponent<LayoutElement>();
+            topRowLE.preferredHeight = LobbyDesignTokens.GameStartButtonHeight;
 
-            GameObject singleTextObj = new GameObject("Text");
-            singleTextObj.transform.SetParent(singleBtn.transform, false);
-            Text singleText = CreateText(singleTextObj, "싱글 플레이", 48, LobbyDesignTokens.ButtonText);
-            singleText.fontStyle = FontStyle.Bold;
+            HorizontalLayoutGroup hlg = topRow.AddComponent<HorizontalLayoutGroup>();
+            hlg.spacing = 20;
+            hlg.childControlWidth = true;
+            hlg.childControlHeight = true;
+            hlg.childForceExpandWidth = true;
+            hlg.childForceExpandHeight = true;
 
-            RectTransform singleTextRect = singleTextObj.GetComponent<RectTransform>();
-            singleTextRect.anchorMin = Vector2.zero;
-            singleTextRect.anchorMax = Vector2.one;
-            singleTextRect.sizeDelta = Vector2.zero;
+            CreatePlayButton(topRow.transform, "SinglePlayButton", "싱글 플레이",
+                LobbyDesignTokens.ButtonPrimary, () => OnSinglePlayClicked());
+            CreatePlayButton(topRow.transform, "CoopPlayButton", "협동 플레이",
+                new Color(0.95f, 0.65f, 0.4f), () => OnCoopPlayClicked());
 
-            // ===== 협동 플레이 버튼 (중앙 오른쪽) =====
-            GameObject coopBtn = new GameObject("CoopPlayButton");
-            coopBtn.transform.SetParent(safeAreaRoot, false);
+            // Ranking button (full width below)
+            Button rankingBtn = CreatePlayButton(container.transform, "RankingButton", "랭킹",
+                LobbyDesignTokens.ButtonSuccess, () => {
+                    SceneNavigator nav = FindFirstObjectByType<SceneNavigator>();
+                    if (nav != null) nav.ShowRankings();
+                });
+            LayoutElement rankLE = rankingBtn.gameObject.AddComponent<LayoutElement>();
+            rankLE.preferredHeight = 90;
+        }
 
-            RectTransform coopRect = coopBtn.AddComponent<RectTransform>();
-            coopRect.anchorMin = new Vector2(0.5f, 0.4f);
-            coopRect.anchorMax = new Vector2(0.5f, 0.4f);
-            coopRect.pivot = new Vector2(0.5f, 0.5f);
-            coopRect.anchoredPosition = new Vector2(220, 0); // 오른쪽으로
-            coopRect.sizeDelta = new Vector2(400, 150);
+        private Button CreatePlayButton(Transform parent, string name, string label, Color color, UnityEngine.Events.UnityAction onClick)
+        {
+            GameObject btnObj = new GameObject(name);
+            btnObj.transform.SetParent(parent, false);
+            btnObj.AddComponent<RectTransform>();
 
-            Image coopBg = coopBtn.AddComponent<Image>();
-            coopBg.color = new Color(0.9f, 0.5f, 0.2f); // 주황색
+            Image bg = btnObj.AddComponent<Image>();
+            bg.color = color;
+            Sprite rounded = CuteUIHelper.GetRoundedRectSprite(20);
+            if (rounded != null)
+            {
+                bg.sprite = rounded;
+                bg.type = Image.Type.Sliced;
+            }
 
-            Button coopButton = coopBtn.AddComponent<Button>();
-            ColorBlock coopColors = coopButton.colors;
-            coopColors.normalColor = Color.white;
-            coopColors.highlightedColor = new Color(1f, 0.95f, 0.9f, 1f);
-            coopColors.pressedColor = new Color(0.55f, 0.55f, 0.55f, 1f);
-            coopColors.fadeDuration = 0.06f;
-            coopButton.colors = coopColors;
-            coopButton.onClick.AddListener(() => OnCoopPlayClicked());
+            Shadow shadow = btnObj.AddComponent<Shadow>();
+            shadow.effectColor = CuteUIHelper.SoftShadow;
+            shadow.effectDistance = new Vector2(2, -3);
 
-            GameObject coopTextObj = new GameObject("Text");
-            coopTextObj.transform.SetParent(coopBtn.transform, false);
-            Text coopText = CreateText(coopTextObj, "협동 플레이", 48, LobbyDesignTokens.ButtonText);
-            coopText.fontStyle = FontStyle.Bold;
+            Button btn = btnObj.AddComponent<Button>();
+            ColorBlock colors = btn.colors;
+            colors.normalColor = Color.white;
+            colors.highlightedColor = new Color(1f, 0.98f, 0.95f, 1f);
+            colors.pressedColor = new Color(0.85f, 0.82f, 0.78f, 1f);
+            colors.fadeDuration = 0.08f;
+            btn.colors = colors;
+            btn.onClick.AddListener(onClick);
 
-            RectTransform coopTextRect = coopTextObj.GetComponent<RectTransform>();
-            coopTextRect.anchorMin = Vector2.zero;
-            coopTextRect.anchorMax = Vector2.one;
-            coopTextRect.sizeDelta = Vector2.zero;
+            GameObject textObj = new GameObject("Text");
+            textObj.transform.SetParent(btnObj.transform, false);
+
+            RectTransform textRect = textObj.AddComponent<RectTransform>();
+            textRect.anchorMin = Vector2.zero;
+            textRect.anchorMax = Vector2.one;
+            textRect.offsetMin = new Vector2(12, 8);
+            textRect.offsetMax = new Vector2(-12, -8);
+
+            Text text = CreateText(textObj, label, LobbyDesignTokens.ButtonFontSize + 8, LobbyDesignTokens.ButtonText);
+            text.fontStyle = FontStyle.Bold;
+            text.resizeTextForBestFit = true;
+            text.resizeTextMinSize = 24;
+            text.resizeTextMaxSize = LobbyDesignTokens.ButtonFontSize + 8;
+
+            return btn;
         }
 
         private void CreateBottomButtons()
         {
-            // Settings button (bottom left) - placeholder
-            GameObject settingsObj = new GameObject("SettingsButton");
-            settingsObj.transform.SetParent(safeAreaRoot, false);
+            // Bottom row container
+            GameObject bottomRow = new GameObject("BottomButtons");
+            bottomRow.transform.SetParent(safeAreaRoot, false);
 
-            Image settingsBg = settingsObj.AddComponent<Image>();
-            settingsBg.color = LobbyDesignTokens.ButtonSecondary;
+            RectTransform bottomRect = bottomRow.AddComponent<RectTransform>();
+            bottomRect.anchorMin = new Vector2(0.08f, 0f);
+            bottomRect.anchorMax = new Vector2(0.92f, 0f);
+            bottomRect.pivot = new Vector2(0.5f, 0f);
+            bottomRect.anchoredPosition = new Vector2(0, 24);
+            bottomRect.sizeDelta = new Vector2(0, 60);
 
-            Button settingsBtn = settingsObj.AddComponent<Button>();
-            settingsBtn.onClick.AddListener(() => Debug.Log("[MainGameBootstrapper] Settings - Coming soon"));
+            HorizontalLayoutGroup hlg = bottomRow.AddComponent<HorizontalLayoutGroup>();
+            hlg.spacing = 16;
+            hlg.childControlWidth = true;
+            hlg.childControlHeight = true;
+            hlg.childForceExpandWidth = true;
+            hlg.childForceExpandHeight = true;
 
-            RectTransform settingsRect = settingsObj.GetComponent<RectTransform>();
-            settingsRect.anchorMin = new Vector2(0f, 0f);
-            settingsRect.anchorMax = new Vector2(0f, 0f);
-            settingsRect.pivot = new Vector2(0f, 0f);
-            settingsRect.anchoredPosition = new Vector2(20f, 20f);
-            settingsRect.sizeDelta = new Vector2(120f, 50f);
+            CreateBottomButton(bottomRow.transform, "SettingsButton", "설정",
+                LobbyDesignTokens.ButtonSecondary,
+                () => Debug.Log("[MainGameBootstrapper] Settings - Coming soon"));
 
-            GameObject settingsTextObj = new GameObject("Text");
-            settingsTextObj.transform.SetParent(settingsObj.transform, false);
-            CreateText(settingsTextObj, "설정", LobbyDesignTokens.BodySize, LobbyDesignTokens.TextPrimary);
-            RectTransform stRect = settingsTextObj.GetComponent<RectTransform>();
-            stRect.anchorMin = Vector2.zero;
-            stRect.anchorMax = Vector2.one;
-            stRect.sizeDelta = Vector2.zero;
+            CreateBottomButton(bottomRow.transform, "LogoutButton", "로그아웃",
+                LobbyDesignTokens.ButtonDanger, OnLogoutClicked);
+        }
 
-            // Logout button (bottom right)
-            GameObject logoutObj = new GameObject("LogoutButton");
-            logoutObj.transform.SetParent(safeAreaRoot, false);
+        private void CreateBottomButton(Transform parent, string name, string label, Color color, UnityEngine.Events.UnityAction onClick)
+        {
+            GameObject btnObj = new GameObject(name);
+            btnObj.transform.SetParent(parent, false);
 
-            Image logoutBg = logoutObj.AddComponent<Image>();
-            logoutBg.color = LobbyDesignTokens.ButtonDanger;
+            Image bg = btnObj.AddComponent<Image>();
+            bg.color = color;
+            Sprite rounded = CuteUIHelper.GetRoundedRectSprite(12);
+            if (rounded != null)
+            {
+                bg.sprite = rounded;
+                bg.type = Image.Type.Sliced;
+            }
 
-            Button logoutBtn = logoutObj.AddComponent<Button>();
-            logoutBtn.onClick.AddListener(OnLogoutClicked);
+            Shadow shadow = btnObj.AddComponent<Shadow>();
+            shadow.effectColor = CuteUIHelper.SoftShadow;
+            shadow.effectDistance = new Vector2(1, -2);
 
-            RectTransform logoutRect = logoutObj.GetComponent<RectTransform>();
-            logoutRect.anchorMin = new Vector2(1f, 0f);
-            logoutRect.anchorMax = new Vector2(1f, 0f);
-            logoutRect.pivot = new Vector2(1f, 0f);
-            logoutRect.anchoredPosition = new Vector2(-20f, 20f);
-            logoutRect.sizeDelta = new Vector2(140f, 50f);
+            Button btn = btnObj.AddComponent<Button>();
+            ColorBlock colors = btn.colors;
+            colors.normalColor = Color.white;
+            colors.highlightedColor = new Color(1f, 0.98f, 0.95f, 1f);
+            colors.pressedColor = new Color(0.85f, 0.82f, 0.78f, 1f);
+            colors.fadeDuration = 0.08f;
+            btn.colors = colors;
+            btn.onClick.AddListener(onClick);
 
-            GameObject logoutTextObj = new GameObject("Text");
-            logoutTextObj.transform.SetParent(logoutObj.transform, false);
-            CreateText(logoutTextObj, "로그아웃", LobbyDesignTokens.BodySize, LobbyDesignTokens.TextPrimary);
-            RectTransform ltRect = logoutTextObj.GetComponent<RectTransform>();
-            ltRect.anchorMin = Vector2.zero;
-            ltRect.anchorMax = Vector2.one;
-            ltRect.sizeDelta = Vector2.zero;
+            GameObject textObj = new GameObject("Text");
+            textObj.transform.SetParent(btnObj.transform, false);
+            RectTransform textRect = textObj.AddComponent<RectTransform>();
+            textRect.anchorMin = Vector2.zero;
+            textRect.anchorMax = Vector2.one;
+            textRect.offsetMin = new Vector2(8, 4);
+            textRect.offsetMax = new Vector2(-8, -4);
+
+            Text text = CreateText(textObj, label, LobbyDesignTokens.BodySize, LobbyDesignTokens.TextPrimary);
+            text.fontStyle = FontStyle.Bold;
         }
         #endregion
 
@@ -710,6 +748,16 @@ namespace LottoDefense.Lobby
             panel.transform.SetParent(overlay.transform, false);
             Image panelBg = panel.AddComponent<Image>();
             panelBg.color = LobbyDesignTokens.ModalPanelBg;
+            Sprite panelRounded = CuteUIHelper.GetRoundedRectSprite(24);
+            if (panelRounded != null)
+            {
+                panelBg.sprite = panelRounded;
+                panelBg.type = Image.Type.Sliced;
+            }
+
+            Shadow panelShadow = panel.AddComponent<Shadow>();
+            panelShadow.effectColor = CuteUIHelper.SoftShadow;
+            panelShadow.effectDistance = new Vector2(3, -4);
 
             RectTransform panelRect = panel.GetComponent<RectTransform>();
             panelRect.anchorMin = new Vector2(0.5f - widthRatio / 2f, 0.5f - heightRatio / 2f);
@@ -725,6 +773,7 @@ namespace LottoDefense.Lobby
             titleText.fontSize = LobbyDesignTokens.HeaderSize;
             titleText.color = LobbyDesignTokens.TextPrimary;
             titleText.alignment = TextAnchor.MiddleCenter;
+            titleText.fontStyle = FontStyle.Bold;
             titleText.raycastTarget = false;
 
             RectTransform titleRect = titleObj.GetComponent<RectTransform>();
@@ -737,23 +786,30 @@ namespace LottoDefense.Lobby
             closeObj.transform.SetParent(panel.transform, false);
             Image closeBg = closeObj.AddComponent<Image>();
             closeBg.color = LobbyDesignTokens.ButtonClose;
+            Sprite closeRounded = CuteUIHelper.GetRoundedRectSprite(12);
+            if (closeRounded != null)
+            {
+                closeBg.sprite = closeRounded;
+                closeBg.type = Image.Type.Sliced;
+            }
             closeButton = closeObj.AddComponent<Button>();
 
             RectTransform closeRect = closeObj.GetComponent<RectTransform>();
             closeRect.anchorMin = new Vector2(1f, 1f);
             closeRect.anchorMax = new Vector2(1f, 1f);
             closeRect.pivot = new Vector2(1f, 1f);
-            closeRect.anchoredPosition = new Vector2(-10f, -10f);
-            closeRect.sizeDelta = new Vector2(60f, 60f);
+            closeRect.anchoredPosition = new Vector2(-16f, -16f);
+            closeRect.sizeDelta = new Vector2(52f, 52f);
 
             GameObject closeTextObj = new GameObject("X");
             closeTextObj.transform.SetParent(closeObj.transform, false);
             Text closeText = closeTextObj.AddComponent<Text>();
             closeText.font = font;
             closeText.text = "X";
-            closeText.fontSize = LobbyDesignTokens.SubHeaderSize;
+            closeText.fontSize = 28;
             closeText.color = Color.white;
             closeText.alignment = TextAnchor.MiddleCenter;
+            closeText.fontStyle = FontStyle.Bold;
             closeText.raycastTarget = false;
 
             RectTransform closeTextRect = closeTextObj.GetComponent<RectTransform>();
