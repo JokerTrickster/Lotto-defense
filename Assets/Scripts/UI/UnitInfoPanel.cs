@@ -14,7 +14,6 @@ namespace LottoDefense.UI
         #region Serialized Fields
         [SerializeField] private Image portraitImage;
         [SerializeField] private Text unitNameText;
-        [SerializeField] private Text upgradeLevelText;
         [SerializeField] private Text attackText;
         [SerializeField] private Text speedText;
         [SerializeField] private Text rangeText;
@@ -120,25 +119,16 @@ namespace LottoDefense.UI
                 spdLevel = UnitUpgradeManager.Instance.GetRaritySpeedLevel(currentUnit.Data.rarity);
             }
 
-            if (upgradeLevelText != null)
-            {
-                string atkStr = atkLevel > 0
-                    ? $"<color=#FF6B50>\uACF5\uACA9Lv.{atkLevel}</color>"
-                    : "<color=#999999>\uACF5\uACA9Lv.0</color>";
-                string spdStr = spdLevel > 0
-                    ? $"<color=#4DC080>\uACF5\uC18DLv.{spdLevel}</color>"
-                    : "<color=#999999>\uACF5\uC18DLv.0</color>";
-                upgradeLevelText.text = $"{atkStr} {spdStr}";
-            }
-
             if (attackText != null)
             {
-                attackText.text = $"\uACF5\uACA9\uB825 {currentUnit.CurrentAttack}";
+                string lvl = atkLevel > 0 ? $" <color=#FFD700>Lv.{atkLevel}</color>" : "";
+                attackText.text = $"\uACF5\uACA9\uB825 {currentUnit.CurrentAttack}{lvl}";
             }
 
             if (speedText != null)
             {
-                speedText.text = $"\uACF5\uACA9\uC18D\uB3C4 {currentUnit.CurrentAttackSpeed:F1}";
+                string lvl = spdLevel > 0 ? $" <color=#FFD700>Lv.{spdLevel}</color>" : "";
+                speedText.text = $"\uACF5\uACA9\uC18D\uB3C4 {currentUnit.CurrentAttackSpeed:F1}{lvl}";
             }
 
             if (rangeText != null)

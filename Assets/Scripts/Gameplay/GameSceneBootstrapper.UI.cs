@@ -332,7 +332,7 @@ namespace LottoDefense.Gameplay
             infoVLayout.childForceExpandWidth = true;
             infoVLayout.childForceExpandHeight = false;
 
-            // --- Row 0: Portrait + Name + Upgrade Badge ---
+            // --- Row 0: Portrait + Name ---
             float rowH = GameSceneDesignTokens.UnitInfoStatRowHeight;
             int statFont = GameSceneDesignTokens.UnitInfoDetailSize;
 
@@ -340,25 +340,28 @@ namespace LottoDefense.Gameplay
             nameRow.transform.SetParent(statsContainer.transform, false);
             nameRow.AddComponent<RectTransform>();
             LayoutElement nameRowLE = nameRow.AddComponent<LayoutElement>();
-            nameRowLE.preferredHeight = 40f;
+            nameRowLE.preferredHeight = 36f;
 
             HorizontalLayoutGroup nameHLG = nameRow.AddComponent<HorizontalLayoutGroup>();
             nameHLG.spacing = 8f;
             nameHLG.childControlWidth = true;
-            nameHLG.childControlHeight = true;
+            nameHLG.childControlHeight = false;
             nameHLG.childForceExpandWidth = false;
-            nameHLG.childForceExpandHeight = true;
+            nameHLG.childForceExpandHeight = false;
 
             GameObject portraitObj = new GameObject("Portrait");
             portraitObj.transform.SetParent(nameRow.transform, false);
             LayoutElement portraitLE = portraitObj.AddComponent<LayoutElement>();
-            portraitLE.preferredWidth = 40;
-            portraitLE.preferredHeight = 40;
+            portraitLE.preferredWidth = 36;
+            portraitLE.preferredHeight = 36;
+            portraitLE.minWidth = 36;
+            portraitLE.minHeight = 36;
 
             Image portraitBg = portraitObj.AddComponent<Image>();
             portraitBg.color = new Color(0.92f, 0.88f, 0.82f, 0.85f);
             portraitBg.raycastTarget = false;
             ApplyRoundedSprite(portraitBg, 10);
+            portraitObj.AddComponent<UnityEngine.UI.AspectRatioFitter>().aspectMode = UnityEngine.UI.AspectRatioFitter.AspectMode.HeightControlsWidth;
 
             GameObject portraitCircleObj = new GameObject("PortraitCircle");
             portraitCircleObj.transform.SetParent(portraitObj.transform, false);
@@ -388,23 +391,7 @@ namespace LottoDefense.Gameplay
             infoNameText.horizontalOverflow = HorizontalWrapMode.Wrap;
             infoNameText.verticalOverflow = VerticalWrapMode.Truncate;
 
-            GameObject upgradeBadgeObj = new GameObject("UpgradeBadge");
-            upgradeBadgeObj.transform.SetParent(nameRow.transform, false);
-            upgradeBadgeObj.AddComponent<RectTransform>();
-            LayoutElement upgradeBadgeLE = upgradeBadgeObj.AddComponent<LayoutElement>();
-            upgradeBadgeLE.preferredWidth = 180;
-
-            Text upgradeLevelText = CreateText(upgradeBadgeObj, "", 22, new Color(1f, 0.84f, 0f, 1f));
-            upgradeLevelText.alignment = TextAnchor.MiddleCenter;
-            upgradeLevelText.fontStyle = FontStyle.Bold;
-            upgradeLevelText.resizeTextForBestFit = true;
-            upgradeLevelText.resizeTextMinSize = 14;
-            upgradeLevelText.resizeTextMaxSize = 22;
-            upgradeLevelText.horizontalOverflow = HorizontalWrapMode.Wrap;
-            upgradeLevelText.verticalOverflow = VerticalWrapMode.Truncate;
-            upgradeLevelText.supportRichText = true;
-
-            // --- Row 1: ATK | SPD ---
+            // --- Row 1: ATK | SPD (includes upgrade level) ---
             GameObject gridRow1 = CreateStatGridRow(statsContainer.transform, "GridRow1", rowH);
             Text infoAtkText = CreateGridStatText(gridRow1.transform, "ATK", statFont, GameSceneDesignTokens.UnitInfoAttack);
             Text infoSpdText = CreateGridStatText(gridRow1.transform, "SPD", statFont, GameSceneDesignTokens.UnitInfoSpeed);
@@ -461,7 +448,6 @@ namespace LottoDefense.Gameplay
             UnitInfoPanel infoPanel = infoRow.AddComponent<UnitInfoPanel>();
             SetField(infoPanel, "portraitImage", portraitImage);
             SetField(infoPanel, "unitNameText", infoNameText);
-            SetField(infoPanel, "upgradeLevelText", upgradeLevelText);
             SetField(infoPanel, "attackText", infoAtkText);
             SetField(infoPanel, "speedText", infoSpdText);
             SetField(infoPanel, "rangeText", infoRngText);
