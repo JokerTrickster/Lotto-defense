@@ -14,6 +14,7 @@ namespace LottoDefense.UI
         #region Serialized Fields
         [SerializeField] private Image portraitImage;
         [SerializeField] private Text unitNameText;
+        [SerializeField] private Text upgradeLevelText;
         [SerializeField] private Text attackText;
         [SerializeField] private Text speedText;
         [SerializeField] private Text rangeText;
@@ -98,20 +99,19 @@ namespace LottoDefense.UI
         {
             if (currentUnit == null || currentUnit.Data == null) return;
 
-            // Portrait color
+            Color rarityColor = UnitData.GetRarityColor(currentUnit.Data.rarity);
+
             if (portraitImage != null)
             {
-                portraitImage.color = UnitData.GetRarityColor(currentUnit.Data.rarity);
+                portraitImage.color = rarityColor;
             }
 
-            // Unit name
             if (unitNameText != null)
             {
-                unitNameText.text = currentUnit.Data.GetDisplayName();
-                unitNameText.color = UnitData.GetRarityColor(currentUnit.Data.rarity);
+                unitNameText.text = currentUnit.Data.unitName;
+                unitNameText.color = rarityColor;
             }
 
-            // Upgrade levels
             int atkLevel = 0;
             int spdLevel = 0;
             if (UnitUpgradeManager.Instance != null)
@@ -120,46 +120,48 @@ namespace LottoDefense.UI
                 spdLevel = UnitUpgradeManager.Instance.GetRaritySpeedLevel(currentUnit.Data.rarity);
             }
 
-            // Attack
+            if (upgradeLevelText != null)
+            {
+                string atkStr = atkLevel > 0
+                    ? $"<color=#FF6B50>\u2694{atkLevel}</color>"
+                    : "<color=#999999>\u2694 0</color>";
+                string spdStr = spdLevel > 0
+                    ? $"<color=#4DC080>\u26A1{spdLevel}</color>"
+                    : "<color=#999999>\u26A1 0</color>";
+                upgradeLevelText.text = $"{atkStr} {spdStr}";
+            }
+
             if (attackText != null)
             {
-                string atkBonus = atkLevel > 0 ? $"<color=#FFD700>(+{atkLevel})</color>" : "";
-                attackText.text = $"ATK: {currentUnit.CurrentAttack}{atkBonus}";
+                attackText.text = $"ATK {currentUnit.CurrentAttack}";
             }
 
-            // Attack Speed
             if (speedText != null)
             {
-                string spdBonus = spdLevel > 0 ? $"<color=#FFD700>(+{spdLevel})</color>" : "";
-                speedText.text = $"SPD: {currentUnit.CurrentAttackSpeed:F1}{spdBonus}";
+                speedText.text = $"SPD {currentUnit.CurrentAttackSpeed:F1}";
             }
 
-            // Range
             if (rangeText != null)
             {
-                rangeText.text = $"RNG: {currentUnit.Data.attackRange:F1}";
+                rangeText.text = $"RNG {currentUnit.Data.attackRange:F1}";
             }
 
-            // Attack Pattern
             if (patternText != null)
             {
-                patternText.text = $"TYPE: {GetPatternDisplayName(currentUnit.Data.attackPattern)}";
+                patternText.text = GetPatternDisplayName(currentUnit.Data.attackPattern);
             }
 
-            // Defense
             if (defenseText != null)
             {
-                defenseText.text = $"DEF: {currentUnit.Data.defense}";
+                defenseText.text = $"DEF {currentUnit.Data.defense}";
             }
 
-            // Skill + Mana bar
             if (currentUnit.HasSkill)
             {
                 if (manaBarContainer != null) manaBarContainer.SetActive(true);
 
                 if (skillText != null && currentUnit.Data.skills.Length > 0)
                 {
-                    // Prefer showing Active skill name (mana skill)
                     string activeSkillName = null;
                     foreach (var s in currentUnit.Data.skills)
                     {
@@ -169,7 +171,7 @@ namespace LottoDefense.UI
                             break;
                         }
                     }
-                    skillText.text = $"SKILL: {activeSkillName ?? currentUnit.Data.skills[0].skillName}";
+                    skillText.text = activeSkillName ?? currentUnit.Data.skills[0].skillName;
                 }
 
                 if (manaBarFill != null)
@@ -181,7 +183,7 @@ namespace LottoDefense.UI
             else
             {
                 if (manaBarContainer != null) manaBarContainer.SetActive(false);
-                if (skillText != null) skillText.text = "";
+                if (skillText != null) skillText.text = "\u2014";
             }
         }
         #endregion
