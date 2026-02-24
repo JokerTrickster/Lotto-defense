@@ -299,7 +299,7 @@ namespace LottoDefense.Gameplay
             mainVLayout.padding = new RectOffset(10, 10, 4, 4);
             mainVLayout.spacing = 4;
             mainVLayout.childControlWidth = true;
-            mainVLayout.childControlHeight = false;
+            mainVLayout.childControlHeight = true;
             mainVLayout.childForceExpandWidth = true;
             mainVLayout.childForceExpandHeight = false;
 
@@ -343,9 +343,9 @@ namespace LottoDefense.Gameplay
             HorizontalLayoutGroup nameHLG = nameRow.AddComponent<HorizontalLayoutGroup>();
             nameHLG.spacing = 10f;
             nameHLG.childControlWidth = true;
-            nameHLG.childControlHeight = false;
+            nameHLG.childControlHeight = true;
             nameHLG.childForceExpandWidth = false;
-            nameHLG.childForceExpandHeight = false;
+            nameHLG.childForceExpandHeight = true;
 
             GameObject portraitObj = new GameObject("Portrait");
             portraitObj.transform.SetParent(nameRow.transform, false);
