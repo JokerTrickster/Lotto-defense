@@ -157,7 +157,7 @@ namespace LottoDefense.Monsters
             Defense = Mathf.RoundToInt(baseDefense * DifficultyMultipliers.GetDefenseMultiplier(difficulty));
             moveSpeed = data.moveSpeed;
             baseSpeed = data.moveSpeed;
-            goldReward = data.goldReward;
+            goldReward = Mathf.RoundToInt(data.goldReward * DifficultyMultipliers.GetGoldMultiplier(difficulty));
             slowTimer = 0f;
             slowMultiplier = 1f;
             freezeTimer = 0f;

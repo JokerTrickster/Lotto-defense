@@ -130,7 +130,9 @@ namespace LottoDefense.UI
             Color statusColor;
             if (unlocked)
             {
-                statusStr = "보유중";
+                int level = shopManager.GetUnitLevel(shopItem.unitName);
+                int maxLv = shopManager.GetMaxLevel();
+                statusStr = level >= maxLv ? $"Lv.{level} (MAX)" : $"Lv.{level}";
                 statusColor = LobbyDesignTokens.TextSuccess;
             }
             else if (shopItem.goldCost == 0)
@@ -246,8 +248,15 @@ namespace LottoDefense.UI
             rlRect.anchorMax = new Vector2(0.95f, 0.85f);
             rlRect.sizeDelta = Vector2.zero;
 
-            // Stats
-            string statsStr = $"공격력: {unitBalance.attack}\n공속: {unitBalance.attackSpeed:F1} /초\n사거리: {unitBalance.attackRange:F1}";
+            // Stats with level bonus
+            int curLv = unlocked ? shopManager.GetUnitLevel(unitName) : 1;
+            float atkMult = balanceConfig != null ? balanceConfig.GetLevelAttackMultiplier(curLv) : 1f;
+            float spdMult = balanceConfig != null ? balanceConfig.GetLevelSpeedMultiplier(curLv) : 1f;
+            int effectiveAtk = Mathf.RoundToInt(unitBalance.attack * atkMult);
+            float effectiveSpd = unitBalance.attackSpeed * spdMult;
+            string lvBonusAtk = curLv > 1 ? $" <color=#FFD700>(+{Mathf.RoundToInt((atkMult - 1f) * 100)}%)</color>" : "";
+            string lvBonusSpd = curLv > 1 ? $" <color=#FFD700>(+{Mathf.RoundToInt((spdMult - 1f) * 100)}%)</color>" : "";
+            string statsStr = $"Lv.{curLv}  공격력: {effectiveAtk}{lvBonusAtk}\n공속: {effectiveSpd:F1} /초{lvBonusSpd}\n사거리: {unitBalance.attackRange:F1}";
 
             // Add skill info
             if (balanceConfig != null && unitBalance.skillIds != null && unitBalance.skillIds.Count > 0)
@@ -268,7 +277,7 @@ namespace LottoDefense.UI
                 statsStr += $"\n\n조합: {recipe.sourceUnitName} x2 -> {recipe.resultUnitName}";
             }
             // Check if this unit is a synthesis result
-            foreach (var r in balanceConfig.synthesisRecipes)
+            foreach (var r in balanceConfig.synthesisRecipes ?? new List<GameBalanceConfig.SynthesisRecipe>())
             {
                 if (r.resultUnitName == unitName)
                 {
@@ -296,14 +305,48 @@ namespace LottoDefense.UI
 
             if (unlocked)
             {
-                actionBg.color = LobbyDesignTokens.ButtonDisabled;
-                GameObject actionTextObj = new GameObject("Text");
-                actionTextObj.transform.SetParent(actionObj.transform, false);
-                CreateText(actionTextObj, "보유중", LobbyDesignTokens.ButtonFontSize, LobbyDesignTokens.TextPrimary);
-                RectTransform atRect = actionTextObj.GetComponent<RectTransform>();
-                atRect.anchorMin = Vector2.zero;
-                atRect.anchorMax = Vector2.one;
-                atRect.sizeDelta = Vector2.zero;
+                int curLevel = shopManager.GetUnitLevel(unitName);
+                int maxLv = shopManager.GetMaxLevel();
+                bool isMaxLevel = curLevel >= maxLv;
+
+                if (isMaxLevel)
+                {
+                    actionBg.color = LobbyDesignTokens.ButtonDisabled;
+                    GameObject actionTextObj = new GameObject("Text");
+                    actionTextObj.transform.SetParent(actionObj.transform, false);
+                    CreateText(actionTextObj, $"Lv.{curLevel} (MAX)", LobbyDesignTokens.ButtonFontSize, LobbyDesignTokens.TextPrimary);
+                    RectTransform atRect = actionTextObj.GetComponent<RectTransform>();
+                    atRect.anchorMin = Vector2.zero;
+                    atRect.anchorMax = Vector2.one;
+                    atRect.sizeDelta = Vector2.zero;
+                }
+                else
+                {
+                    int lvCost = shopManager.GetLevelUpCost(unitName);
+                    bool canAffordLv = shopManager.CanAffordLevelUp(unitName);
+                    actionBg.color = canAffordLv ? new Color(0.3f, 0.7f, 0.9f, 1f) : LobbyDesignTokens.ButtonDisabled;
+
+                    Button actionBtn = actionObj.AddComponent<Button>();
+                    string capturedName = unitName;
+                    actionBtn.onClick.AddListener(() =>
+                    {
+                        if (shopManager.TryLevelUpUnit(capturedName))
+                        {
+                            if (detailPopup != null) Destroy(detailPopup);
+                            PopulateCards();
+                            ShowUnitDetail(capturedName);
+                        }
+                    });
+                    actionBtn.interactable = canAffordLv;
+
+                    GameObject actionTextObj = new GameObject("Text");
+                    actionTextObj.transform.SetParent(actionObj.transform, false);
+                    CreateText(actionTextObj, $"Lv.{curLevel} → {curLevel + 1}  ({lvCost}G)", LobbyDesignTokens.ButtonFontSize, Color.white);
+                    RectTransform atRect = actionTextObj.GetComponent<RectTransform>();
+                    atRect.anchorMin = Vector2.zero;
+                    atRect.anchorMax = Vector2.one;
+                    atRect.sizeDelta = Vector2.zero;
+                }
             }
             else
             {

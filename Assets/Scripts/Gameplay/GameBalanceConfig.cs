@@ -625,6 +625,56 @@ namespace LottoDefense.Gameplay
         public int sellGoldLegendary = 50;
         #endregion
 
+        #region Unit Level System
+        [System.Serializable]
+        public class UnitLevelConfig
+        {
+            [Tooltip("최대 레벨")]
+            public int maxLevel = 10;
+
+            [Tooltip("레벨당 공격력 증가율 (0.1 = +10%)")]
+            public float attackBonusPerLevel = 0.1f;
+
+            [Tooltip("레벨당 공격속도 증가율 (0.05 = +5%)")]
+            public float speedBonusPerLevel = 0.05f;
+
+            [Tooltip("Normal 등급 레벨업 기본 비용")]
+            public int normalBaseCost = 20;
+            [Tooltip("Rare 등급 레벨업 기본 비용")]
+            public int rareBaseCost = 50;
+            [Tooltip("Epic 등급 레벨업 기본 비용")]
+            public int epicBaseCost = 100;
+            [Tooltip("Legendary 등급 레벨업 기본 비용")]
+            public int legendaryBaseCost = 200;
+        }
+
+        [Header("=== 유닛 레벨 시스템 ===")]
+        public UnitLevelConfig unitLevelConfig = new UnitLevelConfig();
+
+        public int GetLevelUpCost(Rarity rarity, int currentLevel)
+        {
+            int baseCost = rarity switch
+            {
+                Rarity.Normal => unitLevelConfig.normalBaseCost,
+                Rarity.Rare => unitLevelConfig.rareBaseCost,
+                Rarity.Epic => unitLevelConfig.epicBaseCost,
+                Rarity.Legendary => unitLevelConfig.legendaryBaseCost,
+                _ => unitLevelConfig.normalBaseCost
+            };
+            return baseCost * Mathf.Max(1, currentLevel);
+        }
+
+        public float GetLevelAttackMultiplier(int level)
+        {
+            return 1f + unitLevelConfig.attackBonusPerLevel * (Mathf.Max(1, level) - 1);
+        }
+
+        public float GetLevelSpeedMultiplier(int level)
+        {
+            return 1f + unitLevelConfig.speedBonusPerLevel * (Mathf.Max(1, level) - 1);
+        }
+        #endregion
+
         #region Unit Shop Prices
         [System.Serializable]
         public class UnitShopPrice

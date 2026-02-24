@@ -42,6 +42,17 @@ namespace LottoDefense.Gameplay
             }
         }
 
+        public static float GetGoldMultiplier(GameDifficulty difficulty)
+        {
+            switch (difficulty)
+            {
+                case GameDifficulty.Normal: return 1.0f;
+                case GameDifficulty.Hard: return 1.5f;
+                case GameDifficulty.VeryHard: return 2.0f;
+                default: return 1.0f;
+            }
+        }
+
         public static string GetDisplayName(GameDifficulty difficulty)
         {
             switch (difficulty)

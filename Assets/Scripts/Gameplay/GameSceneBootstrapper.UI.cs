@@ -314,8 +314,6 @@ namespace LottoDefense.Gameplay
             infoBg.raycastTarget = false;
             ApplyRoundedSprite(infoBg, 12);
 
-            infoRow.AddComponent<RectMask2D>();
-
             GameObject statsContainer = new GameObject("StatsContainer");
             statsContainer.transform.SetParent(infoRow.transform, false);
             RectTransform statsContainerRect = statsContainer.AddComponent<RectTransform>();
@@ -328,7 +326,7 @@ namespace LottoDefense.Gameplay
             infoVLayout.spacing = 3f;
             infoVLayout.padding = new RectOffset(4, 4, 4, 4);
             infoVLayout.childControlWidth = true;
-            infoVLayout.childControlHeight = false;
+            infoVLayout.childControlHeight = true;
             infoVLayout.childForceExpandWidth = true;
             infoVLayout.childForceExpandHeight = false;
 

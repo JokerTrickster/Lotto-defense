@@ -164,8 +164,11 @@ namespace LottoDefense.UI
             // Grant lobby rewards (before cleanup destroys everything)
             int synthesisCount = SynthesisManager.Instance != null ? SynthesisManager.Instance.SessionSynthesisCount : 0;
             int upgradeCount = UnitUpgradeManager.Instance != null ? UnitUpgradeManager.Instance.SessionUpgradeCount : 0;
-            int goldReward = LobbyDataManager.GetGameResultGold(roundReached);
-            LobbyDataManager.GrantGameRewards(roundReached, synthesisCount, upgradeCount);
+            GameDifficulty diff = GameplayManager.Instance != null
+                ? GameplayManager.Instance.CurrentDifficulty
+                : GameDifficulty.Normal;
+            int goldReward = LobbyDataManager.GetGameResultGold(roundReached, diff);
+            LobbyDataManager.GrantGameRewards(roundReached, synthesisCount, upgradeCount, diff);
 
             if (rewardText != null)
             {

@@ -1,6 +1,7 @@
 using UnityEngine;
 using System;
 using System.Collections.Generic;
+using LottoDefense.Gameplay;
 
 namespace LottoDefense.Lobby
 {
@@ -11,6 +12,8 @@ namespace LottoDefense.Lobby
         List<string> UnlockedUnits { get; }
         bool IsUnitUnlocked(string unitName);
         void UnlockUnit(string unitName);
+        int GetUnitLevel(string unitName);
+        void SetUnitLevel(string unitName, int level);
         int TotalClears { get; set; }
         int TotalSynthesis { get; set; }
         int TotalUpgrades { get; set; }
@@ -65,6 +68,7 @@ namespace LottoDefense.Lobby
         public event Action<int> OnGoldChanged;
         public event Action<int> OnTicketsChanged;
         public event Action<string> OnUnitUnlocked;
+        public event Action<string, int> OnUnitLevelChanged;
         public event Action OnDataChanged;
         #endregion
 
@@ -198,6 +202,19 @@ namespace LottoDefense.Lobby
             Debug.Log($"[LobbyDataManager] Unit unlocked: {unitName}");
         }
 
+        public int GetUnitLevel(string unitName)
+        {
+            return PlayerPrefs.GetInt($"unit_level_{unitName}", 1);
+        }
+
+        public void SetUnitLevel(string unitName, int level)
+        {
+            PlayerPrefs.SetInt($"unit_level_{unitName}", Mathf.Max(1, level));
+            PlayerPrefs.Save();
+            OnUnitLevelChanged?.Invoke(unitName, level);
+            OnDataChanged?.Invoke();
+        }
+
         public int TotalClears
         {
             get => PlayerPrefs.GetInt(KEY_TOTAL_CLEARS, 0);
@@ -317,10 +334,9 @@ namespace LottoDefense.Lobby
         /// Grant rewards after a game ends. Called from GameScene before cleanup.
         /// Writes directly to PlayerPrefs since LobbyDataManager instance may not exist.
         /// </summary>
-        public static void GrantGameRewards(int roundReached, int synthesisCount, int upgradeCount)
+        public static void GrantGameRewards(int roundReached, int synthesisCount, int upgradeCount, GameDifficulty difficulty = GameDifficulty.Normal)
         {
-            // Calculate gold reward based on round reached
-            int goldReward = GetGameResultGold(roundReached);
+            int goldReward = GetGameResultGold(roundReached, difficulty);
 
             // Add gold
             int currentGold = PlayerPrefs.GetInt(KEY_GOLD, 0);
@@ -349,7 +365,14 @@ namespace LottoDefense.Lobby
         /// <summary>
         /// Calculate gold reward for a game result based on round reached.
         /// </summary>
-        public static int GetGameResultGold(int roundReached)
+        public static int GetGameResultGold(int roundReached, GameDifficulty difficulty = GameDifficulty.Normal)
+        {
+            GameBalanceConfig config = Resources.Load<GameBalanceConfig>("GameBalanceConfig");
+            int baseGold = config != null ? config.GetGameResultGold(roundReached) : FallbackGameResultGold(roundReached);
+            return Mathf.RoundToInt(baseGold * DifficultyMultipliers.GetGoldMultiplier(difficulty));
+        }
+
+        private static int FallbackGameResultGold(int roundReached)
         {
             if (roundReached >= 30) return 100;
             if (roundReached >= 20) return 60;
@@ -360,6 +383,11 @@ namespace LottoDefense.Lobby
         /// <summary>
         /// Get unlocked units list directly from PlayerPrefs (for use in GameScene).
         /// </summary>
+        public static int GetUnitLevelStatic(string unitName)
+        {
+            return PlayerPrefs.GetInt($"unit_level_{unitName}", 1);
+        }
+
         public static List<string> GetUnlockedUnitsStatic()
         {
             string json = PlayerPrefs.GetString(KEY_UNLOCKED_UNITS, "");

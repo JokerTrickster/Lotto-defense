@@ -13,6 +13,7 @@ namespace LottoDefense.Lobby
 
         #region Events
         public event Action<string> OnUnitPurchased;
+        public event Action<string, int> OnUnitLeveledUp;
         #endregion
 
         #region Unity Lifecycle
@@ -85,7 +86,52 @@ namespace LottoDefense.Lobby
         public List<GameBalanceConfig.UnitShopPrice> GetAllShopItems()
         {
             if (balanceConfig == null) return new List<GameBalanceConfig.UnitShopPrice>();
-            return balanceConfig.unitShopPrices;
+            return balanceConfig.unitShopPrices ?? new List<GameBalanceConfig.UnitShopPrice>();
+        }
+        #endregion
+
+        #region Unit Level Up
+        public int GetUnitLevel(string unitName)
+        {
+            if (LobbyDataManager.Instance == null) return 1;
+            return LobbyDataManager.Instance.GetUnitLevel(unitName);
+        }
+
+        public int GetMaxLevel()
+        {
+            return balanceConfig != null ? balanceConfig.unitLevelConfig.maxLevel : 10;
+        }
+
+        public int GetLevelUpCost(string unitName)
+        {
+            if (balanceConfig == null) return int.MaxValue;
+            var unitBalance = balanceConfig.units.Find(u => u.unitName == unitName);
+            if (unitBalance == null) return int.MaxValue;
+            int currentLevel = GetUnitLevel(unitName);
+            return balanceConfig.GetLevelUpCost(unitBalance.rarity, currentLevel);
+        }
+
+        public bool CanAffordLevelUp(string unitName)
+        {
+            if (LobbyDataManager.Instance == null) return false;
+            if (!IsUnlocked(unitName)) return false;
+            if (GetUnitLevel(unitName) >= GetMaxLevel()) return false;
+            return LobbyDataManager.Instance.Gold >= GetLevelUpCost(unitName);
+        }
+
+        public bool TryLevelUpUnit(string unitName)
+        {
+            if (!CanAffordLevelUp(unitName)) return false;
+
+            int cost = GetLevelUpCost(unitName);
+            int newLevel = GetUnitLevel(unitName) + 1;
+
+            LobbyDataManager.Instance.Gold -= cost;
+            LobbyDataManager.Instance.SetUnitLevel(unitName, newLevel);
+
+            OnUnitLeveledUp?.Invoke(unitName, newLevel);
+            Debug.Log($"[UnitShopManager] {unitName} leveled up to {newLevel} for {cost} gold");
+            return true;
         }
         #endregion
     }

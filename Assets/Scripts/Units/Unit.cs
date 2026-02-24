@@ -5,6 +5,8 @@ using System.Collections;
 using System.Collections.Generic;
 using LottoDefense.Grid;
 using LottoDefense.Monsters;
+using LottoDefense.Lobby;
+using LottoDefense.Gameplay;
 
 namespace LottoDefense.Units
 {
@@ -101,6 +103,7 @@ namespace LottoDefense.Units
         private const int MAX_OUT_OF_RANGE_TICKS = 20; // 2 seconds before target switch
         private float activeDamageBuff = 1f;
         private float activeSpeedBuff = 1f;
+        private static GameBalanceConfig _cachedBalanceConfig;
         private Coroutine damageBuffCoroutine;
         private Coroutine speedBuffCoroutine;
 
@@ -208,9 +211,9 @@ namespace LottoDefense.Units
             UpgradeLevel = 1;
             AttackUpgradeLevel = 0;
             AttackSpeedUpgradeLevel = 0;
-            CurrentAttack = unitData.attack; // Start with base attack
-            CurrentAttackSpeed = unitData.attackSpeed; // Start with base attack speed
-            attackCooldown = 1f / unitData.attackSpeed;
+            CurrentAttack = unitData.attack;
+            CurrentAttackSpeed = Mathf.Max(unitData.attackSpeed, 0.1f);
+            attackCooldown = 1f / CurrentAttackSpeed;
             currentCooldown = 0f;
 
             // Setup visual representation
@@ -287,6 +290,8 @@ namespace LottoDefense.Units
             }
 
             gameObject.name = $"Unit_{unitData.unitName}_{gridPos.x}_{gridPos.y}";
+
+            RecalculateStats();
         }
         #endregion
 
@@ -911,6 +916,15 @@ namespace LottoDefense.Units
             {
                 attackMultiplier = UnitUpgradeManager.Instance.GetAttackMultiplier(AttackUpgradeLevel, Data);
                 speedMultiplier = UnitUpgradeManager.Instance.GetAttackSpeedMultiplier(AttackSpeedUpgradeLevel, Data);
+            }
+
+            if (_cachedBalanceConfig == null)
+                _cachedBalanceConfig = Resources.Load<GameBalanceConfig>("GameBalanceConfig");
+            if (_cachedBalanceConfig != null)
+            {
+                int lobbyLevel = LobbyDataManager.GetUnitLevelStatic(Data.unitName);
+                attackMultiplier *= _cachedBalanceConfig.GetLevelAttackMultiplier(lobbyLevel);
+                speedMultiplier *= _cachedBalanceConfig.GetLevelSpeedMultiplier(lobbyLevel);
             }
 
             CurrentAttack = Mathf.RoundToInt(Data.attack * attackMultiplier * activeDamageBuff);
