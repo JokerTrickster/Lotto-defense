@@ -123,37 +123,37 @@ namespace LottoDefense.UI
             if (upgradeLevelText != null)
             {
                 string atkStr = atkLevel > 0
-                    ? $"<color=#FF6B50>\u2694{atkLevel}</color>"
-                    : "<color=#999999>\u2694 0</color>";
+                    ? $"<color=#FF6B50>\uACF5\uACA9Lv.{atkLevel}</color>"
+                    : "<color=#999999>\uACF5\uACA9Lv.0</color>";
                 string spdStr = spdLevel > 0
-                    ? $"<color=#4DC080>\u26A1{spdLevel}</color>"
-                    : "<color=#999999>\u26A1 0</color>";
+                    ? $"<color=#4DC080>\uACF5\uC18DLv.{spdLevel}</color>"
+                    : "<color=#999999>\uACF5\uC18DLv.0</color>";
                 upgradeLevelText.text = $"{atkStr} {spdStr}";
             }
 
             if (attackText != null)
             {
-                attackText.text = $"ATK {currentUnit.CurrentAttack}";
+                attackText.text = $"\uACF5\uACA9\uB825 {currentUnit.CurrentAttack}";
             }
 
             if (speedText != null)
             {
-                speedText.text = $"SPD {currentUnit.CurrentAttackSpeed:F1}";
+                speedText.text = $"\uACF5\uACA9\uC18D\uB3C4 {currentUnit.CurrentAttackSpeed:F1}";
             }
 
             if (rangeText != null)
             {
-                rangeText.text = $"RNG {currentUnit.Data.attackRange:F1}";
+                rangeText.text = $"\uC0AC\uAC70\uB9AC {currentUnit.Data.attackRange:F1}";
             }
 
             if (patternText != null)
             {
-                patternText.text = GetPatternDisplayName(currentUnit.Data.attackPattern);
+                patternText.text = $"\uD0C0\uC785 {GetPatternDisplayName(currentUnit.Data.attackPattern)}";
             }
 
             if (defenseText != null)
             {
-                defenseText.text = $"DEF {currentUnit.Data.defense}";
+                defenseText.text = $"\uBC29\uC5B4 {currentUnit.Data.defense}";
             }
 
             if (currentUnit.HasSkill)
@@ -162,16 +162,20 @@ namespace LottoDefense.UI
 
                 if (skillText != null && currentUnit.Data.skills.Length > 0)
                 {
-                    string activeSkillName = null;
+                    UnitSkill activeSkill = null;
                     foreach (var s in currentUnit.Data.skills)
                     {
                         if (s.skillType == SkillType.Active)
                         {
-                            activeSkillName = s.skillName;
+                            activeSkill = s;
                             break;
                         }
                     }
-                    skillText.text = activeSkillName ?? currentUnit.Data.skills[0].skillName;
+                    UnitSkill displaySkill = activeSkill ?? currentUnit.Data.skills[0];
+                    string desc = !string.IsNullOrEmpty(displaySkill.description)
+                        ? $" - {displaySkill.description}"
+                        : "";
+                    skillText.text = $"{displaySkill.skillName}{desc}";
                 }
 
                 if (manaBarFill != null)
@@ -183,7 +187,7 @@ namespace LottoDefense.UI
             else
             {
                 if (manaBarContainer != null) manaBarContainer.SetActive(false);
-                if (skillText != null) skillText.text = "\u2014";
+                if (skillText != null) skillText.text = "\uC5C6\uC74C";
             }
         }
         #endregion

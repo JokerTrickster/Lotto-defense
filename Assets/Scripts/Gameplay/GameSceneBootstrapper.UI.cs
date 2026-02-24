@@ -344,7 +344,7 @@ namespace LottoDefense.Gameplay
 
             HorizontalLayoutGroup nameHLG = nameRow.AddComponent<HorizontalLayoutGroup>();
             nameHLG.spacing = 8f;
-            nameHLG.childControlWidth = false;
+            nameHLG.childControlWidth = true;
             nameHLG.childControlHeight = true;
             nameHLG.childForceExpandWidth = false;
             nameHLG.childForceExpandHeight = true;
@@ -385,23 +385,23 @@ namespace LottoDefense.Gameplay
             infoNameText.resizeTextForBestFit = true;
             infoNameText.resizeTextMinSize = 20;
             infoNameText.resizeTextMaxSize = GameSceneDesignTokens.UnitInfoNameSize;
-            infoNameText.horizontalOverflow = HorizontalWrapMode.Overflow;
-            infoNameText.verticalOverflow = VerticalWrapMode.Overflow;
+            infoNameText.horizontalOverflow = HorizontalWrapMode.Wrap;
+            infoNameText.verticalOverflow = VerticalWrapMode.Truncate;
 
             GameObject upgradeBadgeObj = new GameObject("UpgradeBadge");
             upgradeBadgeObj.transform.SetParent(nameRow.transform, false);
             upgradeBadgeObj.AddComponent<RectTransform>();
             LayoutElement upgradeBadgeLE = upgradeBadgeObj.AddComponent<LayoutElement>();
-            upgradeBadgeLE.preferredWidth = 120;
+            upgradeBadgeLE.preferredWidth = 180;
 
             Text upgradeLevelText = CreateText(upgradeBadgeObj, "", 22, new Color(1f, 0.84f, 0f, 1f));
-            upgradeLevelText.alignment = TextAnchor.MiddleRight;
+            upgradeLevelText.alignment = TextAnchor.MiddleCenter;
             upgradeLevelText.fontStyle = FontStyle.Bold;
             upgradeLevelText.resizeTextForBestFit = true;
-            upgradeLevelText.resizeTextMinSize = 16;
+            upgradeLevelText.resizeTextMinSize = 14;
             upgradeLevelText.resizeTextMaxSize = 22;
-            upgradeLevelText.horizontalOverflow = HorizontalWrapMode.Overflow;
-            upgradeLevelText.verticalOverflow = VerticalWrapMode.Overflow;
+            upgradeLevelText.horizontalOverflow = HorizontalWrapMode.Wrap;
+            upgradeLevelText.verticalOverflow = VerticalWrapMode.Truncate;
             upgradeLevelText.supportRichText = true;
 
             // --- Row 1: ATK | SPD ---

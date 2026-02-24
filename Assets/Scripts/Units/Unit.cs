@@ -509,7 +509,7 @@ namespace LottoDefense.Units
                     break;
             }
 
-            // Visual effect
+            LottoDefense.VFX.VFXManager.Instance?.PlayAttackAnimation(this, CurrentTarget);
             LottoDefense.VFX.VFXManager.Instance?.PlayMissileEffect(transform.position, targetPos, Data.rarity);
         }
 
@@ -781,10 +781,10 @@ namespace LottoDefense.Units
             if (skillToActivate != null)
             {
 
-                // Apply skill effect
                 ApplySkillEffect(skillToActivate);
 
-                // 심플한 텍스트 이펙트 - 유닛 이름 + 스킬 이름
+                LottoDefense.VFX.VFXManager.Instance?.PlaySkillActivationEffect(this);
+
                 Vector3 effectPos = transform.position + Vector3.up * 0.8f;
                 Color effectColor = UnitData.GetRarityColor(Data.rarity);
                 effectColor = Color.Lerp(effectColor, Color.white, 0.3f);

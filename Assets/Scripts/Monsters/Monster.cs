@@ -266,20 +266,48 @@ namespace LottoDefense.Monsters
             if (!IsActive || CurrentHealth <= 0)
                 return;
 
-            // Apply defense reduction: damage = attack - defense (minimum 1)
             int actualDamage = Mathf.Max(1, rawDamage - Defense);
             CurrentHealth -= actualDamage;
 
-            // Show damage number VFX (간단한 3D TextMesh 사용)
             LottoDefense.VFX.SimpleDamageNumber.Show(transform.position, actualDamage, false);
+            StartCoroutine(HitFlash());
 
-            // Update HP bar
+            LottoDefense.VFX.VFXManager.Instance?.PlayHitImpactEffect(transform.position);
+
             UpdateHPBar();
-
 
             if (CurrentHealth <= 0)
             {
                 Die();
+            }
+        }
+
+        private System.Collections.IEnumerator HitFlash()
+        {
+            if (spriteRenderer == null) yield break;
+
+            Color preHitColor = spriteRenderer.color;
+            Vector3 originalScale = transform.localScale;
+
+            spriteRenderer.color = Color.white;
+            transform.localScale = originalScale * 1.15f;
+
+            float elapsed = 0f;
+            float duration = 0.12f;
+            while (elapsed < duration)
+            {
+                if (this == null || spriteRenderer == null) yield break;
+                float t = elapsed / duration;
+                spriteRenderer.color = Color.Lerp(Color.white, preHitColor, t);
+                transform.localScale = Vector3.Lerp(originalScale * 1.15f, originalScale, t);
+                elapsed += Time.deltaTime;
+                yield return null;
+            }
+
+            if (this != null && spriteRenderer != null)
+            {
+                spriteRenderer.color = preHitColor;
+                transform.localScale = originalScale;
             }
         }
 

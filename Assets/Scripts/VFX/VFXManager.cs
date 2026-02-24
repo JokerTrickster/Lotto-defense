@@ -1339,5 +1339,120 @@ namespace LottoDefense.VFX
                 sr.color = originalColor;
         }
         #endregion
+
+        #region Hit Impact Effect
+        private static Sprite s_sparkSprite;
+        private static Sprite GetOrCreateSparkSprite()
+        {
+            if (s_sparkSprite != null) return s_sparkSprite;
+
+            int size = 32;
+            Texture2D tex = new Texture2D(size, size);
+            Color[] pixels = new Color[size * size];
+            Vector2 center = new Vector2(size / 2f, size / 2f);
+
+            for (int y = 0; y < size; y++)
+            {
+                for (int x = 0; x < size; x++)
+                {
+                    float dist = Vector2.Distance(new Vector2(x, y), center);
+                    float maxDist = size / 2f;
+                    if (dist < maxDist)
+                    {
+                        float alpha = 1f - (dist / maxDist);
+                        alpha = alpha * alpha;
+                        pixels[y * size + x] = new Color(1f, 1f, 1f, alpha);
+                    }
+                    else
+                    {
+                        pixels[y * size + x] = Color.clear;
+                    }
+                }
+            }
+            tex.SetPixels(pixels);
+            tex.Apply();
+            tex.filterMode = FilterMode.Bilinear;
+            s_sparkSprite = Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), 32f);
+            return s_sparkSprite;
+        }
+
+        public void PlayHitImpactEffect(Vector3 position)
+        {
+            StartCoroutine(HitImpactRoutine(position));
+        }
+
+        private IEnumerator HitImpactRoutine(Vector3 position)
+        {
+            GameObject spark = new GameObject("HitSpark");
+            spark.transform.position = position;
+            SpriteRenderer sr = spark.AddComponent<SpriteRenderer>();
+            sr.sprite = GetOrCreateSparkSprite();
+            sr.color = new Color(1f, 0.95f, 0.7f, 1f);
+            sr.sortingOrder = 45;
+            spark.transform.localScale = Vector3.one * 0.15f;
+
+            float duration = 0.2f;
+            float elapsed = 0f;
+            while (elapsed < duration)
+            {
+                float t = elapsed / duration;
+                float scale = 0.15f + t * 0.4f;
+                spark.transform.localScale = Vector3.one * scale;
+                sr.color = new Color(1f, 0.95f, 0.7f, 1f - t);
+                elapsed += Time.deltaTime;
+                yield return null;
+            }
+            Destroy(spark);
+        }
+        #endregion
+
+        #region Skill Activation Effect
+        public void PlaySkillActivationEffect(Unit unit)
+        {
+            if (unit == null) return;
+            StartCoroutine(SkillActivationRoutine(unit));
+        }
+
+        private IEnumerator SkillActivationRoutine(Unit unit)
+        {
+            if (unit == null) yield break;
+
+            Color rarityColor = UnitData.GetRarityColor(unit.Data.rarity);
+            Color glowColor = Color.Lerp(rarityColor, Color.white, 0.5f);
+
+            GameObject ring = CreateWorldRing(unit.transform.position, glowColor);
+            if (ring == null) yield break;
+            ring.transform.localScale = Vector3.one * 0.1f;
+
+            SpriteRenderer sr = unit.GetComponent<SpriteRenderer>();
+            Color originalColor = sr != null ? sr.color : Color.white;
+
+            float duration = 0.35f;
+            float elapsed = 0f;
+            while (elapsed < duration)
+            {
+                if (unit == null) break;
+                float t = elapsed / duration;
+
+                float ringScale = 0.1f + t * 1.2f;
+                ring.transform.localScale = Vector3.one * ringScale;
+                ring.transform.position = unit.transform.position;
+                SpriteRenderer ringSr = ring.GetComponent<SpriteRenderer>();
+                if (ringSr != null) ringSr.color = new Color(glowColor.r, glowColor.g, glowColor.b, 1f - t);
+
+                if (sr != null)
+                {
+                    float flash = t < 0.3f ? t / 0.3f : 1f - ((t - 0.3f) / 0.7f);
+                    sr.color = Color.Lerp(originalColor, glowColor, flash * 0.6f);
+                }
+
+                elapsed += Time.deltaTime;
+                yield return null;
+            }
+
+            if (sr != null) sr.color = originalColor;
+            if (ring != null) Destroy(ring);
+        }
+        #endregion
     }
 }
