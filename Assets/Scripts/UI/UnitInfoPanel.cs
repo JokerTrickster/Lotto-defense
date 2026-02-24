@@ -35,7 +35,6 @@ namespace LottoDefense.UI
         {
             if (unit == null) return;
 
-            // Unsubscribe from previous unit
             if (currentUnit != null)
             {
                 currentUnit.OnManaChanged -= HandleManaChanged;
@@ -48,6 +47,7 @@ namespace LottoDefense.UI
             if (emptyStateText != null) emptyStateText.gameObject.SetActive(false);
 
             UpdateStats();
+            ForceRebuildLayout();
         }
 
         public void Hide()
@@ -183,6 +183,18 @@ namespace LottoDefense.UI
         #endregion
 
         #region Helpers
+        private void ForceRebuildLayout()
+        {
+            if (statsContainer == null) return;
+            RectTransform rt = statsContainer.GetComponent<RectTransform>();
+            if (rt != null)
+                LayoutRebuilder.ForceRebuildLayoutImmediate(rt);
+
+            RectTransform parentRt = GetComponent<RectTransform>();
+            if (parentRt != null)
+                LayoutRebuilder.ForceRebuildLayoutImmediate(parentRt);
+        }
+
         private static string GetPatternDisplayName(AttackPattern pattern)
         {
             switch (pattern)

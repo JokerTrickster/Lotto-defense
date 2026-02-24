@@ -219,7 +219,7 @@ namespace LottoDefense.Gameplay
             t.fontStyle = FontStyle.Bold;
             t.supportRichText = true;
             t.resizeTextForBestFit = true;
-            t.resizeTextMinSize = 28;
+            t.resizeTextMinSize = 16;
             t.resizeTextMaxSize = GameSceneDesignTokens.UnitInfoDetailSize;
             t.horizontalOverflow = HorizontalWrapMode.Overflow;
             t.verticalOverflow = VerticalWrapMode.Overflow;
@@ -257,7 +257,7 @@ namespace LottoDefense.Gameplay
             t.alignment = TextAnchor.MiddleLeft;
             t.fontStyle = FontStyle.Bold;
             t.resizeTextForBestFit = true;
-            t.resizeTextMinSize = 18;
+            t.resizeTextMinSize = 16;
             t.resizeTextMaxSize = fontSize;
             t.horizontalOverflow = HorizontalWrapMode.Overflow;
             t.verticalOverflow = VerticalWrapMode.Overflow;
@@ -325,8 +325,8 @@ namespace LottoDefense.Gameplay
             statsContainerRect.offsetMax = new Vector2(-6, -2);
 
             VerticalLayoutGroup infoVLayout = statsContainer.AddComponent<VerticalLayoutGroup>();
-            infoVLayout.spacing = 1f;
-            infoVLayout.padding = new RectOffset(2, 2, 1, 1);
+            infoVLayout.spacing = 3f;
+            infoVLayout.padding = new RectOffset(4, 4, 4, 4);
             infoVLayout.childControlWidth = true;
             infoVLayout.childControlHeight = false;
             infoVLayout.childForceExpandWidth = true;
@@ -340,10 +340,10 @@ namespace LottoDefense.Gameplay
             nameRow.transform.SetParent(statsContainer.transform, false);
             nameRow.AddComponent<RectTransform>();
             LayoutElement nameRowLE = nameRow.AddComponent<LayoutElement>();
-            nameRowLE.preferredHeight = 36f;
+            nameRowLE.preferredHeight = 44f;
 
             HorizontalLayoutGroup nameHLG = nameRow.AddComponent<HorizontalLayoutGroup>();
-            nameHLG.spacing = 8f;
+            nameHLG.spacing = 10f;
             nameHLG.childControlWidth = true;
             nameHLG.childControlHeight = false;
             nameHLG.childForceExpandWidth = false;
@@ -352,10 +352,10 @@ namespace LottoDefense.Gameplay
             GameObject portraitObj = new GameObject("Portrait");
             portraitObj.transform.SetParent(nameRow.transform, false);
             LayoutElement portraitLE = portraitObj.AddComponent<LayoutElement>();
-            portraitLE.preferredWidth = 36;
-            portraitLE.preferredHeight = 36;
-            portraitLE.minWidth = 36;
-            portraitLE.minHeight = 36;
+            portraitLE.preferredWidth = 44;
+            portraitLE.preferredHeight = 44;
+            portraitLE.minWidth = 44;
+            portraitLE.minHeight = 44;
 
             Image portraitBg = portraitObj.AddComponent<Image>();
             portraitBg.color = new Color(0.92f, 0.88f, 0.82f, 0.85f);

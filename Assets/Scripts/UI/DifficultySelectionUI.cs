@@ -63,7 +63,7 @@ namespace LottoDefense.UI
             panelRect.anchorMax = new Vector2(0.5f, 0.5f);
             panelRect.pivot = new Vector2(0.5f, 0.5f);
             panelRect.anchoredPosition = Vector2.zero;
-            panelRect.sizeDelta = new Vector2(700, 520);
+            panelRect.sizeDelta = new Vector2(700, 600);
 
             Image panelImage = popupPanel.AddComponent<Image>();
             panelImage.color = CuteUIHelper.PeachBg;
@@ -78,10 +78,9 @@ namespace LottoDefense.UI
             panelShadow.effectColor = new Color(0.4f, 0.3f, 0.2f, 0.3f);
             panelShadow.effectDistance = new Vector2(4, -4);
 
-            // Vertical layout: title, difficulty options, cancel in one border
             VerticalLayoutGroup vlg = popupPanel.AddComponent<VerticalLayoutGroup>();
-            vlg.padding = new RectOffset(40, 40, 24, 24);
-            vlg.spacing = 12;
+            vlg.padding = new RectOffset(40, 40, 30, 30);
+            vlg.spacing = 14;
             vlg.childControlWidth = true;
             vlg.childControlHeight = false;
             vlg.childForceExpandWidth = true;
@@ -92,29 +91,22 @@ namespace LottoDefense.UI
             GameObject titleObj = new GameObject("Title");
             titleObj.transform.SetParent(popupPanel.transform, false);
             LayoutElement titleLE = titleObj.AddComponent<LayoutElement>();
-            titleLE.preferredHeight = 56;
+            titleLE.preferredHeight = 60;
 
             Text titleText = titleObj.AddComponent<Text>();
-            titleText.text = "난이도 선택";
+            titleText.text = "\uB09C\uC774\uB3C4 \uC120\uD0DD";
             titleText.font = defaultFont;
             titleText.fontSize = 48;
             titleText.color = CuteUIHelper.DarkText;
             titleText.alignment = TextAnchor.MiddleCenter;
             titleText.fontStyle = FontStyle.Bold;
 
-            // Difficulty buttons (all same size via layout)
+            // Difficulty buttons
             CreateDifficultyButton(GameDifficulty.Normal, new Color(0.45f, 0.82f, 0.55f), defaultFont);
             CreateDifficultyButton(GameDifficulty.Hard, new Color(0.95f, 0.7f, 0.4f), defaultFont);
             CreateDifficultyButton(GameDifficulty.VeryHard, new Color(0.95f, 0.5f, 0.5f), defaultFont);
 
-            // Small gap above cancel so it sits clearly below difficulty options
-            GameObject spacer = new GameObject("Spacer");
-            spacer.transform.SetParent(popupPanel.transform, false);
-            LayoutElement spacerLE = spacer.AddComponent<LayoutElement>();
-            spacerLE.preferredHeight = 8;
-            spacerLE.flexibleHeight = 0;
-
-            // Cancel button – stays up, no flexible space below
+            // Cancel button - same size as difficulty buttons for consistency
             CreateCancelButton(defaultFont);
         }
 
@@ -175,16 +167,20 @@ namespace LottoDefense.UI
             btnObj.transform.SetParent(popupPanel.transform, false);
 
             LayoutElement le = btnObj.AddComponent<LayoutElement>();
-            le.preferredHeight = 64;
+            le.preferredHeight = 88;
 
             Image btnImage = btnObj.AddComponent<Image>();
-            btnImage.color = new Color(0.82f, 0.78f, 0.75f);
-            Sprite cancelRounded = CuteUIHelper.GetRoundedRectSprite(14);
+            btnImage.color = new Color(0.75f, 0.72f, 0.68f);
+            Sprite cancelRounded = CuteUIHelper.GetRoundedRectSprite(16);
             if (cancelRounded != null)
             {
                 btnImage.sprite = cancelRounded;
                 btnImage.type = Image.Type.Sliced;
             }
+
+            Shadow btnShadow = btnObj.AddComponent<Shadow>();
+            btnShadow.effectColor = CuteUIHelper.SoftShadow;
+            btnShadow.effectDistance = new Vector2(2, -3);
 
             Button btn = btnObj.AddComponent<Button>();
             ColorBlock colors = btn.colors;
@@ -201,16 +197,19 @@ namespace LottoDefense.UI
             RectTransform textRect = textObj.AddComponent<RectTransform>();
             textRect.anchorMin = Vector2.zero;
             textRect.anchorMax = Vector2.one;
-            textRect.offsetMin = new Vector2(8, 4);
-            textRect.offsetMax = new Vector2(-8, -4);
+            textRect.offsetMin = new Vector2(16, 8);
+            textRect.offsetMax = new Vector2(-16, -8);
 
             Text text = textObj.AddComponent<Text>();
-            text.text = "취소";
+            text.text = "\uCDE8\uC18C";
             text.font = font;
-            text.fontSize = 34;
-            text.color = CuteUIHelper.DarkText;
+            text.fontSize = 36;
+            text.color = Color.white;
             text.alignment = TextAnchor.MiddleCenter;
             text.fontStyle = FontStyle.Bold;
+            text.resizeTextForBestFit = true;
+            text.resizeTextMinSize = 24;
+            text.resizeTextMaxSize = 36;
         }
 
         private string GetDifficultyDescription(GameDifficulty difficulty)

@@ -292,19 +292,45 @@ namespace LottoDefense.VFX
             if (unit == null || target == null)
                 yield break;
 
-            // Get sprite renderer
             SpriteRenderer unitSprite = unit.GetComponent<SpriteRenderer>();
             if (unitSprite == null)
                 yield break;
 
-            // Store original values
-            Color originalColor = unitSprite.color;
+            Vector3 originalPos = unit.transform.position;
+            Vector3 direction = (target.transform.position - originalPos).normalized;
+            float lungeDistance = 0.12f;
 
-            // Start concurrent animations
-            Coroutine scaleAnimation = StartCoroutine(AnimationHelper.ScalePunch(unit.transform, attackPunchScale, attackAnimationDuration));
-            Coroutine flashAnimation = StartCoroutine(AnimationHelper.FlashColor(unitSprite, attackFlashColor, attackAnimationDuration * 0.5f, 2));
+            // Lunge toward target
+            float lungeTime = attackAnimationDuration * 0.3f;
+            float elapsed = 0f;
+            while (elapsed < lungeTime)
+            {
+                if (unit == null) yield break;
+                float t = elapsed / lungeTime;
+                float easeOut = t * (2f - t);
+                unit.transform.position = originalPos + direction * lungeDistance * easeOut;
+                elapsed += Time.deltaTime;
+                yield return null;
+            }
 
-            // Wait for animations to complete
+            // Scale punch + flash + snap back
+            Coroutine scaleAnimation = StartCoroutine(AnimationHelper.ScalePunch(unit.transform, attackPunchScale, attackAnimationDuration * 0.5f));
+            Coroutine flashAnimation = StartCoroutine(AnimationHelper.FlashColor(unitSprite, attackFlashColor, attackAnimationDuration * 0.4f, 1));
+
+            float returnTime = attackAnimationDuration * 0.4f;
+            elapsed = 0f;
+            while (elapsed < returnTime)
+            {
+                if (unit == null) yield break;
+                float t = elapsed / returnTime;
+                unit.transform.position = Vector3.Lerp(originalPos + direction * lungeDistance, originalPos, t);
+                elapsed += Time.deltaTime;
+                yield return null;
+            }
+
+            if (unit != null)
+                unit.transform.position = originalPos;
+
             yield return scaleAnimation;
         }
         #endregion
@@ -335,14 +361,57 @@ namespace LottoDefense.VFX
             if (sprite == null)
                 yield break;
 
-            // Concurrent fade and scale down
+            Vector3 deathPos = monster.transform.position;
+            Color monsterColor = sprite.color;
+
+            // Spawn death particles
+            int particleCount = 4;
+            GameObject[] deathParticles = new GameObject[particleCount];
+            SpriteRenderer[] deathPSrs = new SpriteRenderer[particleCount];
+            Vector3[] deathDirs = new Vector3[particleCount];
+
+            for (int i = 0; i < particleCount; i++)
+            {
+                float angle = (360f / particleCount) * i + Random.Range(-30f, 30f);
+                float rad = angle * Mathf.Deg2Rad;
+                deathDirs[i] = new Vector3(Mathf.Cos(rad), Mathf.Sin(rad), 0f);
+                deathParticles[i] = new GameObject($"DeathParticle_{i}");
+                deathParticles[i].transform.position = deathPos;
+                deathPSrs[i] = deathParticles[i].AddComponent<SpriteRenderer>();
+                deathPSrs[i].sprite = GetOrCreateSparkSprite();
+                deathPSrs[i].color = monsterColor;
+                deathPSrs[i].sortingOrder = 42;
+                deathParticles[i].transform.localScale = Vector3.one * Random.Range(0.08f, 0.15f);
+            }
+
+            // Concurrent fade, scale down, and particles
             Coroutine fadeCoroutine = StartCoroutine(AnimationHelper.FadeTo(sprite, 0f, monsterDeathFadeDuration));
             Coroutine scaleCoroutine = StartCoroutine(AnimationHelper.ScaleTo(monster.transform, Vector3.zero, monsterDeathFadeDuration));
 
-            // Wait for animations
-            yield return fadeCoroutine;
+            float elapsed = 0f;
+            while (elapsed < monsterDeathFadeDuration)
+            {
+                float t = elapsed / monsterDeathFadeDuration;
+                for (int i = 0; i < particleCount; i++)
+                {
+                    if (deathParticles[i] == null) continue;
+                    float easeOut = 1f - (1f - t) * (1f - t);
+                    deathParticles[i].transform.position = deathPos + deathDirs[i] * easeOut * 0.4f;
+                    float alpha = 1f - t;
+                    deathPSrs[i].color = new Color(monsterColor.r, monsterColor.g, monsterColor.b, alpha);
+                    float shrink = deathParticles[i].transform.localScale.x * (1f - Time.deltaTime * 2.5f);
+                    deathParticles[i].transform.localScale = Vector3.one * Mathf.Max(0.01f, shrink);
+                }
+                elapsed += Time.deltaTime;
+                yield return null;
+            }
 
-            // Monster object will be returned to pool by MonsterManager
+            for (int i = 0; i < particleCount; i++)
+            {
+                if (deathParticles[i] != null) Destroy(deathParticles[i]);
+            }
+
+            yield return fadeCoroutine;
         }
         #endregion
 
@@ -1094,24 +1163,37 @@ namespace LottoDefense.VFX
             if (s_ringSprite != null)
                 return s_ringSprite;
 
-            Texture2D ringTex = new Texture2D(64, 64);
-            Color[] pixels = new Color[64 * 64];
-            Vector2 center = new Vector2(32, 32);
-            for (int y = 0; y < 64; y++)
+            int size = 128;
+            Texture2D ringTex = new Texture2D(size, size);
+            Color[] pixels = new Color[size * size];
+            Vector2 center = new Vector2(size / 2f, size / 2f);
+            float outerRadius = size * 0.48f;
+            float innerRadius = size * 0.40f;
+
+            for (int y = 0; y < size; y++)
             {
-                for (int x = 0; x < 64; x++)
+                for (int x = 0; x < size; x++)
                 {
                     float dist = Vector2.Distance(new Vector2(x, y), center);
-                    if (dist > 26f && dist < 31f)
-                        pixels[y * 64 + x] = Color.white;
+                    if (dist >= innerRadius && dist <= outerRadius)
+                    {
+                        float midRadius = (innerRadius + outerRadius) * 0.5f;
+                        float halfWidth = (outerRadius - innerRadius) * 0.5f;
+                        float edgeDist = Mathf.Abs(dist - midRadius);
+                        float alpha = 1f - Mathf.Clamp01(edgeDist / halfWidth);
+                        alpha = alpha * alpha;
+                        pixels[y * size + x] = new Color(1f, 1f, 1f, alpha);
+                    }
                     else
-                        pixels[y * 64 + x] = Color.clear;
+                    {
+                        pixels[y * size + x] = Color.clear;
+                    }
                 }
             }
             ringTex.SetPixels(pixels);
             ringTex.Apply();
             ringTex.filterMode = FilterMode.Bilinear;
-            s_ringSprite = Sprite.Create(ringTex, new Rect(0, 0, 64, 64), new Vector2(0.5f, 0.5f), 64f);
+            s_ringSprite = Sprite.Create(ringTex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), (float)size);
             return s_ringSprite;
         }
 
@@ -1159,25 +1241,47 @@ namespace LottoDefense.VFX
 
         private IEnumerator MissileEffectCoroutine(Vector3 start, Vector3 end, Color color)
         {
-            GameObject lineObj = new GameObject("MissileEffect");
+            Color brightColor = Color.Lerp(color, Color.white, 0.5f);
+
+            // Glowing projectile head
+            GameObject head = new GameObject("MissileHead");
+            head.transform.position = start;
+            SpriteRenderer headSr = head.AddComponent<SpriteRenderer>();
+            headSr.sprite = GetOrCreateSparkSprite();
+            headSr.color = brightColor;
+            headSr.sortingOrder = 55;
+            head.transform.localScale = Vector3.one * 0.25f;
+
+            // Trail line
+            GameObject lineObj = new GameObject("MissileTrail");
             LineRenderer lr = lineObj.AddComponent<LineRenderer>();
-            lr.startWidth = 0.05f;
-            lr.endWidth = 0.05f;
+            lr.startWidth = 0.08f;
+            lr.endWidth = 0.02f;
             lr.positionCount = 2;
             lr.material = DefaultSpriteMaterial;
-            lr.startColor = color;
-            lr.endColor = color;
+            lr.startColor = new Color(color.r, color.g, color.b, 0.9f);
+            lr.endColor = new Color(color.r, color.g, color.b, 0.2f);
 
-            float duration = 0.15f;
+            float travelDuration = 0.12f;
             float elapsed = 0f;
-            while (elapsed < duration)
+            while (elapsed < travelDuration)
             {
                 elapsed += Time.deltaTime;
-                float t = elapsed / duration;
-                lr.SetPosition(0, start);
-                lr.SetPosition(1, Vector3.Lerp(start, end, t));
+                float t = elapsed / travelDuration;
+                float easedT = t * t * (3f - 2f * t);
+                Vector3 currentPos = Vector3.Lerp(start, end, easedT);
+                head.transform.position = currentPos;
+                lr.SetPosition(0, Vector3.Lerp(start, currentPos, 0.5f));
+                lr.SetPosition(1, currentPos);
+                float pulse = 0.25f + Mathf.Sin(t * Mathf.PI) * 0.1f;
+                head.transform.localScale = Vector3.one * pulse;
                 yield return null;
             }
+
+            // Impact flash at end
+            head.transform.position = end;
+            head.transform.localScale = Vector3.one * 0.4f;
+            headSr.color = Color.white;
 
             float fadeDuration = 0.1f;
             elapsed = 0f;
@@ -1185,12 +1289,15 @@ namespace LottoDefense.VFX
             {
                 elapsed += Time.deltaTime;
                 float alpha = 1f - (elapsed / fadeDuration);
-                Color fadeColor = new Color(color.r, color.g, color.b, alpha);
-                lr.startColor = fadeColor;
-                lr.endColor = fadeColor;
+                lr.startColor = new Color(color.r, color.g, color.b, alpha * 0.9f);
+                lr.endColor = new Color(color.r, color.g, color.b, alpha * 0.2f);
+                headSr.color = new Color(1f, 1f, 1f, alpha);
+                float shrink = 0.4f * alpha;
+                head.transform.localScale = Vector3.one * shrink;
                 yield return null;
             }
             Destroy(lineObj);
+            Destroy(head);
         }
 
         /// <summary>
@@ -1346,22 +1453,25 @@ namespace LottoDefense.VFX
         {
             if (s_sparkSprite != null) return s_sparkSprite;
 
-            int size = 32;
+            int size = 64;
             Texture2D tex = new Texture2D(size, size);
             Color[] pixels = new Color[size * size];
             Vector2 center = new Vector2(size / 2f, size / 2f);
+            float maxDist = size / 2f;
 
             for (int y = 0; y < size; y++)
             {
                 for (int x = 0; x < size; x++)
                 {
                     float dist = Vector2.Distance(new Vector2(x, y), center);
-                    float maxDist = size / 2f;
                     if (dist < maxDist)
                     {
-                        float alpha = 1f - (dist / maxDist);
-                        alpha = alpha * alpha;
-                        pixels[y * size + x] = new Color(1f, 1f, 1f, alpha);
+                        float norm = dist / maxDist;
+                        // Bright core with soft falloff
+                        float alpha = Mathf.Pow(1f - norm, 2.5f);
+                        // Extra bright center
+                        float brightness = norm < 0.2f ? 1f : Mathf.Lerp(1f, 0.85f, (norm - 0.2f) / 0.8f);
+                        pixels[y * size + x] = new Color(brightness, brightness, brightness, alpha);
                     }
                     else
                     {
@@ -1372,7 +1482,7 @@ namespace LottoDefense.VFX
             tex.SetPixels(pixels);
             tex.Apply();
             tex.filterMode = FilterMode.Bilinear;
-            s_sparkSprite = Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), 32f);
+            s_sparkSprite = Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), (float)size);
             return s_sparkSprite;
         }
 
@@ -1383,26 +1493,76 @@ namespace LottoDefense.VFX
 
         private IEnumerator HitImpactRoutine(Vector3 position)
         {
-            GameObject spark = new GameObject("HitSpark");
-            spark.transform.position = position;
-            SpriteRenderer sr = spark.AddComponent<SpriteRenderer>();
-            sr.sprite = GetOrCreateSparkSprite();
-            sr.color = new Color(1f, 0.95f, 0.7f, 1f);
-            sr.sortingOrder = 45;
-            spark.transform.localScale = Vector3.one * 0.15f;
+            // Central flash
+            GameObject flash = new GameObject("HitFlash");
+            flash.transform.position = position;
+            SpriteRenderer flashSr = flash.AddComponent<SpriteRenderer>();
+            flashSr.sprite = GetOrCreateSparkSprite();
+            flashSr.color = Color.white;
+            flashSr.sortingOrder = 46;
+            flash.transform.localScale = Vector3.one * 0.1f;
 
-            float duration = 0.2f;
+            // Spawn 5 spark particles radiating outward
+            int particleCount = 5;
+            GameObject[] particles = new GameObject[particleCount];
+            SpriteRenderer[] particleSrs = new SpriteRenderer[particleCount];
+            Vector3[] directions = new Vector3[particleCount];
+
+            for (int i = 0; i < particleCount; i++)
+            {
+                float angle = (360f / particleCount) * i + Random.Range(-25f, 25f);
+                float rad = angle * Mathf.Deg2Rad;
+                directions[i] = new Vector3(Mathf.Cos(rad), Mathf.Sin(rad), 0f);
+
+                particles[i] = new GameObject($"HitParticle_{i}");
+                particles[i].transform.position = position;
+                particleSrs[i] = particles[i].AddComponent<SpriteRenderer>();
+                particleSrs[i].sprite = GetOrCreateSparkSprite();
+                float warmth = Random.Range(0.85f, 1f);
+                particleSrs[i].color = new Color(1f, warmth, warmth * 0.6f, 1f);
+                particleSrs[i].sortingOrder = 45;
+                float startScale = Random.Range(0.06f, 0.12f);
+                particles[i].transform.localScale = Vector3.one * startScale;
+            }
+
+            float duration = 0.25f;
             float elapsed = 0f;
+            float particleSpeed = Random.Range(1.8f, 2.5f);
+
             while (elapsed < duration)
             {
                 float t = elapsed / duration;
-                float scale = 0.15f + t * 0.4f;
-                spark.transform.localScale = Vector3.one * scale;
-                sr.color = new Color(1f, 0.95f, 0.7f, 1f - t);
+
+                // Central flash: quick expand then fade
+                if (flash != null)
+                {
+                    float flashScale = t < 0.3f ? 0.1f + (t / 0.3f) * 0.35f : 0.45f * (1f - (t - 0.3f) / 0.7f);
+                    flash.transform.localScale = Vector3.one * flashScale;
+                    flashSr.color = new Color(1f, 1f, 1f, 1f - t * t);
+                }
+
+                // Particles fly outward and shrink
+                for (int i = 0; i < particleCount; i++)
+                {
+                    if (particles[i] == null) continue;
+                    float easeOut = 1f - (1f - t) * (1f - t);
+                    particles[i].transform.position = position + directions[i] * easeOut * particleSpeed * 0.25f;
+                    float fadeStart = 0.4f;
+                    float alpha = t < fadeStart ? 1f : 1f - (t - fadeStart) / (1f - fadeStart);
+                    particleSrs[i].color = new Color(particleSrs[i].color.r, particleSrs[i].color.g, particleSrs[i].color.b, alpha);
+                    float shrink = particles[i].transform.localScale.x * (1f - Time.deltaTime * 3f);
+                    particles[i].transform.localScale = Vector3.one * Mathf.Max(0.01f, shrink);
+                }
+
                 elapsed += Time.deltaTime;
                 yield return null;
             }
-            Destroy(spark);
+
+            Destroy(flash);
+            for (int i = 0; i < particleCount; i++)
+            {
+                if (particles[i] != null) Destroy(particles[i]);
+            }
         }
         #endregion
 
@@ -1419,39 +1579,116 @@ namespace LottoDefense.VFX
 
             Color rarityColor = UnitData.GetRarityColor(unit.Data.rarity);
             Color glowColor = Color.Lerp(rarityColor, Color.white, 0.5f);
+            Color brightColor = Color.Lerp(rarityColor, Color.white, 0.7f);
+            Vector3 unitPos = unit.transform.position;
 
-            GameObject ring = CreateWorldRing(unit.transform.position, glowColor);
-            if (ring == null) yield break;
-            ring.transform.localScale = Vector3.one * 0.1f;
+            // Two expanding rings at different speeds
+            GameObject ring1 = CreateWorldRing(unitPos, glowColor);
+            GameObject ring2 = CreateWorldRing(unitPos, brightColor);
+            if (ring1 != null) ring1.transform.localScale = Vector3.one * 0.05f;
+            if (ring2 != null) ring2.transform.localScale = Vector3.one * 0.05f;
 
-            SpriteRenderer sr = unit.GetComponent<SpriteRenderer>();
-            Color originalColor = sr != null ? sr.color : Color.white;
+            // Central glow
+            GameObject glow = new GameObject("SkillGlow");
+            glow.transform.position = unitPos;
+            SpriteRenderer glowSr = glow.AddComponent<SpriteRenderer>();
+            glowSr.sprite = GetOrCreateSparkSprite();
+            glowSr.color = new Color(glowColor.r, glowColor.g, glowColor.b, 0.6f);
+            glowSr.sortingOrder = 44;
+            glow.transform.localScale = Vector3.one * 0.3f;
 
-            float duration = 0.35f;
+            // Spark particles radiating outward
+            int sparkCount = 6;
+            GameObject[] sparks = new GameObject[sparkCount];
+            SpriteRenderer[] sparkSrs = new SpriteRenderer[sparkCount];
+            Vector3[] sparkDirs = new Vector3[sparkCount];
+            for (int i = 0; i < sparkCount; i++)
+            {
+                float angle = (360f / sparkCount) * i + Random.Range(-15f, 15f);
+                float rad = angle * Mathf.Deg2Rad;
+                sparkDirs[i] = new Vector3(Mathf.Cos(rad), Mathf.Sin(rad), 0f);
+                sparks[i] = new GameObject($"SkillSpark_{i}");
+                sparks[i].transform.position = unitPos;
+                sparkSrs[i] = sparks[i].AddComponent<SpriteRenderer>();
+                sparkSrs[i].sprite = GetOrCreateSparkSprite();
+                sparkSrs[i].color = brightColor;
+                sparkSrs[i].sortingOrder = 45;
+                sparks[i].transform.localScale = Vector3.one * 0.08f;
+            }
+
+            SpriteRenderer unitSr = unit.GetComponent<SpriteRenderer>();
+            Color originalColor = unitSr != null ? unitSr.color : Color.white;
+
+            float duration = 0.5f;
             float elapsed = 0f;
             while (elapsed < duration)
             {
                 if (unit == null) break;
                 float t = elapsed / duration;
+                unitPos = unit.transform.position;
 
-                float ringScale = 0.1f + t * 1.2f;
-                ring.transform.localScale = Vector3.one * ringScale;
-                ring.transform.position = unit.transform.position;
-                SpriteRenderer ringSr = ring.GetComponent<SpriteRenderer>();
-                if (ringSr != null) ringSr.color = new Color(glowColor.r, glowColor.g, glowColor.b, 1f - t);
-
-                if (sr != null)
+                // Ring 1: fast expand
+                if (ring1 != null)
                 {
-                    float flash = t < 0.3f ? t / 0.3f : 1f - ((t - 0.3f) / 0.7f);
-                    sr.color = Color.Lerp(originalColor, glowColor, flash * 0.6f);
+                    float s1 = 0.05f + t * 1.5f;
+                    ring1.transform.localScale = Vector3.one * s1;
+                    ring1.transform.position = unitPos;
+                    SpriteRenderer r1Sr = ring1.GetComponent<SpriteRenderer>();
+                    if (r1Sr != null) r1Sr.color = new Color(glowColor.r, glowColor.g, glowColor.b, (1f - t) * 0.9f);
+                }
+
+                // Ring 2: delayed slower expand
+                if (ring2 != null)
+                {
+                    float t2 = Mathf.Max(0f, t - 0.15f) / 0.85f;
+                    float s2 = 0.05f + t2 * 1.0f;
+                    ring2.transform.localScale = Vector3.one * s2;
+                    ring2.transform.position = unitPos;
+                    SpriteRenderer r2Sr = ring2.GetComponent<SpriteRenderer>();
+                    if (r2Sr != null) r2Sr.color = new Color(brightColor.r, brightColor.g, brightColor.b, (1f - t2) * 0.7f);
+                }
+
+                // Central glow pulse
+                if (glow != null)
+                {
+                    float glowPulse = t < 0.3f ? (t / 0.3f) : 1f - ((t - 0.3f) / 0.7f);
+                    float glowScale = 0.3f + glowPulse * 0.4f;
+                    glow.transform.localScale = Vector3.one * glowScale;
+                    glow.transform.position = unitPos;
+                    glowSr.color = new Color(glowColor.r, glowColor.g, glowColor.b, glowPulse * 0.6f);
+                }
+
+                // Sparks fly outward
+                for (int i = 0; i < sparkCount; i++)
+                {
+                    if (sparks[i] == null) continue;
+                    float easeOut = 1f - (1f - t) * (1f - t);
+                    sparks[i].transform.position = unitPos + sparkDirs[i] * easeOut * 0.5f;
+                    float sparkAlpha = t < 0.5f ? 1f : 1f - (t - 0.5f) / 0.5f;
+                    sparkSrs[i].color = new Color(brightColor.r, brightColor.g, brightColor.b, sparkAlpha);
+                    float sparkScale = 0.08f * (1f - t * 0.7f);
+                    sparks[i].transform.localScale = Vector3.one * Mathf.Max(0.01f, sparkScale);
+                }
+
+                // Unit color flash
+                if (unitSr != null)
+                {
+                    float flash = t < 0.25f ? t / 0.25f : 1f - ((t - 0.25f) / 0.75f);
+                    unitSr.color = Color.Lerp(originalColor, glowColor, flash * 0.7f);
                 }
 
                 elapsed += Time.deltaTime;
                 yield return null;
             }
 
-            if (sr != null) sr.color = originalColor;
-            if (ring != null) Destroy(ring);
+            if (unitSr != null) unitSr.color = originalColor;
+            if (ring1 != null) Destroy(ring1);
+            if (ring2 != null) Destroy(ring2);
+            if (glow != null) Destroy(glow);
+            for (int i = 0; i < sparkCount; i++)
+            {
+                if (sparks[i] != null) Destroy(sparks[i]);
+            }
         }
         #endregion
     }
