@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using System.Collections;
 using LottoDefense.Units;
 
 namespace LottoDefense.UI
@@ -48,6 +49,7 @@ namespace LottoDefense.UI
 
             UpdateStats();
             ForceRebuildLayout();
+            StartCoroutine(DelayedLayoutRebuild());
         }
 
         public void Hide()
@@ -183,16 +185,40 @@ namespace LottoDefense.UI
         #endregion
 
         #region Helpers
+        private IEnumerator DelayedLayoutRebuild()
+        {
+            yield return null;
+            ForceRebuildLayout();
+        }
+
         private void ForceRebuildLayout()
         {
             if (statsContainer == null) return;
-            RectTransform rt = statsContainer.GetComponent<RectTransform>();
-            if (rt != null)
-                LayoutRebuilder.ForceRebuildLayoutImmediate(rt);
 
-            RectTransform parentRt = GetComponent<RectTransform>();
-            if (parentRt != null)
-                LayoutRebuilder.ForceRebuildLayoutImmediate(parentRt);
+            // Rebuild from outermost parent down to statsContainer
+            // so that parent sizes are calculated before children
+            RectTransform panelRt = GetComponent<RectTransform>();
+            if (panelRt != null && panelRt.parent != null)
+            {
+                RectTransform bottomPanelRt = panelRt.parent.GetComponent<RectTransform>();
+                if (bottomPanelRt != null)
+                    LayoutRebuilder.ForceRebuildLayoutImmediate(bottomPanelRt);
+            }
+
+            if (panelRt != null)
+                LayoutRebuilder.ForceRebuildLayoutImmediate(panelRt);
+
+            RectTransform statsRt = statsContainer.GetComponent<RectTransform>();
+            if (statsRt != null)
+                LayoutRebuilder.ForceRebuildLayoutImmediate(statsRt);
+
+            // Also rebuild each child row
+            for (int i = 0; i < statsContainer.transform.childCount; i++)
+            {
+                RectTransform childRt = statsContainer.transform.GetChild(i).GetComponent<RectTransform>();
+                if (childRt != null)
+                    LayoutRebuilder.ForceRebuildLayoutImmediate(childRt);
+            }
         }
 
         private static string GetPatternDisplayName(AttackPattern pattern)
