@@ -113,7 +113,6 @@ namespace LottoDefense.UI
                 return;
             }
 
-            // Clear existing buttons
             foreach (var btn in _avatarButtons)
             {
                 if (btn != null)
@@ -121,7 +120,8 @@ namespace LottoDefense.UI
             }
             _avatarButtons.Clear();
 
-            // Get all avatars from UserProfileManager
+            AutoSizeGridCells();
+
             ProfileAvatarData[] allAvatars = UserProfileManager.Instance.AvailableAvatars;
             if (allAvatars == null || allAvatars.Length == 0)
             {
@@ -129,13 +129,29 @@ namespace LottoDefense.UI
                 return;
             }
 
-            // Create button for each avatar
             foreach (var avatarData in allAvatars)
             {
                 GameObject btnObj = CreateAvatarButton(avatarData);
                 if (btnObj != null)
                     _avatarButtons.Add(btnObj);
             }
+        }
+
+        private void AutoSizeGridCells()
+        {
+            GridLayoutGroup grid = avatarGridContainer.GetComponent<GridLayoutGroup>();
+            if (grid == null) return;
+
+            Canvas.ForceUpdateCanvases();
+            float containerWidth = ((RectTransform)avatarGridContainer).rect.width;
+            if (containerWidth <= 0) return;
+
+            int cols = grid.constraintCount > 0 ? grid.constraintCount : 4;
+            float usable = containerWidth - grid.padding.left - grid.padding.right
+                           - grid.spacing.x * (cols - 1);
+            float cellW = Mathf.Floor(usable / cols);
+            float cellH = Mathf.Floor(cellW * 1.3f);
+            grid.cellSize = new Vector2(cellW, cellH);
         }
 
         private GameObject CreateAvatarButton(ProfileAvatarData avatarData)

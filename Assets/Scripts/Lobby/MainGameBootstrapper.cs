@@ -707,7 +707,7 @@ namespace LottoDefense.Lobby
             panelShadow.effectDistance = new Vector2(3, -4);
 
             VerticalLayoutGroup panelVLG = panelObj.AddComponent<VerticalLayoutGroup>();
-            panelVLG.padding = new RectOffset(16, 16, 12, 12);
+            panelVLG.padding = new RectOffset(8, 8, 12, 12);
             panelVLG.spacing = 8;
             panelVLG.childControlWidth = true;
             panelVLG.childControlHeight = false;
@@ -776,8 +776,8 @@ namespace LottoDefense.Lobby
 
             GridLayoutGroup gridLayout = gridContent.AddComponent<GridLayoutGroup>();
             gridLayout.cellSize = new Vector2(100, 130);
-            gridLayout.spacing = new Vector2(10, 10);
-            gridLayout.padding = new RectOffset(10, 10, 10, 10);
+            gridLayout.spacing = new Vector2(8, 8);
+            gridLayout.padding = new RectOffset(4, 4, 6, 6);
             gridLayout.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
             gridLayout.constraintCount = 4;
             gridLayout.childAlignment = TextAnchor.UpperCenter;
