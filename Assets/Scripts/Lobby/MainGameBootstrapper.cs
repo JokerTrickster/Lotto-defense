@@ -668,7 +668,6 @@ namespace LottoDefense.Lobby
         }
         private void CreateProfileSelectionUI()
         {
-            // Root overlay (dark semi-transparent background)
             GameObject overlayObj = new GameObject("ProfileSelectionOverlay");
             overlayObj.transform.SetParent(mainCanvas.transform, false);
 
@@ -686,13 +685,12 @@ namespace LottoDefense.Lobby
             overlayCanvas.sortingOrder = 50;
             overlayObj.AddComponent<GraphicRaycaster>();
 
-            // Panel
             GameObject panelObj = new GameObject("ProfilePanel");
             panelObj.transform.SetParent(overlayObj.transform, false);
 
             RectTransform panelRect = panelObj.AddComponent<RectTransform>();
-            panelRect.anchorMin = new Vector2(0.05f, 0.1f);
-            panelRect.anchorMax = new Vector2(0.95f, 0.9f);
+            panelRect.anchorMin = new Vector2(0.05f, 0.3f);
+            panelRect.anchorMax = new Vector2(0.95f, 0.75f);
             panelRect.sizeDelta = Vector2.zero;
 
             Image panelBg = panelObj.AddComponent<Image>();
@@ -709,8 +707,8 @@ namespace LottoDefense.Lobby
             panelShadow.effectDistance = new Vector2(3, -4);
 
             VerticalLayoutGroup panelVLG = panelObj.AddComponent<VerticalLayoutGroup>();
-            panelVLG.padding = new RectOffset(24, 24, 20, 20);
-            panelVLG.spacing = 16;
+            panelVLG.padding = new RectOffset(16, 16, 12, 12);
+            panelVLG.spacing = 8;
             panelVLG.childControlWidth = true;
             panelVLG.childControlHeight = false;
             panelVLG.childForceExpandWidth = true;
@@ -720,12 +718,11 @@ namespace LottoDefense.Lobby
             GameObject titleRow = new GameObject("TitleRow");
             titleRow.transform.SetParent(panelObj.transform, false);
             LayoutElement titleLE = titleRow.AddComponent<LayoutElement>();
-            titleLE.preferredHeight = 60;
+            titleLE.preferredHeight = 44;
 
-            Text titleText = CreateText(titleRow, "프로필 설정", LobbyDesignTokens.HeaderSize, LobbyDesignTokens.TextPrimary);
+            Text titleText = CreateText(titleRow, "프로필 선택", LobbyDesignTokens.HeaderSize, LobbyDesignTokens.TextPrimary);
             titleText.alignment = TextAnchor.MiddleCenter;
 
-            // Close button
             GameObject closeObj = new GameObject("CloseButton");
             closeObj.transform.SetParent(titleRow.transform, false);
 
@@ -733,8 +730,8 @@ namespace LottoDefense.Lobby
             closeRect.anchorMin = new Vector2(1f, 0.5f);
             closeRect.anchorMax = new Vector2(1f, 0.5f);
             closeRect.pivot = new Vector2(1f, 0.5f);
-            closeRect.anchoredPosition = new Vector2(0, 0);
-            closeRect.sizeDelta = new Vector2(48, 48);
+            closeRect.anchoredPosition = Vector2.zero;
+            closeRect.sizeDelta = new Vector2(40, 40);
 
             Image closeBg = closeObj.AddComponent<Image>();
             closeBg.color = LobbyDesignTokens.ButtonClose;
@@ -753,223 +750,22 @@ namespace LottoDefense.Lobby
             closeTextRect.anchorMin = Vector2.zero;
             closeTextRect.anchorMax = Vector2.one;
             closeTextRect.sizeDelta = Vector2.zero;
+            CreateText(closeTextObj, "X", 22, Color.white);
 
-            Text closeText = CreateText(closeTextObj, "X", 26, Color.white);
-
-            // Preview section
-            GameObject previewRow = new GameObject("PreviewRow");
-            previewRow.transform.SetParent(panelObj.transform, false);
-            LayoutElement previewLE = previewRow.AddComponent<LayoutElement>();
-            previewLE.preferredHeight = 100;
-
-            HorizontalLayoutGroup previewHLG = previewRow.AddComponent<HorizontalLayoutGroup>();
-            previewHLG.spacing = 16;
-            previewHLG.padding = new RectOffset(20, 20, 8, 8);
-            previewHLG.childAlignment = TextAnchor.MiddleCenter;
-            previewHLG.childControlWidth = false;
-            previewHLG.childControlHeight = false;
-            previewHLG.childForceExpandWidth = false;
-            previewHLG.childForceExpandHeight = false;
-
-            // Preview avatar border
-            GameObject prevBorderObj = new GameObject("PreviewBorder");
-            prevBorderObj.transform.SetParent(previewRow.transform, false);
-            RectTransform prevBorderRect = prevBorderObj.AddComponent<RectTransform>();
-            prevBorderRect.sizeDelta = new Vector2(80, 80);
-
-            LayoutElement prevBorderLE = prevBorderObj.AddComponent<LayoutElement>();
-            prevBorderLE.preferredWidth = 80;
-            prevBorderLE.preferredHeight = 80;
-
-            Image previewBorderImage = prevBorderObj.AddComponent<Image>();
-            previewBorderImage.color = Color.white;
-            Sprite prevRounded = CuteUIHelper.GetRoundedRectSprite(14);
-            if (prevRounded != null)
-            {
-                previewBorderImage.sprite = prevRounded;
-                previewBorderImage.type = Image.Type.Sliced;
-            }
-
-            // Preview avatar icon
-            GameObject prevIconObj = new GameObject("PreviewIcon");
-            prevIconObj.transform.SetParent(prevBorderObj.transform, false);
-            RectTransform prevIconRect = prevIconObj.AddComponent<RectTransform>();
-            prevIconRect.anchorMin = new Vector2(0.1f, 0.1f);
-            prevIconRect.anchorMax = new Vector2(0.9f, 0.9f);
-            prevIconRect.offsetMin = Vector2.zero;
-            prevIconRect.offsetMax = Vector2.zero;
-
-            Image previewAvatarImage = prevIconObj.AddComponent<Image>();
-            previewAvatarImage.sprite = UnitData.CreateCircleSprite(64);
-            previewAvatarImage.raycastTarget = false;
-
-            // Preview nickname
-            GameObject prevNicknameObj = new GameObject("PreviewNickname");
-            prevNicknameObj.transform.SetParent(previewRow.transform, false);
-            RectTransform prevNicknameRect = prevNicknameObj.AddComponent<RectTransform>();
-            prevNicknameRect.sizeDelta = new Vector2(200, 40);
-
-            LayoutElement prevNickLE = prevNicknameObj.AddComponent<LayoutElement>();
-            prevNickLE.preferredWidth = 200;
-            prevNickLE.preferredHeight = 40;
-
-            Text previewNicknameText = CreateText(prevNicknameObj, "Player", LobbyDesignTokens.SubHeaderSize, LobbyDesignTokens.TextPrimary);
-            previewNicknameText.alignment = TextAnchor.MiddleLeft;
-
-            // Selected avatar name
-            GameObject selectedNameObj = new GameObject("SelectedAvatarName");
-            selectedNameObj.transform.SetParent(previewRow.transform, false);
-            RectTransform selectedNameRect = selectedNameObj.AddComponent<RectTransform>();
-            selectedNameRect.sizeDelta = new Vector2(200, 30);
-
-            LayoutElement selectedNameLE = selectedNameObj.AddComponent<LayoutElement>();
-            selectedNameLE.preferredWidth = 200;
-            selectedNameLE.preferredHeight = 30;
-
-            Text selectedAvatarNameText = CreateText(selectedNameObj, "", LobbyDesignTokens.SmallSize, LobbyDesignTokens.TextSecondary);
-            selectedAvatarNameText.alignment = TextAnchor.MiddleLeft;
-
-            // Nickname edit section
-            GameObject nicknameSection = new GameObject("NicknameSection");
-            nicknameSection.transform.SetParent(panelObj.transform, false);
-            LayoutElement nickSectionLE = nicknameSection.AddComponent<LayoutElement>();
-            nickSectionLE.preferredHeight = 70;
-
-            HorizontalLayoutGroup nickHLG = nicknameSection.AddComponent<HorizontalLayoutGroup>();
-            nickHLG.spacing = 12;
-            nickHLG.padding = new RectOffset(20, 20, 4, 4);
-            nickHLG.childControlWidth = true;
-            nickHLG.childControlHeight = true;
-            nickHLG.childForceExpandWidth = false;
-            nickHLG.childForceExpandHeight = true;
-
-            // Nickname label
-            GameObject nickLabelObj = new GameObject("NicknameLabel");
-            nickLabelObj.transform.SetParent(nicknameSection.transform, false);
-            LayoutElement nickLabelLE = nickLabelObj.AddComponent<LayoutElement>();
-            nickLabelLE.preferredWidth = 100;
-
-            Text nickLabel = CreateText(nickLabelObj, "닉네임:", LobbyDesignTokens.BodySize, LobbyDesignTokens.TextPrimary);
-            nickLabel.alignment = TextAnchor.MiddleRight;
-
-            // Input field
-            GameObject inputObj = new GameObject("NicknameInput");
-            inputObj.transform.SetParent(nicknameSection.transform, false);
-            LayoutElement inputLE = inputObj.AddComponent<LayoutElement>();
-            inputLE.flexibleWidth = 1;
-
-            Image inputBg = inputObj.AddComponent<Image>();
-            inputBg.color = new Color(1f, 1f, 1f, 0.9f);
-            Sprite inputRounded = CuteUIHelper.GetRoundedRectSprite(8);
-            if (inputRounded != null)
-            {
-                inputBg.sprite = inputRounded;
-                inputBg.type = Image.Type.Sliced;
-            }
-
-            // InputField text child
-            GameObject inputTextObj = new GameObject("Text");
-            inputTextObj.transform.SetParent(inputObj.transform, false);
-            RectTransform inputTextRect = inputTextObj.AddComponent<RectTransform>();
-            inputTextRect.anchorMin = new Vector2(0, 0);
-            inputTextRect.anchorMax = new Vector2(1, 1);
-            inputTextRect.offsetMin = new Vector2(10, 2);
-            inputTextRect.offsetMax = new Vector2(-10, -2);
-
-            Text inputText = CreateText(inputTextObj, "", LobbyDesignTokens.BodySize, LobbyDesignTokens.TextPrimary);
-            inputText.alignment = TextAnchor.MiddleLeft;
-            inputText.supportRichText = false;
-
-            // Placeholder
-            GameObject placeholderObj = new GameObject("Placeholder");
-            placeholderObj.transform.SetParent(inputObj.transform, false);
-            RectTransform phRect = placeholderObj.AddComponent<RectTransform>();
-            phRect.anchorMin = new Vector2(0, 0);
-            phRect.anchorMax = new Vector2(1, 1);
-            phRect.offsetMin = new Vector2(10, 2);
-            phRect.offsetMax = new Vector2(-10, -2);
-
-            Text phText = CreateText(placeholderObj, "닉네임 입력 (2-12자)", LobbyDesignTokens.BodySize, LobbyDesignTokens.TextMuted);
-            phText.alignment = TextAnchor.MiddleLeft;
-            phText.fontStyle = FontStyle.Italic;
-
-            InputField nicknameInput = inputObj.AddComponent<InputField>();
-            nicknameInput.textComponent = inputText;
-            nicknameInput.placeholder = phText;
-            nicknameInput.characterLimit = 12;
-
-            // Save button
-            GameObject saveObj = new GameObject("SaveButton");
-            saveObj.transform.SetParent(nicknameSection.transform, false);
-            LayoutElement saveLE = saveObj.AddComponent<LayoutElement>();
-            saveLE.preferredWidth = 80;
-
-            Image saveBg = saveObj.AddComponent<Image>();
-            saveBg.color = LobbyDesignTokens.ButtonPrimary;
-            Sprite saveRounded = CuteUIHelper.GetRoundedRectSprite(8);
-            if (saveRounded != null)
-            {
-                saveBg.sprite = saveRounded;
-                saveBg.type = Image.Type.Sliced;
-            }
-
-            Button saveNicknameButton = saveObj.AddComponent<Button>();
-
-            GameObject saveTextObj = new GameObject("Text");
-            saveTextObj.transform.SetParent(saveObj.transform, false);
-            RectTransform saveTextRect = saveTextObj.AddComponent<RectTransform>();
-            saveTextRect.anchorMin = Vector2.zero;
-            saveTextRect.anchorMax = Vector2.one;
-            saveTextRect.sizeDelta = Vector2.zero;
-
-            Text saveText = CreateText(saveTextObj, "저장", LobbyDesignTokens.BodySize, Color.white);
-
-            // Nickname error text
-            GameObject errorObj = new GameObject("NicknameError");
-            errorObj.transform.SetParent(panelObj.transform, false);
-            LayoutElement errorLE = errorObj.AddComponent<LayoutElement>();
-            errorLE.preferredHeight = 28;
-
-            Text nicknameErrorText = CreateText(errorObj, "", LobbyDesignTokens.SmallSize, LobbyDesignTokens.ButtonDanger);
-            nicknameErrorText.alignment = TextAnchor.MiddleCenter;
-            errorObj.SetActive(false);
-
-            // Avatar grid section
-            GameObject gridSection = new GameObject("AvatarGridSection");
-            gridSection.transform.SetParent(panelObj.transform, false);
-            LayoutElement gridSectionLE = gridSection.AddComponent<LayoutElement>();
-            gridSectionLE.flexibleHeight = 1;
-            gridSectionLE.preferredHeight = 300;
-
-            // Grid label
-            GameObject gridLabelObj = new GameObject("GridLabel");
-            gridLabelObj.transform.SetParent(gridSection.transform, false);
-            RectTransform gridLabelRect = gridLabelObj.AddComponent<RectTransform>();
-            gridLabelRect.anchorMin = new Vector2(0f, 0.9f);
-            gridLabelRect.anchorMax = new Vector2(1f, 1f);
-            gridLabelRect.sizeDelta = Vector2.zero;
-
-            Text gridLabel = CreateText(gridLabelObj, "아바타 선택", LobbyDesignTokens.BodySize, LobbyDesignTokens.TextSecondary);
-            gridLabel.alignment = TextAnchor.MiddleLeft;
-
-            // Scrollable grid container
+            // Avatar grid (scrollable)
             GameObject scrollObj = new GameObject("AvatarScroll");
-            scrollObj.transform.SetParent(gridSection.transform, false);
-            RectTransform scrollRect = scrollObj.AddComponent<RectTransform>();
-            scrollRect.anchorMin = new Vector2(0f, 0f);
-            scrollRect.anchorMax = new Vector2(1f, 0.88f);
-            scrollRect.sizeDelta = Vector2.zero;
+            scrollObj.transform.SetParent(panelObj.transform, false);
+            LayoutElement scrollLE = scrollObj.AddComponent<LayoutElement>();
+            scrollLE.flexibleHeight = 1;
 
             Image scrollBg = scrollObj.AddComponent<Image>();
-            scrollBg.color = new Color(0.94f, 0.92f, 0.9f, 0.5f);
+            scrollBg.color = new Color(0.94f, 0.92f, 0.9f, 0.3f);
 
             ScrollRect scroll = scrollObj.AddComponent<ScrollRect>();
             scroll.horizontal = false;
             scroll.vertical = true;
+            scrollObj.AddComponent<RectMask2D>();
 
-            RectMask2D scrollMask = scrollObj.AddComponent<RectMask2D>();
-
-            // Grid content
             GameObject gridContent = new GameObject("GridContent");
             gridContent.transform.SetParent(scrollObj.transform, false);
             RectTransform gridContentRect = gridContent.AddComponent<RectTransform>();
@@ -979,30 +775,23 @@ namespace LottoDefense.Lobby
             gridContentRect.sizeDelta = new Vector2(0, 300);
 
             GridLayoutGroup gridLayout = gridContent.AddComponent<GridLayoutGroup>();
-            gridLayout.cellSize = new Vector2(100, 140);
-            gridLayout.spacing = new Vector2(12, 12);
-            gridLayout.padding = new RectOffset(12, 12, 12, 12);
+            gridLayout.cellSize = new Vector2(100, 130);
+            gridLayout.spacing = new Vector2(10, 10);
+            gridLayout.padding = new RectOffset(10, 10, 10, 10);
             gridLayout.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
             gridLayout.constraintCount = 4;
-            gridLayout.childAlignment = TextAnchor.UpperLeft;
+            gridLayout.childAlignment = TextAnchor.UpperCenter;
 
             ContentSizeFitter gridFitter = gridContent.AddComponent<ContentSizeFitter>();
             gridFitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
 
             scroll.content = gridContentRect;
 
-            // Wire ProfileSelectionUI component
+            // Wire ProfileSelectionUI component (only panel, close, grid)
             profileSelectionUI = overlayObj.AddComponent<ProfileSelectionUI>();
             SetField(profileSelectionUI, "panel", overlayObj);
             SetField(profileSelectionUI, "closeButton", closeButton);
-            SetField(profileSelectionUI, "nicknameInput", nicknameInput);
-            SetField(profileSelectionUI, "saveNicknameButton", saveNicknameButton);
-            SetField(profileSelectionUI, "nicknameErrorText", nicknameErrorText);
             SetField(profileSelectionUI, "avatarGridContainer", gridContent.transform);
-            SetField(profileSelectionUI, "selectedAvatarNameText", selectedAvatarNameText);
-            SetField(profileSelectionUI, "previewAvatarImage", previewAvatarImage);
-            SetField(profileSelectionUI, "previewBorderImage", previewBorderImage);
-            SetField(profileSelectionUI, "previewNicknameText", previewNicknameText);
 
             overlayObj.SetActive(false);
 
