@@ -904,6 +904,308 @@ namespace LottoDefense.Gameplay
 
             return profileRow;
         }
+
+        private void EnsureProfileSelectionUI()
+        {
+            if (FindFirstObjectByType<ProfileSelectionUI>() != null) return;
+
+            Canvas canvas = GetComponentInChildren<Canvas>();
+            if (canvas == null) canvas = FindFirstObjectByType<Canvas>();
+            if (canvas == null) return;
+
+            Font font = GameFont.Get();
+
+            GameObject overlayObj = new GameObject("ProfileSelectionOverlay");
+            overlayObj.transform.SetParent(canvas.transform, false);
+
+            RectTransform overlayRect = overlayObj.AddComponent<RectTransform>();
+            overlayRect.anchorMin = Vector2.zero;
+            overlayRect.anchorMax = Vector2.one;
+            overlayRect.sizeDelta = Vector2.zero;
+
+            Image overlayImg = overlayObj.AddComponent<Image>();
+            overlayImg.color = new Color(0f, 0f, 0f, 0.6f);
+            overlayImg.raycastTarget = true;
+
+            Canvas overlayCanvas = overlayObj.AddComponent<Canvas>();
+            overlayCanvas.overrideSorting = true;
+            overlayCanvas.sortingOrder = 100;
+            overlayObj.AddComponent<GraphicRaycaster>();
+
+            GameObject panelObj = new GameObject("ProfilePanel");
+            panelObj.transform.SetParent(overlayObj.transform, false);
+
+            RectTransform panelRect = panelObj.AddComponent<RectTransform>();
+            panelRect.anchorMin = new Vector2(0.05f, 0.1f);
+            panelRect.anchorMax = new Vector2(0.95f, 0.9f);
+            panelRect.sizeDelta = Vector2.zero;
+
+            Image panelBg = panelObj.AddComponent<Image>();
+            panelBg.color = new Color(0.98f, 0.96f, 0.93f, 1f);
+            ApplyRoundedSprite(panelBg, 24);
+
+            VerticalLayoutGroup panelVLG = panelObj.AddComponent<VerticalLayoutGroup>();
+            panelVLG.padding = new RectOffset(24, 24, 20, 20);
+            panelVLG.spacing = 14;
+            panelVLG.childControlWidth = true;
+            panelVLG.childControlHeight = false;
+            panelVLG.childForceExpandWidth = true;
+            panelVLG.childForceExpandHeight = false;
+
+            // Title
+            GameObject titleRow = new GameObject("TitleRow");
+            titleRow.transform.SetParent(panelObj.transform, false);
+            LayoutElement titleLE = titleRow.AddComponent<LayoutElement>();
+            titleLE.preferredHeight = 56;
+
+            Text titleText = CreateText(titleRow, "프로필 설정", 32, CuteUIHelper.DarkText);
+            titleText.alignment = TextAnchor.MiddleCenter;
+
+            // Close button
+            GameObject closeObj = new GameObject("CloseButton");
+            closeObj.transform.SetParent(titleRow.transform, false);
+            RectTransform closeRect = closeObj.AddComponent<RectTransform>();
+            closeRect.anchorMin = new Vector2(1f, 0.5f);
+            closeRect.anchorMax = new Vector2(1f, 0.5f);
+            closeRect.pivot = new Vector2(1f, 0.5f);
+            closeRect.anchoredPosition = Vector2.zero;
+            closeRect.sizeDelta = new Vector2(44, 44);
+
+            Image closeBg = closeObj.AddComponent<Image>();
+            closeBg.color = new Color(0.95f, 0.5f, 0.5f, 1f);
+            ApplyRoundedSprite(closeBg, 10);
+
+            Button closeButton = closeObj.AddComponent<Button>();
+
+            GameObject closeTextObj = new GameObject("X");
+            closeTextObj.transform.SetParent(closeObj.transform, false);
+            RectTransform closeTextRect = closeTextObj.AddComponent<RectTransform>();
+            closeTextRect.anchorMin = Vector2.zero;
+            closeTextRect.anchorMax = Vector2.one;
+            closeTextRect.sizeDelta = Vector2.zero;
+            Text closeText = CreateText(closeTextObj, "X", 24, Color.white);
+
+            // Preview row
+            GameObject previewRow = new GameObject("PreviewRow");
+            previewRow.transform.SetParent(panelObj.transform, false);
+            LayoutElement previewLE = previewRow.AddComponent<LayoutElement>();
+            previewLE.preferredHeight = 90;
+
+            HorizontalLayoutGroup previewHLG = previewRow.AddComponent<HorizontalLayoutGroup>();
+            previewHLG.spacing = 14;
+            previewHLG.padding = new RectOffset(16, 16, 6, 6);
+            previewHLG.childAlignment = TextAnchor.MiddleCenter;
+            previewHLG.childControlWidth = false;
+            previewHLG.childControlHeight = false;
+            previewHLG.childForceExpandWidth = false;
+            previewHLG.childForceExpandHeight = false;
+
+            // Preview avatar
+            GameObject prevBorderObj = new GameObject("PreviewBorder");
+            prevBorderObj.transform.SetParent(previewRow.transform, false);
+            RectTransform prevBorderRect = prevBorderObj.AddComponent<RectTransform>();
+            prevBorderRect.sizeDelta = new Vector2(72, 72);
+            LayoutElement prevBorderLE = prevBorderObj.AddComponent<LayoutElement>();
+            prevBorderLE.preferredWidth = 72;
+            prevBorderLE.preferredHeight = 72;
+
+            Image previewBorderImage = prevBorderObj.AddComponent<Image>();
+            previewBorderImage.color = Color.white;
+            ApplyRoundedSprite(previewBorderImage, 12);
+
+            GameObject prevIconObj = new GameObject("PreviewIcon");
+            prevIconObj.transform.SetParent(prevBorderObj.transform, false);
+            RectTransform prevIconRect = prevIconObj.AddComponent<RectTransform>();
+            prevIconRect.anchorMin = new Vector2(0.1f, 0.1f);
+            prevIconRect.anchorMax = new Vector2(0.9f, 0.9f);
+            prevIconRect.offsetMin = Vector2.zero;
+            prevIconRect.offsetMax = Vector2.zero;
+
+            Image previewAvatarImage = prevIconObj.AddComponent<Image>();
+            previewAvatarImage.sprite = UnitData.CreateCircleSprite(64);
+            previewAvatarImage.raycastTarget = false;
+
+            // Preview nickname
+            GameObject prevNickObj = new GameObject("PreviewNickname");
+            prevNickObj.transform.SetParent(previewRow.transform, false);
+            RectTransform prevNickRect = prevNickObj.AddComponent<RectTransform>();
+            prevNickRect.sizeDelta = new Vector2(180, 36);
+            LayoutElement prevNickLE = prevNickObj.AddComponent<LayoutElement>();
+            prevNickLE.preferredWidth = 180;
+            prevNickLE.preferredHeight = 36;
+
+            Text previewNicknameText = CreateText(prevNickObj, "Player", 26, CuteUIHelper.DarkText);
+            previewNicknameText.alignment = TextAnchor.MiddleLeft;
+
+            // Selected avatar name
+            GameObject selNameObj = new GameObject("SelectedAvatarName");
+            selNameObj.transform.SetParent(previewRow.transform, false);
+            RectTransform selNameRect = selNameObj.AddComponent<RectTransform>();
+            selNameRect.sizeDelta = new Vector2(180, 28);
+            LayoutElement selNameLE = selNameObj.AddComponent<LayoutElement>();
+            selNameLE.preferredWidth = 180;
+            selNameLE.preferredHeight = 28;
+
+            Text selectedAvatarNameText = CreateText(selNameObj, "", 20, new Color(0.45f, 0.4f, 0.38f));
+            selectedAvatarNameText.alignment = TextAnchor.MiddleLeft;
+
+            // Nickname edit row
+            GameObject nickSection = new GameObject("NicknameSection");
+            nickSection.transform.SetParent(panelObj.transform, false);
+            LayoutElement nickSLE = nickSection.AddComponent<LayoutElement>();
+            nickSLE.preferredHeight = 60;
+
+            HorizontalLayoutGroup nickHLG = nickSection.AddComponent<HorizontalLayoutGroup>();
+            nickHLG.spacing = 10;
+            nickHLG.padding = new RectOffset(16, 16, 4, 4);
+            nickHLG.childControlWidth = true;
+            nickHLG.childControlHeight = true;
+            nickHLG.childForceExpandWidth = false;
+            nickHLG.childForceExpandHeight = true;
+
+            GameObject nickLabelObj = new GameObject("Label");
+            nickLabelObj.transform.SetParent(nickSection.transform, false);
+            LayoutElement nLabelLE = nickLabelObj.AddComponent<LayoutElement>();
+            nLabelLE.preferredWidth = 90;
+            Text nickLabel = CreateText(nickLabelObj, "닉네임:", 22, CuteUIHelper.DarkText);
+            nickLabel.alignment = TextAnchor.MiddleRight;
+
+            // Input field
+            GameObject inputObj = new GameObject("NicknameInput");
+            inputObj.transform.SetParent(nickSection.transform, false);
+            LayoutElement inputLE = inputObj.AddComponent<LayoutElement>();
+            inputLE.flexibleWidth = 1;
+
+            Image inputBg = inputObj.AddComponent<Image>();
+            inputBg.color = new Color(1f, 1f, 1f, 0.9f);
+            ApplyRoundedSprite(inputBg, 8);
+
+            GameObject inputTextObj = new GameObject("Text");
+            inputTextObj.transform.SetParent(inputObj.transform, false);
+            RectTransform inputTextRect = inputTextObj.AddComponent<RectTransform>();
+            inputTextRect.anchorMin = Vector2.zero;
+            inputTextRect.anchorMax = Vector2.one;
+            inputTextRect.offsetMin = new Vector2(8, 2);
+            inputTextRect.offsetMax = new Vector2(-8, -2);
+
+            Text inputText = CreateText(inputTextObj, "", 22, CuteUIHelper.DarkText);
+            inputText.alignment = TextAnchor.MiddleLeft;
+            inputText.supportRichText = false;
+
+            GameObject phObj = new GameObject("Placeholder");
+            phObj.transform.SetParent(inputObj.transform, false);
+            RectTransform phRect = phObj.AddComponent<RectTransform>();
+            phRect.anchorMin = Vector2.zero;
+            phRect.anchorMax = Vector2.one;
+            phRect.offsetMin = new Vector2(8, 2);
+            phRect.offsetMax = new Vector2(-8, -2);
+
+            Text phText = CreateText(phObj, "닉네임 입력", 22, new Color(0.6f, 0.55f, 0.5f));
+            phText.alignment = TextAnchor.MiddleLeft;
+            phText.fontStyle = FontStyle.Italic;
+
+            InputField nicknameInput = inputObj.AddComponent<InputField>();
+            nicknameInput.textComponent = inputText;
+            nicknameInput.placeholder = phText;
+            nicknameInput.characterLimit = 12;
+
+            // Save button
+            GameObject saveObj = new GameObject("SaveButton");
+            saveObj.transform.SetParent(nickSection.transform, false);
+            LayoutElement saveLE = saveObj.AddComponent<LayoutElement>();
+            saveLE.preferredWidth = 70;
+
+            Image saveBg = saveObj.AddComponent<Image>();
+            saveBg.color = new Color(0.5f, 0.72f, 0.95f);
+            ApplyRoundedSprite(saveBg, 8);
+
+            Button saveNicknameButton = saveObj.AddComponent<Button>();
+
+            GameObject saveTextObj = new GameObject("Text");
+            saveTextObj.transform.SetParent(saveObj.transform, false);
+            RectTransform saveTextRect = saveTextObj.AddComponent<RectTransform>();
+            saveTextRect.anchorMin = Vector2.zero;
+            saveTextRect.anchorMax = Vector2.one;
+            saveTextRect.sizeDelta = Vector2.zero;
+            CreateText(saveTextObj, "저장", 22, Color.white);
+
+            // Error text
+            GameObject errorObj = new GameObject("NicknameError");
+            errorObj.transform.SetParent(panelObj.transform, false);
+            LayoutElement errorLE = errorObj.AddComponent<LayoutElement>();
+            errorLE.preferredHeight = 24;
+
+            Text nicknameErrorText = CreateText(errorObj, "", 18, new Color(0.95f, 0.5f, 0.5f));
+            nicknameErrorText.alignment = TextAnchor.MiddleCenter;
+            errorObj.SetActive(false);
+
+            // Avatar grid
+            GameObject gridSection = new GameObject("AvatarGridSection");
+            gridSection.transform.SetParent(panelObj.transform, false);
+            LayoutElement gridSLE = gridSection.AddComponent<LayoutElement>();
+            gridSLE.flexibleHeight = 1;
+            gridSLE.preferredHeight = 260;
+
+            GameObject gridLabelObj = new GameObject("GridLabel");
+            gridLabelObj.transform.SetParent(gridSection.transform, false);
+            RectTransform glRect = gridLabelObj.AddComponent<RectTransform>();
+            glRect.anchorMin = new Vector2(0f, 0.9f);
+            glRect.anchorMax = new Vector2(1f, 1f);
+            glRect.sizeDelta = Vector2.zero;
+            Text gridLabel = CreateText(gridLabelObj, "아바타 선택", 22, new Color(0.45f, 0.4f, 0.38f));
+            gridLabel.alignment = TextAnchor.MiddleLeft;
+
+            GameObject scrollObj = new GameObject("AvatarScroll");
+            scrollObj.transform.SetParent(gridSection.transform, false);
+            RectTransform sRect = scrollObj.AddComponent<RectTransform>();
+            sRect.anchorMin = new Vector2(0f, 0f);
+            sRect.anchorMax = new Vector2(1f, 0.88f);
+            sRect.sizeDelta = Vector2.zero;
+
+            Image scrollBg = scrollObj.AddComponent<Image>();
+            scrollBg.color = new Color(0.94f, 0.92f, 0.9f, 0.5f);
+
+            ScrollRect scroll = scrollObj.AddComponent<ScrollRect>();
+            scroll.horizontal = false;
+            scroll.vertical = true;
+            scrollObj.AddComponent<RectMask2D>();
+
+            GameObject gridContent = new GameObject("GridContent");
+            gridContent.transform.SetParent(scrollObj.transform, false);
+            RectTransform gcRect = gridContent.AddComponent<RectTransform>();
+            gcRect.anchorMin = new Vector2(0f, 1f);
+            gcRect.anchorMax = new Vector2(1f, 1f);
+            gcRect.pivot = new Vector2(0.5f, 1f);
+            gcRect.sizeDelta = new Vector2(0, 260);
+
+            GridLayoutGroup gridLayout = gridContent.AddComponent<GridLayoutGroup>();
+            gridLayout.cellSize = new Vector2(90, 90);
+            gridLayout.spacing = new Vector2(10, 10);
+            gridLayout.padding = new RectOffset(10, 10, 10, 10);
+            gridLayout.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+            gridLayout.constraintCount = 4;
+            gridLayout.childAlignment = TextAnchor.UpperLeft;
+
+            ContentSizeFitter gridFitter = gridContent.AddComponent<ContentSizeFitter>();
+            gridFitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+            scroll.content = gcRect;
+
+            // Wire ProfileSelectionUI
+            ProfileSelectionUI selUI = overlayObj.AddComponent<ProfileSelectionUI>();
+            SetField(selUI, "panel", overlayObj);
+            SetField(selUI, "closeButton", closeButton);
+            SetField(selUI, "nicknameInput", nicknameInput);
+            SetField(selUI, "saveNicknameButton", saveNicknameButton);
+            SetField(selUI, "nicknameErrorText", nicknameErrorText);
+            SetField(selUI, "avatarGridContainer", gridContent.transform);
+            SetField(selUI, "selectedAvatarNameText", selectedAvatarNameText);
+            SetField(selUI, "previewAvatarImage", previewAvatarImage);
+            SetField(selUI, "previewBorderImage", previewBorderImage);
+            SetField(selUI, "previewNicknameText", previewNicknameText);
+
+            overlayObj.SetActive(false);
+        }
         #endregion
 
         #region Buttons

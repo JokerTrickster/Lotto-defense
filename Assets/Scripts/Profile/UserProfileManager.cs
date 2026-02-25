@@ -73,13 +73,87 @@ namespace LottoDefense.Profile
 
             if (_availableAvatars == null || _availableAvatars.Length == 0)
             {
-                Debug.LogWarning("[UserProfileManager] No avatar data found in Resources/Avatars. Creating default.");
-                _availableAvatars = new ProfileAvatarData[0];
+                Debug.Log("[UserProfileManager] No avatar assets found, generating procedural avatars");
+                _availableAvatars = GenerateProceduralAvatars();
             }
             else
             {
                 Debug.Log($"[UserProfileManager] Loaded {_availableAvatars.Length} avatars from database");
             }
+        }
+
+        private ProfileAvatarData[] GenerateProceduralAvatars()
+        {
+            var avatarDefs = new[]
+            {
+                new { id = "avatar_default",    name = "기본",       color = new Color(0.55f, 0.75f, 0.95f), border = Color.white,                        unlocked = true,  quest = "",                        hint = "",                         rarity = AvatarRarity.Common },
+                new { id = "avatar_red",        name = "붉은 전사",  color = new Color(0.95f, 0.45f, 0.45f), border = new Color(1f, 0.6f, 0.6f),          unlocked = true,  quest = "",                        hint = "",                         rarity = AvatarRarity.Common },
+                new { id = "avatar_green",      name = "숲의 수호자",color = new Color(0.45f, 0.85f, 0.55f), border = new Color(0.6f, 1f, 0.7f),          unlocked = true,  quest = "",                        hint = "",                         rarity = AvatarRarity.Common },
+                new { id = "avatar_warrior",    name = "전사의 혼",  color = new Color(0.85f, 0.65f, 0.35f), border = new Color(1f, 0.84f, 0f),           unlocked = false, quest = "collect_warrior_3",       hint = "전사 3마리를 배치하세요",  rarity = AvatarRarity.Uncommon },
+                new { id = "avatar_archer",     name = "명사수",     color = new Color(0.35f, 0.85f, 0.85f), border = new Color(0.4f, 1f, 1f),            unlocked = false, quest = "collect_archer_3",        hint = "궁수 3마리를 배치하세요",  rarity = AvatarRarity.Uncommon },
+                new { id = "avatar_mage",       name = "마법사의 눈",color = new Color(0.7f, 0.45f, 0.95f),  border = new Color(0.8f, 0.55f, 1f),         unlocked = false, quest = "collect_mage_2",          hint = "마법사 2마리를 배치하세요", rarity = AvatarRarity.Rare },
+                new { id = "avatar_dragon",     name = "용기사",     color = new Color(0.95f, 0.65f, 0.2f),  border = new Color(1f, 0.84f, 0f),           unlocked = false, quest = "collect_dragon_knight_2", hint = "용기사 2마리를 배치하세요", rarity = AvatarRarity.Legendary },
+            };
+
+            var result = new ProfileAvatarData[avatarDefs.Length];
+            for (int i = 0; i < avatarDefs.Length; i++)
+            {
+                var def = avatarDefs[i];
+                ProfileAvatarData avatar = ScriptableObject.CreateInstance<ProfileAvatarData>();
+                avatar.avatarId = def.id;
+                avatar.avatarName = def.name;
+                avatar.avatarSprite = CreateProceduralAvatarSprite(64, def.color);
+                avatar.borderColor = def.border;
+                avatar.isDefaultUnlocked = def.unlocked;
+                avatar.requiredQuestId = def.quest;
+                avatar.unlockHint = def.hint;
+                avatar.rarity = def.rarity;
+                result[i] = avatar;
+            }
+
+            Debug.Log($"[UserProfileManager] Generated {result.Length} procedural avatars");
+            return result;
+        }
+
+        private static Sprite CreateProceduralAvatarSprite(int size, Color baseColor)
+        {
+            Texture2D tex = new Texture2D(size, size, TextureFormat.RGBA32, false);
+            float center = size * 0.5f;
+            float outerRadius = center - 1f;
+            float innerRadius = outerRadius * 0.7f;
+
+            for (int y = 0; y < size; y++)
+            {
+                for (int x = 0; x < size; x++)
+                {
+                    float dx = x - center + 0.5f;
+                    float dy = y - center + 0.5f;
+                    float dist = Mathf.Sqrt(dx * dx + dy * dy);
+
+                    if (dist > outerRadius)
+                    {
+                        tex.SetPixel(x, y, Color.clear);
+                    }
+                    else if (dist > innerRadius)
+                    {
+                        float t = (dist - innerRadius) / (outerRadius - innerRadius);
+                        Color ringColor = Color.Lerp(baseColor * 0.8f, baseColor, t);
+                        ringColor.a = 1f;
+                        tex.SetPixel(x, y, ringColor);
+                    }
+                    else
+                    {
+                        float t = dist / innerRadius;
+                        Color fill = Color.Lerp(Color.white * 0.95f, baseColor, t * 0.6f);
+                        fill.a = 1f;
+                        tex.SetPixel(x, y, fill);
+                    }
+                }
+            }
+
+            tex.Apply();
+            tex.filterMode = FilterMode.Bilinear;
+            return Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), size);
         }
 
         /// <summary>

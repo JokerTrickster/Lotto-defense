@@ -80,7 +80,7 @@ namespace LottoDefense.Profile
                 return;
             }
 
-            string questId = completedQuest.Definition.id;
+            string questId = completedQuest.Definition.questId;
             Debug.Log($"[ProfileUnlockManager] Quest completed: {questId}");
 
             CheckAndUnlockAvatars(questId);
@@ -185,9 +185,10 @@ namespace LottoDefense.Profile
             var completedQuests = QuestManager.Instance.Quests;
             foreach (var quest in completedQuests)
             {
-                if (quest != null && quest.IsCompleted && quest.Definition != null)
+                if (quest != null && quest.Definition != null &&
+                    (quest.State == QuestState.Completed || quest.State == QuestState.Rewarded))
                 {
-                    CheckAndUnlockAvatars(quest.Definition.id);
+                    CheckAndUnlockAvatars(quest.Definition.questId);
                 }
             }
         }

@@ -57,6 +57,7 @@ namespace LottoDefense.Gameplay
             EnsureGameResultUI();
             EnsureOpponentStatusUI();
             EnsureGameSpeedButton();
+            EnsureProfileSelectionUI();
 
         }
 
