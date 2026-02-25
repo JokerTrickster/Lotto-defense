@@ -156,101 +156,170 @@ namespace LottoDefense.UI
 
         private GameObject CreateAvatarButtonProgrammatically(ProfileAvatarData avatarData)
         {
+            bool isUnlocked = UserProfileManager.Instance.CurrentProfile.HasUnlockedAvatar(avatarData.avatarId);
+            bool isSelected = UserProfileManager.Instance.SelectedAvatarId == avatarData.avatarId;
+
             GameObject btnObj = new GameObject($"Avatar_{avatarData.avatarId}");
             btnObj.transform.SetParent(avatarGridContainer, false);
 
-            RectTransform rect = btnObj.AddComponent<RectTransform>();
-            rect.sizeDelta = new Vector2(100, 140);
-
-            LayoutElement le = btnObj.AddComponent<LayoutElement>();
-            le.preferredWidth = 100;
-            le.preferredHeight = 140;
-            le.minWidth = 100;
-            le.minHeight = 140;
-
-            // Background image
             Image bgImage = btnObj.AddComponent<Image>();
-            bgImage.color = avatarData.borderColor;
+            Color bgColor = isSelected
+                ? new Color(1f, 0.92f, 0.7f)
+                : new Color(0.95f, 0.93f, 0.9f);
+            bgImage.color = bgColor;
             bgImage.sprite = CuteUIHelper.GetRoundedRectSprite(12);
             bgImage.type = Image.Type.Sliced;
 
-            // Avatar icon (top portion)
+            if (isSelected)
+            {
+                Outline outline = btnObj.AddComponent<Outline>();
+                outline.effectColor = new Color(1f, 0.84f, 0f, 1f);
+                outline.effectDistance = new Vector2(3, -3);
+            }
+
+            // Avatar icon — top portion
             GameObject iconObj = new GameObject("Icon");
             iconObj.transform.SetParent(btnObj.transform, false);
             RectTransform iconRect = iconObj.AddComponent<RectTransform>();
-            iconRect.anchorMin = new Vector2(0.1f, 0.3f);
+            float iconBottom = isUnlocked ? 0.3f : 0.4f;
+            iconRect.anchorMin = new Vector2(0.1f, iconBottom);
             iconRect.anchorMax = new Vector2(0.9f, 0.95f);
             iconRect.offsetMin = Vector2.zero;
             iconRect.offsetMax = Vector2.zero;
 
             Image iconImage = iconObj.AddComponent<Image>();
             iconImage.sprite = avatarData.avatarSprite;
-            iconImage.color = Color.white;
+            iconImage.color = isUnlocked ? Color.white : new Color(0.4f, 0.4f, 0.4f);
             iconImage.raycastTarget = false;
 
-            // Avatar name text (bottom portion)
-            GameObject nameObj = new GameObject("Name");
-            nameObj.transform.SetParent(btnObj.transform, false);
-            RectTransform nameRect = nameObj.AddComponent<RectTransform>();
-            nameRect.anchorMin = new Vector2(0f, 0f);
-            nameRect.anchorMax = new Vector2(1f, 0.28f);
-            nameRect.offsetMin = new Vector2(4, 2);
-            nameRect.offsetMax = new Vector2(-4, 0);
-
-            Text nameText = nameObj.AddComponent<Text>();
-            nameText.text = avatarData.avatarName;
-            nameText.font = GameFont.Get();
-            nameText.fontSize = 16;
-            nameText.color = Color.white;
-            nameText.alignment = TextAnchor.MiddleCenter;
-            nameText.raycastTarget = false;
-            nameText.resizeTextForBestFit = true;
-            nameText.resizeTextMinSize = 10;
-            nameText.resizeTextMaxSize = 16;
-
-            bool isUnlocked = UserProfileManager.Instance.CurrentProfile.HasUnlockedAvatar(avatarData.avatarId);
             if (!isUnlocked)
             {
-                // Dark overlay on icon area
-                GameObject lockObj = new GameObject("Lock");
-                lockObj.transform.SetParent(btnObj.transform, false);
+                // "잠김" overlay on icon
+                GameObject lockObj = new GameObject("LockOverlay");
+                lockObj.transform.SetParent(iconObj.transform, false);
                 RectTransform lockRect = lockObj.AddComponent<RectTransform>();
-                lockRect.anchorMin = new Vector2(0f, 0.28f);
+                lockRect.anchorMin = Vector2.zero;
                 lockRect.anchorMax = Vector2.one;
                 lockRect.offsetMin = Vector2.zero;
                 lockRect.offsetMax = Vector2.zero;
 
                 Image lockBg = lockObj.AddComponent<Image>();
-                lockBg.color = new Color(0, 0, 0, 0.7f);
+                lockBg.color = new Color(0, 0, 0, 0.5f);
+                lockBg.raycastTarget = false;
 
-                GameObject lockIconObj = new GameObject("LockIcon");
-                lockIconObj.transform.SetParent(lockObj.transform, false);
-                RectTransform lockIconRect = lockIconObj.AddComponent<RectTransform>();
-                lockIconRect.anchorMin = new Vector2(0.2f, 0.4f);
-                lockIconRect.anchorMax = new Vector2(0.8f, 0.85f);
-                lockIconRect.offsetMin = Vector2.zero;
-                lockIconRect.offsetMax = Vector2.zero;
+                GameObject lockTextObj = new GameObject("LockText");
+                lockTextObj.transform.SetParent(lockObj.transform, false);
+                RectTransform ltRect = lockTextObj.AddComponent<RectTransform>();
+                ltRect.anchorMin = Vector2.zero;
+                ltRect.anchorMax = Vector2.one;
+                ltRect.offsetMin = Vector2.zero;
+                ltRect.offsetMax = Vector2.zero;
 
-                Text lockIcon = lockIconObj.AddComponent<Text>();
-                lockIcon.text = "잠김";
-                lockIcon.font = GameFont.Get();
-                lockIcon.fontSize = 20;
-                lockIcon.color = Color.white;
-                lockIcon.alignment = TextAnchor.MiddleCenter;
-
-                // Unlock hint below lock icon
-                string hint = !string.IsNullOrEmpty(avatarData.unlockHint) ? avatarData.unlockHint : "히든 퀘스트";
-                nameText.text = hint;
-                nameText.color = new Color(1f, 0.8f, 0.5f);
+                Text lockText = lockTextObj.AddComponent<Text>();
+                lockText.text = "잠김";
+                lockText.font = GameFont.Get();
+                lockText.fontSize = 18;
+                lockText.fontStyle = FontStyle.Bold;
+                lockText.color = Color.white;
+                lockText.alignment = TextAnchor.MiddleCenter;
+                lockText.raycastTarget = false;
             }
 
-            // Selection indicator
-            bool isSelected = UserProfileManager.Instance.SelectedAvatarId == avatarData.avatarId;
-            if (isSelected)
+            // Bottom text area — name always visible
+            if (isUnlocked)
             {
-                Outline outline = btnObj.AddComponent<Outline>();
-                outline.effectColor = new Color(1f, 0.84f, 0f, 1f);
-                outline.effectDistance = new Vector2(4, -4);
+                // Unlocked: name (+ "사용중" badge if selected)
+                GameObject nameObj = new GameObject("Name");
+                nameObj.transform.SetParent(btnObj.transform, false);
+                RectTransform nameRect = nameObj.AddComponent<RectTransform>();
+
+                if (isSelected)
+                {
+                    nameRect.anchorMin = new Vector2(0f, 0.12f);
+                    nameRect.anchorMax = new Vector2(1f, 0.32f);
+                }
+                else
+                {
+                    nameRect.anchorMin = new Vector2(0f, 0f);
+                    nameRect.anchorMax = new Vector2(1f, 0.3f);
+                }
+                nameRect.offsetMin = new Vector2(2, 0);
+                nameRect.offsetMax = new Vector2(-2, 0);
+
+                Text nameText = nameObj.AddComponent<Text>();
+                nameText.text = avatarData.avatarName;
+                nameText.font = GameFont.Get();
+                nameText.fontSize = 14;
+                nameText.fontStyle = FontStyle.Bold;
+                nameText.color = new Color(0.25f, 0.22f, 0.2f);
+                nameText.alignment = TextAnchor.MiddleCenter;
+                nameText.raycastTarget = false;
+                nameText.resizeTextForBestFit = true;
+                nameText.resizeTextMinSize = 10;
+                nameText.resizeTextMaxSize = 14;
+
+                if (isSelected)
+                {
+                    GameObject badgeObj = new GameObject("Badge");
+                    badgeObj.transform.SetParent(btnObj.transform, false);
+                    RectTransform badgeRect = badgeObj.AddComponent<RectTransform>();
+                    badgeRect.anchorMin = new Vector2(0f, 0f);
+                    badgeRect.anchorMax = new Vector2(1f, 0.14f);
+                    badgeRect.offsetMin = new Vector2(2, 1);
+                    badgeRect.offsetMax = new Vector2(-2, 0);
+
+                    Text badgeText = badgeObj.AddComponent<Text>();
+                    badgeText.text = "사용중";
+                    badgeText.font = GameFont.Get();
+                    badgeText.fontSize = 12;
+                    badgeText.fontStyle = FontStyle.Bold;
+                    badgeText.color = new Color(0.85f, 0.55f, 0f);
+                    badgeText.alignment = TextAnchor.MiddleCenter;
+                    badgeText.raycastTarget = false;
+                }
+            }
+            else
+            {
+                // Locked: name + unlock hint
+                GameObject nameObj = new GameObject("Name");
+                nameObj.transform.SetParent(btnObj.transform, false);
+                RectTransform nameRect = nameObj.AddComponent<RectTransform>();
+                nameRect.anchorMin = new Vector2(0f, 0.17f);
+                nameRect.anchorMax = new Vector2(1f, 0.4f);
+                nameRect.offsetMin = new Vector2(2, 0);
+                nameRect.offsetMax = new Vector2(-2, 0);
+
+                Text nameText = nameObj.AddComponent<Text>();
+                nameText.text = avatarData.avatarName;
+                nameText.font = GameFont.Get();
+                nameText.fontSize = 13;
+                nameText.fontStyle = FontStyle.Bold;
+                nameText.color = new Color(0.5f, 0.48f, 0.45f);
+                nameText.alignment = TextAnchor.MiddleCenter;
+                nameText.raycastTarget = false;
+                nameText.resizeTextForBestFit = true;
+                nameText.resizeTextMinSize = 9;
+                nameText.resizeTextMaxSize = 13;
+
+                string hint = !string.IsNullOrEmpty(avatarData.unlockHint) ? avatarData.unlockHint : "히든 퀘스트";
+                GameObject hintObj = new GameObject("Hint");
+                hintObj.transform.SetParent(btnObj.transform, false);
+                RectTransform hintRect = hintObj.AddComponent<RectTransform>();
+                hintRect.anchorMin = new Vector2(0f, 0f);
+                hintRect.anchorMax = new Vector2(1f, 0.19f);
+                hintRect.offsetMin = new Vector2(2, 1);
+                hintRect.offsetMax = new Vector2(-2, 0);
+
+                Text hintText = hintObj.AddComponent<Text>();
+                hintText.text = hint;
+                hintText.font = GameFont.Get();
+                hintText.fontSize = 10;
+                hintText.color = new Color(0.8f, 0.6f, 0.3f);
+                hintText.alignment = TextAnchor.MiddleCenter;
+                hintText.raycastTarget = false;
+                hintText.resizeTextForBestFit = true;
+                hintText.resizeTextMinSize = 8;
+                hintText.resizeTextMaxSize = 11;
             }
 
             Button button = btnObj.AddComponent<Button>();
