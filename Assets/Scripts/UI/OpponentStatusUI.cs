@@ -5,230 +5,250 @@ using LottoDefense.Networking;
 namespace LottoDefense.UI
 {
     /// <summary>
-    /// Displays opponent's status during multiplayer gameplay.
-    /// Subscribes to MultiplayerManager events to show opponent life, round, and alive status.
+    /// 협동 플레이 시 상대방 상태를 표시하는 UI
     /// </summary>
     public class OpponentStatusUI : MonoBehaviour
     {
-        #region Serialized Fields
-        [SerializeField] private GameObject statusPanel;
-        [SerializeField] private Text opponentNameText;
-        [SerializeField] private Text opponentLifeText;
-        [SerializeField] private Text opponentRoundText;
-        [SerializeField] private Text opponentStatusText;
-        [SerializeField] private CanvasGroup canvasGroup;
+        #region Singleton
+        private static OpponentStatusUI _instance;
+        
+        public static OpponentStatusUI Instance
+        {
+            get
+            {
+                if (_instance == null)
+                {
+                    _instance = FindFirstObjectByType<OpponentStatusUI>();
+                }
+                return _instance;
+            }
+        }
         #endregion
 
-        #region Private Fields
-        private bool opponentIsDead;
+        #region UI Elements
+        private GameObject opponentPanel;
+        private Text opponentNameText;
+        private Text opponentHPText;
+        private Text opponentRoundText;
+        private Text opponentGoldText;
+        private Text opponentKillsText;
+        private Image opponentHPBar;
+        private GameObject defeatOverlay;
         #endregion
 
         #region Unity Lifecycle
-        private void Start()
+        private void Awake()
         {
-            if (statusPanel != null)
-                statusPanel.SetActive(true);
-
-            UpdateDisplay(null);
+            _instance = this;
+            CreateOpponentUI();
+            
+            // 이벤트 구독
+            CoopStateSync.Instance.OnOpponentStateUpdated += UpdateOpponentState;
+            CoopStateSync.Instance.OnOpponentDefeated += ShowDefeat;
         }
 
-        private void OnEnable()
+        private void OnDestroy()
         {
-            if (MultiplayerManager.Instance != null)
+            if (CoopStateSync.Instance != null)
             {
-                MultiplayerManager.Instance.OnOpponentStateUpdated += HandleOpponentState;
-                MultiplayerManager.Instance.OnOpponentDead += HandleOpponentDead;
-                MultiplayerManager.Instance.OnMatchResult += HandleMatchResult;
+                CoopStateSync.Instance.OnOpponentStateUpdated -= UpdateOpponentState;
+                CoopStateSync.Instance.OnOpponentDefeated -= ShowDefeat;
             }
         }
 
-        private void OnDisable()
+        private void Update()
         {
-            if (MultiplayerManager.Instance != null)
+            // 협동 플레이 중일 때만 표시
+            if (opponentPanel != null)
             {
-                MultiplayerManager.Instance.OnOpponentStateUpdated -= HandleOpponentState;
-                MultiplayerManager.Instance.OnOpponentDead -= HandleOpponentDead;
-                MultiplayerManager.Instance.OnMatchResult -= HandleMatchResult;
-            }
-        }
-        #endregion
-
-        #region Event Handlers
-        private void HandleOpponentState(OpponentStatePayload state)
-        {
-            UpdateDisplay(state);
-        }
-
-        private void HandleOpponentDead(string playerName, int finalRound)
-        {
-            opponentIsDead = true;
-
-            if (opponentNameText != null)
-                opponentNameText.text = playerName;
-
-            if (opponentStatusText != null)
-            {
-                opponentStatusText.text = $"탈락! (R{finalRound})";
-                opponentStatusText.color = new Color(0.9f, 0.4f, 0.4f);
-            }
-
-            if (opponentLifeText != null)
-            {
-                opponentLifeText.text = "0";
-                opponentLifeText.color = new Color(0.5f, 0.5f, 0.5f);
-            }
-        }
-
-        private void HandleMatchResult(MatchResultPayload result)
-        {
-            if (opponentStatusText != null)
-            {
-                opponentStatusText.text = result.isWinner ? "패배" : "승리";
-                opponentStatusText.color = result.isWinner
-                    ? new Color(0.4f, 0.8f, 0.5f)
-                    : new Color(0.9f, 0.4f, 0.4f);
+                opponentPanel.SetActive(CoopStateSync.Instance.IsEnabled);
             }
         }
         #endregion
 
-        #region Display
-        private void UpdateDisplay(OpponentStatePayload state)
+        #region UI Creation
+        private void CreateOpponentUI()
         {
-            if (state == null)
+            Canvas canvas = FindFirstObjectByType<Canvas>();
+            if (canvas == null)
             {
-                if (opponentNameText != null) opponentNameText.text = "상대";
-                if (opponentLifeText != null) opponentLifeText.text = "--";
-                if (opponentRoundText != null) opponentRoundText.text = "R--";
-                if (opponentStatusText != null)
-                {
-                    opponentStatusText.text = "대기중";
-                    opponentStatusText.color = new Color(0.55f, 0.5f, 0.45f);
-                }
+                Debug.LogError("[OpponentStatusUI] No Canvas found!");
                 return;
             }
 
-            if (opponentNameText != null)
-                opponentNameText.text = state.playerName;
+            Font defaultFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            if (defaultFont == null)
+                defaultFont = Resources.GetBuiltinResource<Font>("Arial.ttf");
 
-            if (opponentLifeText != null)
-            {
-                opponentLifeText.text = state.life.ToString();
-                opponentLifeText.color = state.life > 5
-                    ? new Color(0.4f, 0.8f, 0.5f)
-                    : new Color(0.9f, 0.45f, 0.4f);
-            }
+            // 메인 패널 (좌상단)
+            opponentPanel = new GameObject("OpponentPanel");
+            opponentPanel.transform.SetParent(canvas.transform, false);
 
-            if (opponentRoundText != null)
-                opponentRoundText.text = $"R{state.round}";
+            RectTransform panelRect = opponentPanel.AddComponent<RectTransform>();
+            panelRect.anchorMin = new Vector2(0f, 1f); // 좌상단
+            panelRect.anchorMax = new Vector2(0f, 1f);
+            panelRect.pivot = new Vector2(0f, 1f);
+            panelRect.anchoredPosition = new Vector2(20, -20);
+            panelRect.sizeDelta = new Vector2(300, 150);
 
-            if (!opponentIsDead && opponentStatusText != null)
-            {
-                opponentStatusText.text = state.isAlive ? "생존" : "탈락";
-                opponentStatusText.color = state.isAlive
-                    ? new Color(0.4f, 0.8f, 0.5f)
-                    : new Color(0.9f, 0.4f, 0.4f);
-            }
+            Image panelBg = opponentPanel.AddComponent<Image>();
+            panelBg.color = new Color(0.1f, 0.1f, 0.15f, 0.9f);
+
+            // 타이틀
+            GameObject titleObj = CreateText(opponentPanel, "Title", "상대방 상태", 24, defaultFont);
+            RectTransform titleRect = titleObj.GetComponent<RectTransform>();
+            titleRect.anchorMin = new Vector2(0.05f, 0.8f);
+            titleRect.anchorMax = new Vector2(0.95f, 0.95f);
+            titleRect.sizeDelta = Vector2.zero;
+
+            // 이름
+            GameObject nameObj = CreateText(opponentPanel, "Name", "대기 중...", 20, defaultFont);
+            opponentNameText = nameObj.GetComponent<Text>();
+            opponentNameText.fontStyle = FontStyle.Bold;
+            opponentNameText.color = new Color(0.3f, 0.7f, 1f);
+            RectTransform nameRect = nameObj.GetComponent<RectTransform>();
+            nameRect.anchorMin = new Vector2(0.05f, 0.65f);
+            nameRect.anchorMax = new Vector2(0.95f, 0.78f);
+            nameRect.sizeDelta = Vector2.zero;
+
+            // HP 바 배경
+            GameObject hpBarBg = new GameObject("HPBarBg");
+            hpBarBg.transform.SetParent(opponentPanel.transform, false);
+            RectTransform hpBarBgRect = hpBarBg.AddComponent<RectTransform>();
+            hpBarBgRect.anchorMin = new Vector2(0.05f, 0.48f);
+            hpBarBgRect.anchorMax = new Vector2(0.95f, 0.58f);
+            hpBarBgRect.sizeDelta = Vector2.zero;
+            Image hpBarBgImage = hpBarBg.AddComponent<Image>();
+            hpBarBgImage.color = new Color(0.3f, 0.3f, 0.3f);
+
+            // HP 바
+            GameObject hpBarObj = new GameObject("HPBar");
+            hpBarObj.transform.SetParent(hpBarBg.transform, false);
+            RectTransform hpBarRect = hpBarObj.AddComponent<RectTransform>();
+            hpBarRect.anchorMin = Vector2.zero;
+            hpBarRect.anchorMax = new Vector2(1f, 1f);
+            hpBarRect.sizeDelta = Vector2.zero;
+            opponentHPBar = hpBarObj.AddComponent<Image>();
+            opponentHPBar.color = new Color(0.2f, 0.8f, 0.2f);
+            opponentHPBar.type = Image.Type.Filled;
+            opponentHPBar.fillMethod = Image.FillMethod.Horizontal;
+            opponentHPBar.fillAmount = 1f;
+
+            // HP 텍스트
+            GameObject hpTextObj = CreateText(hpBarBg, "HPText", "HP: 10", 16, defaultFont);
+            opponentHPText = hpTextObj.GetComponent<Text>();
+            opponentHPText.alignment = TextAnchor.MiddleCenter;
+            RectTransform hpTextRect = hpTextObj.GetComponent<RectTransform>();
+            hpTextRect.anchorMin = Vector2.zero;
+            hpTextRect.anchorMax = Vector2.one;
+            hpTextRect.sizeDelta = Vector2.zero;
+
+            // 라운드
+            GameObject roundObj = CreateText(opponentPanel, "Round", "라운드: 1", 18, defaultFont);
+            opponentRoundText = roundObj.GetComponent<Text>();
+            RectTransform roundRect = roundObj.GetComponent<RectTransform>();
+            roundRect.anchorMin = new Vector2(0.05f, 0.32f);
+            roundRect.anchorMax = new Vector2(0.95f, 0.42f);
+            roundRect.sizeDelta = Vector2.zero;
+
+            // 골드
+            GameObject goldObj = CreateText(opponentPanel, "Gold", "골드: 0", 18, defaultFont);
+            opponentGoldText = goldObj.GetComponent<Text>();
+            RectTransform goldRect = goldObj.GetComponent<RectTransform>();
+            goldRect.anchorMin = new Vector2(0.05f, 0.18f);
+            goldRect.anchorMax = new Vector2(0.95f, 0.28f);
+            goldRect.sizeDelta = Vector2.zero;
+
+            // 처치
+            GameObject killsObj = CreateText(opponentPanel, "Kills", "처치: 0", 18, defaultFont);
+            opponentKillsText = killsObj.GetComponent<Text>();
+            RectTransform killsRect = killsObj.GetComponent<RectTransform>();
+            killsRect.anchorMin = new Vector2(0.05f, 0.05f);
+            killsRect.anchorMax = new Vector2(0.95f, 0.15f);
+            killsRect.sizeDelta = Vector2.zero;
+
+            // 패배 오버레이 (처음엔 숨김)
+            defeatOverlay = new GameObject("DefeatOverlay");
+            defeatOverlay.transform.SetParent(opponentPanel.transform, false);
+            RectTransform defeatRect = defeatOverlay.AddComponent<RectTransform>();
+            defeatRect.anchorMin = Vector2.zero;
+            defeatRect.anchorMax = Vector2.one;
+            defeatRect.sizeDelta = Vector2.zero;
+            Image defeatBg = defeatOverlay.AddComponent<Image>();
+            defeatBg.color = new Color(0.8f, 0.2f, 0.2f, 0.8f);
+
+            GameObject defeatTextObj = CreateText(defeatOverlay, "DefeatText", "패배", 28, defaultFont);
+            Text defeatText = defeatTextObj.GetComponent<Text>();
+            defeatText.alignment = TextAnchor.MiddleCenter;
+            defeatText.fontStyle = FontStyle.Bold;
+            defeatText.color = Color.white;
+            RectTransform defeatTextRect = defeatTextObj.GetComponent<RectTransform>();
+            defeatTextRect.anchorMin = Vector2.zero;
+            defeatTextRect.anchorMax = Vector2.one;
+            defeatTextRect.sizeDelta = Vector2.zero;
+
+            defeatOverlay.SetActive(false);
+
+            // 초기에는 숨김
+            opponentPanel.SetActive(false);
+
+            Debug.Log("[OpponentStatusUI] UI created");
+        }
+
+        private GameObject CreateText(GameObject parent, string name, string text, int fontSize, Font font)
+        {
+            GameObject textObj = new GameObject(name);
+            textObj.transform.SetParent(parent.transform, false);
+            
+            Text textComp = textObj.AddComponent<Text>();
+            textComp.text = text;
+            textComp.font = font;
+            textComp.fontSize = fontSize;
+            textComp.color = Color.white;
+            textComp.alignment = TextAnchor.MiddleLeft;
+
+            return textObj;
         }
         #endregion
 
-        #region Static Factory
-        /// <summary>
-        /// Create the opponent status UI dynamically on the game canvas.
-        /// </summary>
-        public static OpponentStatusUI CreateOnCanvas(Canvas canvas, Font font)
+        #region Public Methods
+        public void UpdateOpponentState(OpponentStateData state)
         {
-            if (canvas == null) return null;
+            if (state == null) return;
 
-            // Small status bar at top-right below HUD
-            GameObject root = new GameObject("OpponentStatusUI");
-            root.transform.SetParent(canvas.transform, false);
+            opponentNameText.text = state.opponent_name;
+            opponentHPText.text = $"HP: {state.hp}";
+            opponentRoundText.text = $"라운드: {state.round}";
+            opponentGoldText.text = $"골드: {state.gold}";
+            opponentKillsText.text = $"처치: {state.kills}";
 
-            RectTransform rootRect = root.AddComponent<RectTransform>();
-            rootRect.anchorMin = new Vector2(0f, 1f);
-            rootRect.anchorMax = new Vector2(0.55f, 1f);
-            rootRect.pivot = new Vector2(0f, 1f);
-            rootRect.anchoredPosition = new Vector2(8, -(GameSceneDesignTokens.HudHeight + 8));
-            rootRect.sizeDelta = new Vector2(0, 40);
+            // HP 바 업데이트 (최대 10으로 가정)
+            float hpPercent = Mathf.Clamp01(state.hp / 10f);
+            opponentHPBar.fillAmount = hpPercent;
 
-            Image bg = root.AddComponent<Image>();
-            bg.color = new Color(1f, 0.96f, 0.92f, 0.92f);
-            bg.raycastTarget = false;
-            Sprite rounded = CuteUIHelper.GetRoundedRectSprite(10);
-            if (rounded != null)
+            // HP에 따라 색상 변경
+            if (hpPercent > 0.5f)
+                opponentHPBar.color = new Color(0.2f, 0.8f, 0.2f); // 초록
+            else if (hpPercent > 0.2f)
+                opponentHPBar.color = new Color(0.9f, 0.7f, 0.2f); // 노랑
+            else
+                opponentHPBar.color = new Color(0.9f, 0.2f, 0.2f); // 빨강
+        }
+
+        public void ShowDefeat()
+        {
+            if (defeatOverlay != null)
             {
-                bg.sprite = rounded;
-                bg.type = Image.Type.Sliced;
+                defeatOverlay.SetActive(true);
             }
-
-            Shadow shadow = root.AddComponent<Shadow>();
-            shadow.effectColor = CuteUIHelper.SoftShadow;
-            shadow.effectDistance = new Vector2(1, -2);
-
-            HorizontalLayoutGroup hlg = root.AddComponent<HorizontalLayoutGroup>();
-            hlg.padding = new RectOffset(8, 8, 4, 4);
-            hlg.spacing = 10;
-            hlg.childControlWidth = true;
-            hlg.childControlHeight = true;
-            hlg.childForceExpandWidth = false;
-            hlg.childForceExpandHeight = true;
-            hlg.childAlignment = TextAnchor.MiddleLeft;
-
-            Text labelText = CreateText(root.transform, "Label", "VS", 16,
-                new Color(0.9f, 0.45f, 0.45f), font, 30);
-            labelText.fontStyle = FontStyle.Bold;
-
-            Text nameText = CreateText(root.transform, "OpponentName", "상대", 16,
-                CuteUIHelper.DarkText, font, 60);
-
-            Text lifeText = CreateText(root.transform, "OpponentLife", "--", 16,
-                new Color(0.9f, 0.4f, 0.4f), font, 30);
-            lifeText.fontStyle = FontStyle.Bold;
-
-            Text roundText = CreateText(root.transform, "OpponentRound", "R--", 16,
-                new Color(0.85f, 0.65f, 0.2f), font, 35);
-
-            Text statusText = CreateText(root.transform, "OpponentStatus", "대기중", 14,
-                new Color(0.55f, 0.5f, 0.45f), font, 50);
-
-            CanvasGroup cg = root.AddComponent<CanvasGroup>();
-
-            OpponentStatusUI component = root.AddComponent<OpponentStatusUI>();
-            SetField(component, "statusPanel", root);
-            SetField(component, "opponentNameText", nameText);
-            SetField(component, "opponentLifeText", lifeText);
-            SetField(component, "opponentRoundText", roundText);
-            SetField(component, "opponentStatusText", statusText);
-            SetField(component, "canvasGroup", cg);
-
-            return component;
         }
 
-        private static Text CreateText(Transform parent, string name, string text, int fontSize,
-            Color color, Font font, float width)
+        public void Hide()
         {
-            GameObject obj = new GameObject(name);
-            obj.transform.SetParent(parent, false);
-            obj.AddComponent<RectTransform>();
-
-            LayoutElement le = obj.AddComponent<LayoutElement>();
-            le.preferredWidth = width;
-
-            Text t = obj.AddComponent<Text>();
-            t.font = font;
-            t.text = text;
-            t.fontSize = fontSize;
-            t.color = color;
-            t.fontStyle = FontStyle.Bold;
-            t.alignment = TextAnchor.MiddleCenter;
-            t.raycastTarget = false;
-            return t;
-        }
-
-        private static void SetField(object target, string fieldName, object value)
-        {
-            var field = target.GetType().GetField(fieldName,
-                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            field?.SetValue(target, value);
+            if (opponentPanel != null)
+            {
+                opponentPanel.SetActive(false);
+            }
         }
         #endregion
     }
