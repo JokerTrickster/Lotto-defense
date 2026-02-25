@@ -48,6 +48,7 @@ namespace LottoDefense.Lobby
 
         // Profile
         private ProfileSelectionUI profileSelectionUI;
+        private ProfileHeaderDisplay profileHeaderDisplay;
 
         // Popup references
         private UnitShopUI shopUI;
@@ -175,6 +176,9 @@ namespace LottoDefense.Lobby
                 GameObject obj = new GameObject("MailboxManager");
                 mailboxManager = obj.AddComponent<MailboxManager>();
             }
+
+            // Force UserProfileManager early init before UI creation
+            var _ = UserProfileManager.Instance;
         }
         #endregion
 
@@ -229,7 +233,7 @@ namespace LottoDefense.Lobby
 
             RectTransform profileRect = profileObj.AddComponent<RectTransform>();
             profileRect.anchorMin = new Vector2(0f, 0f);
-            profileRect.anchorMax = new Vector2(0.22f, 1f);
+            profileRect.anchorMax = new Vector2(0.28f, 1f);
             profileRect.sizeDelta = Vector2.zero;
 
             HorizontalLayoutGroup hlg = profileObj.AddComponent<HorizontalLayoutGroup>();
@@ -288,7 +292,7 @@ namespace LottoDefense.Lobby
 
             Image avatarIcon = avatarIconObj.AddComponent<Image>();
             avatarIcon.sprite = UnitData.CreateCircleSprite(64);
-            avatarIcon.color = new Color(0.55f, 0.75f, 0.95f);
+            avatarIcon.color = Color.white;
             avatarIcon.raycastTarget = false;
 
             // Nickname text
@@ -310,11 +314,11 @@ namespace LottoDefense.Lobby
             nicknameText.resizeTextMaxSize = LobbyDesignTokens.BodySize;
 
             // Wire ProfileHeaderDisplay
-            ProfileHeaderDisplay profileDisplay = profileObj.AddComponent<ProfileHeaderDisplay>();
-            SetField(profileDisplay, "avatarImage", avatarIcon);
-            SetField(profileDisplay, "borderImage", avatarBorderImage);
-            SetField(profileDisplay, "nicknameText", nicknameText);
-            SetField(profileDisplay, "profileButton", profileButton);
+            profileHeaderDisplay = profileObj.AddComponent<ProfileHeaderDisplay>();
+            SetField(profileHeaderDisplay, "avatarImage", avatarIcon);
+            SetField(profileHeaderDisplay, "borderImage", avatarBorderImage);
+            SetField(profileHeaderDisplay, "nicknameText", nicknameText);
+            SetField(profileHeaderDisplay, "profileButton", profileButton);
         }
 
         private void CreateCurrencyDisplays(Transform parent)
@@ -324,8 +328,8 @@ namespace LottoDefense.Lobby
             goldObj.transform.SetParent(parent, false);
 
             RectTransform goldRect = goldObj.AddComponent<RectTransform>();
-            goldRect.anchorMin = new Vector2(0.22f, 0f);
-            goldRect.anchorMax = new Vector2(0.42f, 1f);
+            goldRect.anchorMin = new Vector2(0.28f, 0f);
+            goldRect.anchorMax = new Vector2(0.46f, 1f);
             goldRect.sizeDelta = Vector2.zero;
 
             HorizontalLayoutGroup goldLayout = goldObj.AddComponent<HorizontalLayoutGroup>();
@@ -358,8 +362,8 @@ namespace LottoDefense.Lobby
             ticketObj.transform.SetParent(parent, false);
 
             RectTransform ticketRect = ticketObj.AddComponent<RectTransform>();
-            ticketRect.anchorMin = new Vector2(0.42f, 0f);
-            ticketRect.anchorMax = new Vector2(0.58f, 1f);
+            ticketRect.anchorMin = new Vector2(0.46f, 0f);
+            ticketRect.anchorMax = new Vector2(0.60f, 1f);
             ticketRect.sizeDelta = Vector2.zero;
 
             HorizontalLayoutGroup ticketLayout = ticketObj.AddComponent<HorizontalLayoutGroup>();
@@ -398,7 +402,7 @@ namespace LottoDefense.Lobby
             rightObj.transform.SetParent(parent, false);
 
             RectTransform rightRect = rightObj.AddComponent<RectTransform>();
-            rightRect.anchorMin = new Vector2(0.58f, 0f);
+            rightRect.anchorMin = new Vector2(0.60f, 0f);
             rightRect.anchorMax = new Vector2(1f, 1f);
             rightRect.sizeDelta = Vector2.zero;
 
@@ -975,7 +979,7 @@ namespace LottoDefense.Lobby
             gridContentRect.sizeDelta = new Vector2(0, 300);
 
             GridLayoutGroup gridLayout = gridContent.AddComponent<GridLayoutGroup>();
-            gridLayout.cellSize = new Vector2(100, 100);
+            gridLayout.cellSize = new Vector2(100, 140);
             gridLayout.spacing = new Vector2(12, 12);
             gridLayout.padding = new RectOffset(12, 12, 12, 12);
             gridLayout.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
@@ -1001,6 +1005,9 @@ namespace LottoDefense.Lobby
             SetField(profileSelectionUI, "previewNicknameText", previewNicknameText);
 
             overlayObj.SetActive(false);
+
+            if (profileHeaderDisplay != null)
+                profileHeaderDisplay.SetProfileSelectionUI(profileSelectionUI);
         }
         #endregion
 

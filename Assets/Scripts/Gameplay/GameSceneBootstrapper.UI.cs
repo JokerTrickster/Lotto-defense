@@ -618,13 +618,11 @@ namespace LottoDefense.Gameplay
 
             CreateDivider(hudObj.transform);
 
-            // ---- Profile Header Row ----
-            GameObject profileHeaderRow = CreateProfileHeader(hudObj.transform);
-
-            CreateDivider(hudObj.transform);
-
-            // ---- Row 2: LIFE | GOLD | MONSTERS | UNITS ----
+            // ---- Row 2: PROFILE | LIFE | GOLD | MONSTERS | UNITS ----
             GameObject row2 = CreateHUDRow(hudObj.transform, "Row_Stats", 52);
+
+            CreateInlineProfileHeader(row2.transform);
+
             Text lifeText = CreateStatCard(row2.transform, "Life", "\u2665", "10",
                 GameSceneDesignTokens.LifeColor);
             Text goldText = CreateStatCard(row2.transform, "Gold", "\u2666", "30",
@@ -799,42 +797,18 @@ namespace LottoDefense.Gameplay
             divImg.raycastTarget = false;
         }
 
-        private GameObject CreateProfileHeader(Transform parent)
+        private void CreateInlineProfileHeader(Transform parent)
         {
-            GameObject profileRow = new GameObject("ProfileHeaderRow");
-            profileRow.transform.SetParent(parent, false);
-
-            RectTransform rect = profileRow.AddComponent<RectTransform>();
-            rect.sizeDelta = new Vector2(0, 54);
-
-            LayoutElement le = profileRow.AddComponent<LayoutElement>();
-            le.preferredHeight = 54;
-            le.minHeight = 54;
-
-            HorizontalLayoutGroup hlg = profileRow.AddComponent<HorizontalLayoutGroup>();
-            hlg.spacing = 8;
-            hlg.padding = new RectOffset(8, 8, 4, 4);
-            hlg.childForceExpandWidth = false;
-            hlg.childForceExpandHeight = true;
-            hlg.childControlWidth = false;
-            hlg.childControlHeight = true;
-            hlg.childAlignment = TextAnchor.MiddleLeft;
-
-            // Profile Button Container
-            GameObject profileContainer = new GameObject("ProfileContainer");
-            profileContainer.transform.SetParent(profileRow.transform, false);
-
-            RectTransform profileRect = profileContainer.AddComponent<RectTransform>();
-            profileRect.sizeDelta = new Vector2(200, 46);
+            GameObject profileContainer = new GameObject("ProfileInline");
+            profileContainer.transform.SetParent(parent, false);
 
             LayoutElement profileLE = profileContainer.AddComponent<LayoutElement>();
-            profileLE.preferredWidth = 200;
-            profileLE.minWidth = 200;
-            profileLE.preferredHeight = 46;
+            profileLE.preferredWidth = 140;
+            profileLE.minWidth = 100;
 
             Image profileBg = profileContainer.AddComponent<Image>();
             profileBg.color = new Color(0.96f, 0.93f, 0.88f, 0.85f);
-            ApplyRoundedSprite(profileBg, 12);
+            ApplyRoundedSprite(profileBg, 10);
 
             Button profileButton = profileContainer.AddComponent<Button>();
             ColorBlock colors = profileButton.colors;
@@ -843,35 +817,33 @@ namespace LottoDefense.Gameplay
             colors.pressedColor = new Color(0.9f, 0.87f, 0.82f, 1f);
             profileButton.colors = colors;
 
-            HorizontalLayoutGroup profileHLG = profileContainer.AddComponent<HorizontalLayoutGroup>();
-            profileHLG.spacing = 8;
-            profileHLG.padding = new RectOffset(6, 6, 3, 3);
-            profileHLG.childForceExpandWidth = false;
-            profileHLG.childForceExpandHeight = true;
-            profileHLG.childControlWidth = false;
-            profileHLG.childControlHeight = true;
-            profileHLG.childAlignment = TextAnchor.MiddleLeft;
+            HorizontalLayoutGroup hlg = profileContainer.AddComponent<HorizontalLayoutGroup>();
+            hlg.spacing = 4;
+            hlg.padding = new RectOffset(4, 4, 3, 3);
+            hlg.childForceExpandWidth = false;
+            hlg.childForceExpandHeight = true;
+            hlg.childControlWidth = false;
+            hlg.childControlHeight = true;
+            hlg.childAlignment = TextAnchor.MiddleLeft;
 
-            // Avatar border frame
+            // Avatar border
             GameObject avatarBorderObj = new GameObject("AvatarBorder");
             avatarBorderObj.transform.SetParent(profileContainer.transform, false);
-
             RectTransform avatarBorderRect = avatarBorderObj.AddComponent<RectTransform>();
-            avatarBorderRect.sizeDelta = new Vector2(40, 40);
+            avatarBorderRect.sizeDelta = new Vector2(36, 36);
 
             LayoutElement avatarBorderLE = avatarBorderObj.AddComponent<LayoutElement>();
-            avatarBorderLE.preferredWidth = 40;
-            avatarBorderLE.minWidth = 40;
-            avatarBorderLE.preferredHeight = 40;
+            avatarBorderLE.preferredWidth = 36;
+            avatarBorderLE.minWidth = 36;
+            avatarBorderLE.preferredHeight = 36;
 
             Image avatarBorderImage = avatarBorderObj.AddComponent<Image>();
             avatarBorderImage.color = Color.white;
-            ApplyRoundedSprite(avatarBorderImage, 8);
+            ApplyRoundedSprite(avatarBorderImage, 6);
 
             // Avatar icon
             GameObject avatarIconObj = new GameObject("AvatarIcon");
             avatarIconObj.transform.SetParent(avatarBorderObj.transform, false);
-
             RectTransform avatarIconRect = avatarIconObj.AddComponent<RectTransform>();
             avatarIconRect.anchorMin = new Vector2(0.1f, 0.1f);
             avatarIconRect.anchorMax = new Vector2(0.9f, 0.9f);
@@ -880,29 +852,28 @@ namespace LottoDefense.Gameplay
 
             Image avatarIcon = avatarIconObj.AddComponent<Image>();
             avatarIcon.sprite = UnitData.CreateCircleSprite(32);
-            avatarIcon.color = new Color(0.8f, 0.6f, 0.4f);
+            avatarIcon.color = Color.white;
             avatarIcon.raycastTarget = false;
 
             // Nickname text
             GameObject nicknameObj = new GameObject("NicknameText");
             nicknameObj.transform.SetParent(profileContainer.transform, false);
-
             LayoutElement nicknameLE = nicknameObj.AddComponent<LayoutElement>();
             nicknameLE.flexibleWidth = 1;
 
-            Text nicknameText = CreateText(nicknameObj, "Player", 20, CuteUIHelper.DarkText);
+            Text nicknameText = CreateText(nicknameObj, "Player", 18, CuteUIHelper.DarkText);
             nicknameText.alignment = TextAnchor.MiddleLeft;
             nicknameText.fontStyle = FontStyle.Bold;
             nicknameText.raycastTarget = false;
+            nicknameText.resizeTextForBestFit = true;
+            nicknameText.resizeTextMinSize = 12;
+            nicknameText.resizeTextMaxSize = 18;
 
-            // Add ProfileHeaderDisplay component
             ProfileHeaderDisplay profileDisplay = profileContainer.AddComponent<ProfileHeaderDisplay>();
             SetField(profileDisplay, "avatarImage", avatarIcon);
             SetField(profileDisplay, "borderImage", avatarBorderImage);
             SetField(profileDisplay, "nicknameText", nicknameText);
             SetField(profileDisplay, "profileButton", profileButton);
-
-            return profileRow;
         }
 
         private void EnsureProfileSelectionUI()
@@ -1179,7 +1150,7 @@ namespace LottoDefense.Gameplay
             gcRect.sizeDelta = new Vector2(0, 260);
 
             GridLayoutGroup gridLayout = gridContent.AddComponent<GridLayoutGroup>();
-            gridLayout.cellSize = new Vector2(90, 90);
+            gridLayout.cellSize = new Vector2(90, 130);
             gridLayout.spacing = new Vector2(10, 10);
             gridLayout.padding = new RectOffset(10, 10, 10, 10);
             gridLayout.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
@@ -1205,6 +1176,10 @@ namespace LottoDefense.Gameplay
             SetField(selUI, "previewNicknameText", previewNicknameText);
 
             overlayObj.SetActive(false);
+
+            ProfileHeaderDisplay headerDisplay = FindFirstObjectByType<ProfileHeaderDisplay>();
+            if (headerDisplay != null)
+                headerDisplay.SetProfileSelectionUI(selUI);
         }
         #endregion
 

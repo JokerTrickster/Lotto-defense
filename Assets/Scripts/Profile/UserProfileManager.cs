@@ -378,6 +378,7 @@ namespace LottoDefense.Profile
         /// </summary>
         public Sprite GetCurrentAvatarSprite()
         {
+            if (_currentProfile == null) return null;
             ProfileAvatarData avatarData = GetAvatarData(_currentProfile.selectedAvatarId);
             return avatarData?.avatarSprite;
         }
@@ -387,6 +388,7 @@ namespace LottoDefense.Profile
         /// </summary>
         public Color GetCurrentAvatarBorderColor()
         {
+            if (_currentProfile == null) return Color.white;
             ProfileAvatarData avatarData = GetAvatarData(_currentProfile.selectedAvatarId);
             return avatarData?.borderColor ?? Color.white;
         }

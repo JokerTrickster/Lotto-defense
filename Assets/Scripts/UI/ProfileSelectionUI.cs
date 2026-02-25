@@ -35,23 +35,10 @@ namespace LottoDefense.UI
         #region Private Fields
         private List<GameObject> _avatarButtons = new List<GameObject>();
         private string _pendingAvatarId;
+        private bool _listenersAttached;
         #endregion
 
         #region Unity Lifecycle
-        private void Start()
-        {
-            if (closeButton != null)
-                closeButton.onClick.AddListener(Hide);
-
-            if (saveNicknameButton != null)
-                saveNicknameButton.onClick.AddListener(OnSaveNicknameClicked);
-
-            if (nicknameInput != null)
-                nicknameInput.onValueChanged.AddListener(OnNicknameInputChanged);
-
-            panel?.SetActive(false);
-        }
-
         private void OnDestroy()
         {
             if (closeButton != null)
@@ -70,8 +57,24 @@ namespace LottoDefense.UI
         {
             if (panel == null) return;
 
+            EnsureListeners();
             panel.SetActive(true);
             RefreshUI();
+        }
+
+        private void EnsureListeners()
+        {
+            if (_listenersAttached) return;
+            _listenersAttached = true;
+
+            if (closeButton != null)
+                closeButton.onClick.AddListener(Hide);
+
+            if (saveNicknameButton != null)
+                saveNicknameButton.onClick.AddListener(OnSaveNicknameClicked);
+
+            if (nicknameInput != null)
+                nicknameInput.onValueChanged.AddListener(OnNicknameInputChanged);
         }
 
         public void Hide()
@@ -156,16 +159,14 @@ namespace LottoDefense.UI
             GameObject btnObj = new GameObject($"Avatar_{avatarData.avatarId}");
             btnObj.transform.SetParent(avatarGridContainer, false);
 
-            // Add RectTransform
             RectTransform rect = btnObj.AddComponent<RectTransform>();
-            rect.sizeDelta = new Vector2(100, 100);
+            rect.sizeDelta = new Vector2(100, 140);
 
-            // Add LayoutElement for grid
             LayoutElement le = btnObj.AddComponent<LayoutElement>();
             le.preferredWidth = 100;
-            le.preferredHeight = 100;
+            le.preferredHeight = 140;
             le.minWidth = 100;
-            le.minHeight = 100;
+            le.minHeight = 140;
 
             // Background image
             Image bgImage = btnObj.AddComponent<Image>();
@@ -173,27 +174,48 @@ namespace LottoDefense.UI
             bgImage.sprite = CuteUIHelper.GetRoundedRectSprite(12);
             bgImage.type = Image.Type.Sliced;
 
-            // Avatar icon
+            // Avatar icon (top portion)
             GameObject iconObj = new GameObject("Icon");
             iconObj.transform.SetParent(btnObj.transform, false);
             RectTransform iconRect = iconObj.AddComponent<RectTransform>();
-            iconRect.anchorMin = new Vector2(0.1f, 0.1f);
-            iconRect.anchorMax = new Vector2(0.9f, 0.9f);
+            iconRect.anchorMin = new Vector2(0.1f, 0.3f);
+            iconRect.anchorMax = new Vector2(0.9f, 0.95f);
             iconRect.offsetMin = Vector2.zero;
             iconRect.offsetMax = Vector2.zero;
 
             Image iconImage = iconObj.AddComponent<Image>();
             iconImage.sprite = avatarData.avatarSprite;
+            iconImage.color = Color.white;
             iconImage.raycastTarget = false;
 
-            // Lock overlay if not unlocked
+            // Avatar name text (bottom portion)
+            GameObject nameObj = new GameObject("Name");
+            nameObj.transform.SetParent(btnObj.transform, false);
+            RectTransform nameRect = nameObj.AddComponent<RectTransform>();
+            nameRect.anchorMin = new Vector2(0f, 0f);
+            nameRect.anchorMax = new Vector2(1f, 0.28f);
+            nameRect.offsetMin = new Vector2(4, 2);
+            nameRect.offsetMax = new Vector2(-4, 0);
+
+            Text nameText = nameObj.AddComponent<Text>();
+            nameText.text = avatarData.avatarName;
+            nameText.font = GameFont.Get();
+            nameText.fontSize = 16;
+            nameText.color = Color.white;
+            nameText.alignment = TextAnchor.MiddleCenter;
+            nameText.raycastTarget = false;
+            nameText.resizeTextForBestFit = true;
+            nameText.resizeTextMinSize = 10;
+            nameText.resizeTextMaxSize = 16;
+
             bool isUnlocked = UserProfileManager.Instance.CurrentProfile.HasUnlockedAvatar(avatarData.avatarId);
             if (!isUnlocked)
             {
+                // Dark overlay on icon area
                 GameObject lockObj = new GameObject("Lock");
                 lockObj.transform.SetParent(btnObj.transform, false);
                 RectTransform lockRect = lockObj.AddComponent<RectTransform>();
-                lockRect.anchorMin = Vector2.zero;
+                lockRect.anchorMin = new Vector2(0f, 0.28f);
                 lockRect.anchorMax = Vector2.one;
                 lockRect.offsetMin = Vector2.zero;
                 lockRect.offsetMax = Vector2.zero;
@@ -201,32 +223,36 @@ namespace LottoDefense.UI
                 Image lockBg = lockObj.AddComponent<Image>();
                 lockBg.color = new Color(0, 0, 0, 0.7f);
 
-                GameObject lockTextObj = new GameObject("LockText");
-                lockTextObj.transform.SetParent(lockObj.transform, false);
-                RectTransform lockTextRect = lockTextObj.AddComponent<RectTransform>();
-                lockTextRect.anchorMin = Vector2.zero;
-                lockTextRect.anchorMax = Vector2.one;
-                lockTextRect.offsetMin = Vector2.zero;
-                lockTextRect.offsetMax = Vector2.zero;
+                GameObject lockIconObj = new GameObject("LockIcon");
+                lockIconObj.transform.SetParent(lockObj.transform, false);
+                RectTransform lockIconRect = lockIconObj.AddComponent<RectTransform>();
+                lockIconRect.anchorMin = new Vector2(0.2f, 0.4f);
+                lockIconRect.anchorMax = new Vector2(0.8f, 0.85f);
+                lockIconRect.offsetMin = Vector2.zero;
+                lockIconRect.offsetMax = Vector2.zero;
 
-                Text lockText = lockTextObj.AddComponent<Text>();
-                lockText.text = "🔒";
-                lockText.fontSize = 32;
-                lockText.color = Color.white;
-                lockText.alignment = TextAnchor.MiddleCenter;
-                lockText.font = GameFont.Get();
+                Text lockIcon = lockIconObj.AddComponent<Text>();
+                lockIcon.text = "잠김";
+                lockIcon.font = GameFont.Get();
+                lockIcon.fontSize = 20;
+                lockIcon.color = Color.white;
+                lockIcon.alignment = TextAnchor.MiddleCenter;
+
+                // Unlock hint below lock icon
+                string hint = !string.IsNullOrEmpty(avatarData.unlockHint) ? avatarData.unlockHint : "히든 퀘스트";
+                nameText.text = hint;
+                nameText.color = new Color(1f, 0.8f, 0.5f);
             }
 
-            // Selection indicator (highlight border)
+            // Selection indicator
             bool isSelected = UserProfileManager.Instance.SelectedAvatarId == avatarData.avatarId;
             if (isSelected)
             {
                 Outline outline = btnObj.AddComponent<Outline>();
-                outline.effectColor = new Color(1f, 0.84f, 0f, 1f); // Gold
+                outline.effectColor = new Color(1f, 0.84f, 0f, 1f);
                 outline.effectDistance = new Vector2(4, -4);
             }
 
-            // Button component
             Button button = btnObj.AddComponent<Button>();
             button.interactable = isUnlocked;
 

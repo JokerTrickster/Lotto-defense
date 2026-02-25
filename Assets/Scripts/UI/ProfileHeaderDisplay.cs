@@ -109,20 +109,25 @@ namespace LottoDefense.UI
 
         private void OnProfileButtonClicked()
         {
-            // Find and open ProfileSelectionUI
-            ProfileSelectionUI profileUI = FindFirstObjectByType<ProfileSelectionUI>();
-            if (profileUI != null)
+            if (_profileSelectionUI != null)
             {
-                profileUI.Show();
+                _profileSelectionUI.Show();
             }
             else
             {
-                Debug.LogWarning("[ProfileHeaderDisplay] ProfileSelectionUI not found in scene");
+                Debug.LogWarning("[ProfileHeaderDisplay] ProfileSelectionUI not assigned");
             }
         }
         #endregion
 
         #region Public API
+        private ProfileSelectionUI _profileSelectionUI;
+
+        public void SetProfileSelectionUI(ProfileSelectionUI ui)
+        {
+            _profileSelectionUI = ui;
+        }
+
         /// <summary>
         /// Set avatar sprite directly (for custom scenarios).
         /// </summary>
