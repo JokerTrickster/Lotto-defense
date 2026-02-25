@@ -9,6 +9,7 @@ using LottoDefense.Combat;
 using LottoDefense.VFX;
 using LottoDefense.Quests;
 using LottoDefense.Networking;
+using LottoDefense.Profile;
 using UnityEngine.EventSystems;
 
 namespace LottoDefense.Gameplay
@@ -44,6 +45,7 @@ namespace LottoDefense.Gameplay
             EnsureSynthesisManager();
             EnsureCombatManager();
             EnsureVFXManager();
+            EnsureProfileManagers();
 
             EnsureCountdownUI();
             EnsureRoundStartUI();
@@ -238,6 +240,21 @@ namespace LottoDefense.Gameplay
                 obj.AddComponent<LottoDefense.VFX.VFXManager>();
             }
         }
+
+        private void EnsureProfileManagers()
+        {
+            // Initialize UserProfileManager (loads profile from save)
+            if (UserProfileManager.Instance == null)
+            {
+                Debug.LogWarning("[GameSceneBootstrapper] UserProfileManager not initialized");
+            }
+
+            // Initialize ProfileUnlockManager (listens for quest completions)
+            if (ProfileUnlockManager.Instance == null)
+            {
+                Debug.LogWarning("[GameSceneBootstrapper] ProfileUnlockManager not initialized");
+            }
+        }
         #endregion
 
         #region Game Balance Config
@@ -314,7 +331,12 @@ namespace LottoDefense.Gameplay
         {
             var field = target.GetType().GetField(fieldName,
                 System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            field?.SetValue(target, value);
+            if (field == null)
+            {
+                Debug.LogError($"[GameSceneBootstrapper] SetField failed: field '{fieldName}' not found on {target.GetType().Name}");
+                return;
+            }
+            field.SetValue(target, value);
         }
         #endregion
     }

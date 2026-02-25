@@ -35,6 +35,10 @@ namespace LottoDefense.Backend.Models
         public string email;
         public string created_at;
         public string last_login;
+
+        // Profile fields
+        public string nickname;
+        public string avatar_id;
     }
 
     [Serializable]

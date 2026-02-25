@@ -4,6 +4,7 @@ using LottoDefense.UI;
 using LottoDefense.Units;
 using LottoDefense.Quests;
 using LottoDefense.Networking;
+using LottoDefense.Profile;
 
 namespace LottoDefense.Gameplay
 {
@@ -201,30 +202,6 @@ namespace LottoDefense.Gameplay
 
             selectionPanelObj.SetActive(false);
 
-        }
-
-        private Text CreateInfoStatText(Transform parent, string placeholder)
-        {
-            GameObject obj = new GameObject($"Info_{placeholder}");
-            obj.transform.SetParent(parent, false);
-
-            RectTransform rect = obj.AddComponent<RectTransform>();
-            rect.anchorMin = Vector2.zero;
-            rect.anchorMax = Vector2.one;
-            rect.offsetMin = Vector2.zero;
-            rect.offsetMax = Vector2.zero;
-
-            Text t = CreateText(obj, placeholder, GameSceneDesignTokens.UnitInfoDetailSize, CuteUIHelper.DarkText);
-            t.alignment = TextAnchor.MiddleLeft;
-            t.fontStyle = FontStyle.Bold;
-            t.supportRichText = true;
-            t.resizeTextForBestFit = true;
-            t.resizeTextMinSize = 16;
-            t.resizeTextMaxSize = GameSceneDesignTokens.UnitInfoDetailSize;
-            t.horizontalOverflow = HorizontalWrapMode.Overflow;
-            t.verticalOverflow = VerticalWrapMode.Overflow;
-
-            return t;
         }
 
         private GameObject CreateStatGridRow(Transform parent, string name, float height)
@@ -641,6 +618,11 @@ namespace LottoDefense.Gameplay
 
             CreateDivider(hudObj.transform);
 
+            // ---- Profile Header Row ----
+            GameObject profileHeaderRow = CreateProfileHeader(hudObj.transform);
+
+            CreateDivider(hudObj.transform);
+
             // ---- Row 2: LIFE | GOLD | MONSTERS | UNITS ----
             GameObject row2 = CreateHUDRow(hudObj.transform, "Row_Stats", 52);
             Text lifeText = CreateStatCard(row2.transform, "Life", "\u2665", "10",
@@ -815,6 +797,112 @@ namespace LottoDefense.Gameplay
             Image divImg = divider.AddComponent<Image>();
             divImg.color = GameSceneDesignTokens.HudBorder;
             divImg.raycastTarget = false;
+        }
+
+        private GameObject CreateProfileHeader(Transform parent)
+        {
+            GameObject profileRow = new GameObject("ProfileHeaderRow");
+            profileRow.transform.SetParent(parent, false);
+
+            RectTransform rect = profileRow.AddComponent<RectTransform>();
+            rect.sizeDelta = new Vector2(0, 54);
+
+            LayoutElement le = profileRow.AddComponent<LayoutElement>();
+            le.preferredHeight = 54;
+            le.minHeight = 54;
+
+            HorizontalLayoutGroup hlg = profileRow.AddComponent<HorizontalLayoutGroup>();
+            hlg.spacing = 8;
+            hlg.padding = new RectOffset(8, 8, 4, 4);
+            hlg.childForceExpandWidth = false;
+            hlg.childForceExpandHeight = true;
+            hlg.childControlWidth = false;
+            hlg.childControlHeight = true;
+            hlg.childAlignment = TextAnchor.MiddleLeft;
+
+            // Profile Button Container
+            GameObject profileContainer = new GameObject("ProfileContainer");
+            profileContainer.transform.SetParent(profileRow.transform, false);
+
+            RectTransform profileRect = profileContainer.AddComponent<RectTransform>();
+            profileRect.sizeDelta = new Vector2(200, 46);
+
+            LayoutElement profileLE = profileContainer.AddComponent<LayoutElement>();
+            profileLE.preferredWidth = 200;
+            profileLE.minWidth = 200;
+            profileLE.preferredHeight = 46;
+
+            Image profileBg = profileContainer.AddComponent<Image>();
+            profileBg.color = new Color(0.96f, 0.93f, 0.88f, 0.85f);
+            ApplyRoundedSprite(profileBg, 12);
+
+            Button profileButton = profileContainer.AddComponent<Button>();
+            ColorBlock colors = profileButton.colors;
+            colors.normalColor = Color.white;
+            colors.highlightedColor = new Color(1f, 0.98f, 0.95f, 1f);
+            colors.pressedColor = new Color(0.9f, 0.87f, 0.82f, 1f);
+            profileButton.colors = colors;
+
+            HorizontalLayoutGroup profileHLG = profileContainer.AddComponent<HorizontalLayoutGroup>();
+            profileHLG.spacing = 8;
+            profileHLG.padding = new RectOffset(6, 6, 3, 3);
+            profileHLG.childForceExpandWidth = false;
+            profileHLG.childForceExpandHeight = true;
+            profileHLG.childControlWidth = false;
+            profileHLG.childControlHeight = true;
+            profileHLG.childAlignment = TextAnchor.MiddleLeft;
+
+            // Avatar border frame
+            GameObject avatarBorderObj = new GameObject("AvatarBorder");
+            avatarBorderObj.transform.SetParent(profileContainer.transform, false);
+
+            RectTransform avatarBorderRect = avatarBorderObj.AddComponent<RectTransform>();
+            avatarBorderRect.sizeDelta = new Vector2(40, 40);
+
+            LayoutElement avatarBorderLE = avatarBorderObj.AddComponent<LayoutElement>();
+            avatarBorderLE.preferredWidth = 40;
+            avatarBorderLE.minWidth = 40;
+            avatarBorderLE.preferredHeight = 40;
+
+            Image avatarBorderImage = avatarBorderObj.AddComponent<Image>();
+            avatarBorderImage.color = Color.white;
+            ApplyRoundedSprite(avatarBorderImage, 8);
+
+            // Avatar icon
+            GameObject avatarIconObj = new GameObject("AvatarIcon");
+            avatarIconObj.transform.SetParent(avatarBorderObj.transform, false);
+
+            RectTransform avatarIconRect = avatarIconObj.AddComponent<RectTransform>();
+            avatarIconRect.anchorMin = new Vector2(0.1f, 0.1f);
+            avatarIconRect.anchorMax = new Vector2(0.9f, 0.9f);
+            avatarIconRect.offsetMin = Vector2.zero;
+            avatarIconRect.offsetMax = Vector2.zero;
+
+            Image avatarIcon = avatarIconObj.AddComponent<Image>();
+            avatarIcon.sprite = UnitData.CreateCircleSprite(32);
+            avatarIcon.color = new Color(0.8f, 0.6f, 0.4f);
+            avatarIcon.raycastTarget = false;
+
+            // Nickname text
+            GameObject nicknameObj = new GameObject("NicknameText");
+            nicknameObj.transform.SetParent(profileContainer.transform, false);
+
+            LayoutElement nicknameLE = nicknameObj.AddComponent<LayoutElement>();
+            nicknameLE.flexibleWidth = 1;
+
+            Text nicknameText = CreateText(nicknameObj, "Player", 20, CuteUIHelper.DarkText);
+            nicknameText.alignment = TextAnchor.MiddleLeft;
+            nicknameText.fontStyle = FontStyle.Bold;
+            nicknameText.raycastTarget = false;
+
+            // Add ProfileHeaderDisplay component
+            ProfileHeaderDisplay profileDisplay = profileContainer.AddComponent<ProfileHeaderDisplay>();
+            SetField(profileDisplay, "avatarImage", avatarIcon);
+            SetField(profileDisplay, "borderImage", avatarBorderImage);
+            SetField(profileDisplay, "nicknameText", nicknameText);
+            SetField(profileDisplay, "profileButton", profileButton);
+
+            return profileRow;
         }
         #endregion
 
