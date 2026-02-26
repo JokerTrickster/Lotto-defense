@@ -159,6 +159,15 @@ namespace LottoDefense.Gameplay
             }
         }
 
+        private void OnDestroy()
+        {
+            // 협동 플레이 동기화 중지
+            if (Networking.CoopStateSync.Instance != null)
+            {
+                Networking.CoopStateSync.Instance.StopSync();
+            }
+        }
+
         /// <summary>
         /// Ensures all required game systems exist and are properly configured.
         /// Creates GameSceneBootstrapper if it doesn't exist.
@@ -209,6 +218,25 @@ namespace LottoDefense.Gameplay
         {
             CurrentDifficulty = difficulty;
             Debug.Log($"[GameplayManager] Difficulty set to: {difficulty}");
+        }
+
+        /// <summary>
+        /// 협동 플레이 게임 시작 (난이도 + 방 ID)
+        /// </summary>
+        public void StartCoopGame(uint roomID, GameDifficulty difficulty, Backend.APIClient apiClient)
+        {
+            SetDifficulty(difficulty);
+            
+            // 협동 플레이 동기화 시작
+            if (Networking.CoopStateSync.Instance != null)
+            {
+                Networking.CoopStateSync.Instance.StartSync(roomID, apiClient);
+                Debug.Log($"[GameplayManager] Coop game started - Room: {roomID}, Difficulty: {difficulty}");
+            }
+            else
+            {
+                Debug.LogError("[GameplayManager] CoopStateSync instance not found!");
+            }
         }
         #endregion
 

@@ -312,6 +312,18 @@ namespace LottoDefense.Gameplay
         }
         #endregion
 
+        #region Opponent Status UI
+        private void EnsureOpponentStatusUI()
+        {
+            if (FindFirstObjectByType<LottoDefense.UI.OpponentStatusUI>() == null)
+            {
+                GameObject opponentUIObj = new GameObject("OpponentStatusUI");
+                opponentUIObj.AddComponent<LottoDefense.UI.OpponentStatusUI>();
+                Debug.Log("[GameSceneBootstrapper] OpponentStatusUI created");
+            }
+        }
+        #endregion
+
         #region Utilities
         private Text CreateText(GameObject obj, string text, int fontSize, Color color)
         {
