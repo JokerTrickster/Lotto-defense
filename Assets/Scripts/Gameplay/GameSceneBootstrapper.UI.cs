@@ -1664,18 +1664,5 @@ namespace LottoDefense.Gameplay
             speedObj.AddComponent<GameSpeedButton>();
         }
         #endregion
-
-        #region Opponent Status UI (Multiplayer)
-        private void EnsureOpponentStatusUI()
-        {
-            if (MultiplayerManager.Instance == null || !MultiplayerManager.Instance.IsMultiplayer)
-                return;
-
-            if (FindFirstObjectByType<OpponentStatusUI>() != null)
-                return;
-
-            OpponentStatusUI.CreateOnCanvas(mainCanvas, defaultFont);
-        }
-        #endregion
     }
 }

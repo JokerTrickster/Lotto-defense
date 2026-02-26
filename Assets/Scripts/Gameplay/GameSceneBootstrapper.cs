@@ -315,6 +315,9 @@ namespace LottoDefense.Gameplay
         #region Opponent Status UI
         private void EnsureOpponentStatusUI()
         {
+            if (MultiplayerManager.Instance == null || !MultiplayerManager.Instance.IsMultiplayer)
+                return;
+
             if (FindFirstObjectByType<LottoDefense.UI.OpponentStatusUI>() == null)
             {
                 GameObject opponentUIObj = new GameObject("OpponentStatusUI");
