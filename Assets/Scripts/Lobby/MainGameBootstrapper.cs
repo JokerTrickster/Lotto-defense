@@ -710,7 +710,7 @@ namespace LottoDefense.Lobby
             panelVLG.padding = new RectOffset(8, 8, 12, 12);
             panelVLG.spacing = 8;
             panelVLG.childControlWidth = true;
-            panelVLG.childControlHeight = false;
+            panelVLG.childControlHeight = true;
             panelVLG.childForceExpandWidth = true;
             panelVLG.childForceExpandHeight = false;
 
@@ -719,6 +719,7 @@ namespace LottoDefense.Lobby
             titleRow.transform.SetParent(panelObj.transform, false);
             LayoutElement titleLE = titleRow.AddComponent<LayoutElement>();
             titleLE.preferredHeight = 44;
+            titleLE.flexibleHeight = 0;
 
             Text titleText = CreateText(titleRow, "프로필 선택", LobbyDesignTokens.HeaderSize, LobbyDesignTokens.TextPrimary);
             titleText.alignment = TextAnchor.MiddleCenter;

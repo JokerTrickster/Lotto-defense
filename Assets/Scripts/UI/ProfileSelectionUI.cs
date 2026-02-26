@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using System.Collections;
 using System.Collections.Generic;
 using LottoDefense.Profile;
 
@@ -59,6 +60,12 @@ namespace LottoDefense.UI
 
             EnsureListeners();
             panel.SetActive(true);
+            StartCoroutine(ShowAfterLayout());
+        }
+
+        private IEnumerator ShowAfterLayout()
+        {
+            yield return null;
             RefreshUI();
         }
 
@@ -142,13 +149,36 @@ namespace LottoDefense.UI
             GridLayoutGroup grid = avatarGridContainer.GetComponent<GridLayoutGroup>();
             if (grid == null) return;
 
+            // Force layout rebuild before reading sizes. Panel was just activated;
+            // layout may not have run yet, so rect.width can be 0 or wrong.
+            if (panel != null)
+            {
+                RectTransform panelRect = panel.GetComponent<RectTransform>();
+                if (panelRect != null)
+                    LayoutRebuilder.ForceRebuildLayoutImmediate(panelRect);
+            }
             Canvas.ForceUpdateCanvases();
-            float containerWidth = ((RectTransform)avatarGridContainer).rect.width;
-            if (containerWidth <= 0) return;
 
+            float containerWidth = ((RectTransform)avatarGridContainer).rect.width;
+            // Fallback: use viewport width if content width is invalid (layout not ready)
+            if (containerWidth <= 0)
+            {
+                ScrollRect scroll = avatarGridContainer.GetComponentInParent<ScrollRect>();
+                if (scroll != null)
+                {
+                    RectTransform viewport = scroll.viewport != null ? scroll.viewport : scroll.GetComponent<RectTransform>();
+                    if (viewport != null)
+                        containerWidth = viewport.rect.width;
+                }
+            }
+            // Minimum fallback to avoid tiny cells when layout returns bad values
+            const float minUsableWidth = 200f;
             int cols = grid.constraintCount > 0 ? grid.constraintCount : 4;
             float usable = containerWidth - grid.padding.left - grid.padding.right
                            - grid.spacing.x * (cols - 1);
+            if (usable < minUsableWidth)
+                usable = minUsableWidth;
+
             float cellW = Mathf.Floor(usable / cols);
             float cellH = Mathf.Floor(cellW * 1.55f);
             grid.cellSize = new Vector2(cellW, cellH);
