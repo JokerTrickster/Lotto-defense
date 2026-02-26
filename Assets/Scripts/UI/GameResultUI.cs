@@ -327,7 +327,8 @@ namespace LottoDefense.UI
         /// </summary>
         private void SetupPlayerProfiles()
         {
-            UserProfile currentProfile = UserProfileManager.Instance?.CurrentProfile;
+            UserProfileManager profileManager = UserProfileManager.Instance;
+            if (profileManager == null) return;
 
             if (isCoopMode && coopProfileContainer != null)
             {
@@ -336,19 +337,20 @@ namespace LottoDefense.UI
                     profileContainer.SetActive(false);
                 coopProfileContainer.SetActive(true);
 
-                // Player 1 profile
-                if (currentProfile != null)
-                {
-                    if (player1Avatar != null && currentProfile.CurrentAvatar != null)
-                        player1Avatar.sprite = currentProfile.CurrentAvatar;
-                    if (player1Nickname != null)
-                        player1Nickname.text = currentProfile.Nickname;
-                }
+                // Player 1 profile - use current user's profile
+                Sprite avatarSprite = profileManager.GetCurrentAvatarSprite();
+                if (player1Avatar != null && avatarSprite != null)
+                    player1Avatar.sprite = avatarSprite;
+                if (player1Nickname != null)
+                    player1Nickname.text = profileManager.Nickname;
 
                 // Player 2 profile (guest or second player)
                 if (player2Avatar != null)
                 {
                     // Use default avatar for player 2
+                    var defaultAvatar = profileManager.GetAvatarData("avatar_default");
+                    if (defaultAvatar != null && defaultAvatar.avatarSprite != null)
+                        player2Avatar.sprite = defaultAvatar.avatarSprite;
                 }
                 if (player2Nickname != null)
                     player2Nickname.text = "Player 2";
@@ -360,14 +362,17 @@ namespace LottoDefense.UI
                 if (coopProfileContainer != null)
                     coopProfileContainer.SetActive(false);
 
-                if (currentProfile != null)
+                // Set current user's profile
+                Sprite avatarSprite = profileManager.GetCurrentAvatarSprite();
+                if (playerAvatar != null && avatarSprite != null)
+                    playerAvatar.sprite = avatarSprite;
+                if (playerNickname != null)
+                    playerNickname.text = profileManager.Nickname;
+                if (playerLevel != null)
                 {
-                    if (playerAvatar != null && currentProfile.CurrentAvatar != null)
-                        playerAvatar.sprite = currentProfile.CurrentAvatar;
-                    if (playerNickname != null)
-                        playerNickname.text = currentProfile.Nickname;
-                    if (playerLevel != null)
-                        playerLevel.text = $"Lv. {currentProfile.Level}";
+                    // Level is not stored in UserProfile, so we'll use rounds reached as level
+                    int level = GameplayManager.Instance != null ? GameplayManager.Instance.CurrentRound : 1;
+                    playerLevel.text = $"Lv. {level}";
                 }
             }
         }
