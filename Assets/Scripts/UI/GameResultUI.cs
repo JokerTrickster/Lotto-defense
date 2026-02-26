@@ -170,6 +170,9 @@ namespace LottoDefense.UI
             int goldReward = LobbyDataManager.GetGameResultGold(roundReached, diff);
             LobbyDataManager.GrantGameRewards(roundReached, synthesisCount, upgradeCount, diff);
 
+            if (isVictory)
+                LobbyDataManager.RecordDifficultyCleared(diff);
+
             if (rewardText != null)
             {
                 rewardText.text = $"보상: +{goldReward} 골드";

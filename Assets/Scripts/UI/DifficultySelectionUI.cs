@@ -1,8 +1,8 @@
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.SceneManagement;
 using System;
 using LottoDefense.Gameplay;
+using LottoDefense.Lobby;
 
 namespace LottoDefense.UI
 {
@@ -112,6 +112,8 @@ namespace LottoDefense.UI
 
         private void CreateDifficultyButton(GameDifficulty difficulty, Color color, Font font)
         {
+            bool isUnlocked = LobbyDataManager.IsDifficultyUnlocked(difficulty);
+
             GameObject btnObj = new GameObject($"{difficulty}Button");
             btnObj.transform.SetParent(popupPanel.transform, false);
 
@@ -119,7 +121,7 @@ namespace LottoDefense.UI
             le.preferredHeight = 88;
 
             Image btnImage = btnObj.AddComponent<Image>();
-            btnImage.color = color;
+            btnImage.color = isUnlocked ? color : new Color(0.65f, 0.63f, 0.6f);
             Sprite btnRounded = CuteUIHelper.GetRoundedRectSprite(16);
             if (btnRounded != null)
             {
@@ -132,10 +134,12 @@ namespace LottoDefense.UI
             btnShadow.effectDistance = new Vector2(2, -3);
 
             Button btn = btnObj.AddComponent<Button>();
+            btn.interactable = isUnlocked;
             ColorBlock colors = btn.colors;
             colors.normalColor = Color.white;
             colors.highlightedColor = new Color(1f, 0.98f, 0.95f);
             colors.pressedColor = new Color(0.85f, 0.82f, 0.78f);
+            colors.disabledColor = new Color(0.8f, 0.8f, 0.8f, 1f);
             colors.fadeDuration = 0.08f;
             btn.colors = colors;
             btn.onClick.AddListener(() => OnDifficultyClicked(difficulty));
@@ -150,15 +154,24 @@ namespace LottoDefense.UI
             textRect.offsetMax = new Vector2(-16, -8);
 
             Text text = textObj.AddComponent<Text>();
-            text.text = GetDifficultyDescription(difficulty);
             text.font = font;
             text.fontSize = 36;
-            text.color = CuteUIHelper.DarkText;
             text.alignment = TextAnchor.MiddleCenter;
             text.fontStyle = FontStyle.Bold;
             text.resizeTextForBestFit = true;
-            text.resizeTextMinSize = 20;
+            text.resizeTextMinSize = 18;
             text.resizeTextMaxSize = 36;
+
+            if (isUnlocked)
+            {
+                text.text = GetDifficultyDescription(difficulty);
+                text.color = CuteUIHelper.DarkText;
+            }
+            else
+            {
+                text.text = GetLockedDescription(difficulty);
+                text.color = new Color(0.55f, 0.53f, 0.5f);
+            }
         }
 
         private void CreateCancelButton(Font font)
@@ -224,6 +237,19 @@ namespace LottoDefense.UI
                     return "매우 어려움\n체력 +100%, 방어력 +50%";
                 default:
                     return "보통";
+            }
+        }
+
+        private string GetLockedDescription(GameDifficulty difficulty)
+        {
+            switch (difficulty)
+            {
+                case GameDifficulty.Hard:
+                    return "어려움\n🔒 보통 클리어 시 해금";
+                case GameDifficulty.VeryHard:
+                    return "매우 어려움\n🔒 어려움 클리어 시 해금";
+                default:
+                    return "잠김";
             }
         }
 

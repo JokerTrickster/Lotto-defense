@@ -58,6 +58,7 @@ namespace LottoDefense.Lobby
         private const string KEY_DAILY_CLEAR_COUNT = "daily_clear_count";
         private const string KEY_DAILY_CLAIMED_STAGES = "daily_claimed_stages";
         private const string KEY_DAILY_RESET_DATE = "daily_reset_date";
+        private const string KEY_HIGHEST_CLEARED_DIFFICULTY = "highest_cleared_difficulty";
 
         private const int INITIAL_GOLD = 0;
         private const int INITIAL_TICKETS = 5;
@@ -326,6 +327,30 @@ namespace LottoDefense.Lobby
             PlayerPrefs.SetInt($"mail_claimed_{mailId}", claimed ? 1 : 0);
             PlayerPrefs.Save();
             OnDataChanged?.Invoke();
+        }
+        #endregion
+
+        #region Difficulty Unlock
+        public static int GetHighestClearedDifficulty()
+        {
+            return PlayerPrefs.GetInt(KEY_HIGHEST_CLEARED_DIFFICULTY, -1);
+        }
+
+        public static bool IsDifficultyUnlocked(GameDifficulty difficulty)
+        {
+            if (difficulty == GameDifficulty.Normal) return true;
+            return (int)difficulty <= GetHighestClearedDifficulty() + 1;
+        }
+
+        public static void RecordDifficultyCleared(GameDifficulty difficulty)
+        {
+            int current = GetHighestClearedDifficulty();
+            if ((int)difficulty > current)
+            {
+                PlayerPrefs.SetInt(KEY_HIGHEST_CLEARED_DIFFICULTY, (int)difficulty);
+                PlayerPrefs.Save();
+                Debug.Log($"[LobbyDataManager] Difficulty cleared: {difficulty} (highest: {(int)difficulty})");
+            }
         }
         #endregion
 
