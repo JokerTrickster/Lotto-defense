@@ -136,7 +136,7 @@ namespace LottoDefense.Networking
                 round = GameplayManager.Instance.CurrentRound,
                 hp = GameplayManager.Instance.CurrentLife,
                 gold = GameplayManager.Instance.CurrentGold,
-                kills = MonsterManager.Instance != null ? MonsterManager.Instance.TotalKills : 0,
+                kills = MonsterManager.Instance != null ? MonsterManager.Instance.TotalMonstersKilled : 0,
                 timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
             };
 

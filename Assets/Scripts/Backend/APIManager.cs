@@ -49,6 +49,7 @@ namespace LottoDefense.Backend
 
         public bool IsLoggedIn => _client.IsAuthenticated;
         public string Username { get; private set; }
+        public APIClient Client => _client;
         #endregion
 
         #region Token Management
