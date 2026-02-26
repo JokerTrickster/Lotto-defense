@@ -775,7 +775,7 @@ namespace LottoDefense.Lobby
             gridContentRect.sizeDelta = new Vector2(0, 300);
 
             GridLayoutGroup gridLayout = gridContent.AddComponent<GridLayoutGroup>();
-            gridLayout.cellSize = new Vector2(100, 130);
+            gridLayout.cellSize = new Vector2(100, 155);
             gridLayout.spacing = new Vector2(8, 8);
             gridLayout.padding = new RectOffset(4, 4, 6, 6);
             gridLayout.constraint = GridLayoutGroup.Constraint.FixedColumnCount;

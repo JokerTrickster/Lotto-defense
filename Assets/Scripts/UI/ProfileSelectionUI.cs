@@ -150,7 +150,7 @@ namespace LottoDefense.UI
             float usable = containerWidth - grid.padding.left - grid.padding.right
                            - grid.spacing.x * (cols - 1);
             float cellW = Mathf.Floor(usable / cols);
-            float cellH = Mathf.Floor(cellW * 1.3f);
+            float cellH = Mathf.Floor(cellW * 1.55f);
             grid.cellSize = new Vector2(cellW, cellH);
         }
 
@@ -197,14 +197,15 @@ namespace LottoDefense.UI
             GameObject iconObj = new GameObject("Icon");
             iconObj.transform.SetParent(btnObj.transform, false);
             RectTransform iconRect = iconObj.AddComponent<RectTransform>();
-            float iconBottom = isUnlocked ? 0.3f : 0.4f;
+            float iconBottom = isUnlocked ? 0.25f : 0.35f;
             iconRect.anchorMin = new Vector2(0.1f, iconBottom);
-            iconRect.anchorMax = new Vector2(0.9f, 0.95f);
+            iconRect.anchorMax = new Vector2(0.9f, 0.92f);
             iconRect.offsetMin = Vector2.zero;
             iconRect.offsetMax = Vector2.zero;
 
             Image iconImage = iconObj.AddComponent<Image>();
             iconImage.sprite = avatarData.avatarSprite;
+            iconImage.preserveAspect = true;
             iconImage.color = isUnlocked ? Color.white : new Color(0.4f, 0.4f, 0.4f);
             iconImage.raycastTarget = false;
 
