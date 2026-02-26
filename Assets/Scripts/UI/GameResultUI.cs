@@ -5,12 +5,14 @@ using LottoDefense.Gameplay;
 using LottoDefense.Networking;
 using LottoDefense.Lobby;
 using LottoDefense.Units;
+using LottoDefense.Profile;
+using LottoDefense.Multiplayer;
 
 namespace LottoDefense.UI
 {
     /// <summary>
     /// Displays game result screen (Victory or Defeat) with stats and options.
-    /// Shows round reached, contribution score, and provides button to return to main menu.
+    /// Shows round reached, contribution score, player profiles, and provides button to return to main menu.
     /// </summary>
     public class GameResultUI : MonoBehaviour
     {
@@ -24,11 +26,37 @@ namespace LottoDefense.UI
         [SerializeField] private Button confirmButton;
         [SerializeField] private Text confirmButtonText;
         [SerializeField] private Text rewardText;
+
+        [Header("Player Profile Display")]
+        [SerializeField] private GameObject profileContainer;
+        [SerializeField] private Image playerAvatar;
+        [SerializeField] private Text playerNickname;
+        [SerializeField] private Text playerLevel;
+
+        [Header("Coop Profiles")]
+        [SerializeField] private GameObject coopProfileContainer;
+        [SerializeField] private Image player1Avatar;
+        [SerializeField] private Text player1Nickname;
+        [SerializeField] private Image player2Avatar;
+        [SerializeField] private Text player2Nickname;
+        [SerializeField] private GameObject mvpIndicator;
+
+        [Header("Statistics")]
+        [SerializeField] private Text enemiesDefeatedText;
+        [SerializeField] private Text unitsPlacedText;
+        [SerializeField] private Text survivalTimeText;
+        [SerializeField] private Text accuracyText;
         #endregion
 
         #region Private Fields
         private bool isShowing = false;
         private MatchResultPayload multiplayerResult;
+        private bool isCoopMode = false;
+        private float gameStartTime;
+        private int enemiesDefeated = 0;
+        private int unitsPlaced = 0;
+        private int shotsHit = 0;
+        private int totalShots = 0;
         #endregion
 
         #region Unity Lifecycle
@@ -73,6 +101,15 @@ namespace LottoDefense.UI
             {
                 MultiplayerManager.Instance.OnMatchResult += HandleMatchResult;
             }
+
+            // Check if in coop mode
+            if (CoopGameManager.Instance != null)
+            {
+                isCoopMode = CoopGameManager.Instance.IsCoopActive;
+            }
+
+            // Record game start time
+            gameStartTime = Time.time;
         }
 
         private void OnDestroy()
@@ -129,11 +166,22 @@ namespace LottoDefense.UI
             int roundReached = GameplayManager.Instance != null ? GameplayManager.Instance.CurrentRound : 1;
             int monstersKilled = CalculateMonstersKilled();
             int contribution = CalculateContribution(roundReached, monstersKilled);
+            float survivalTime = Time.time - gameStartTime;
+
+            // Setup player profiles
+            SetupPlayerProfiles();
 
             // Update UI
             if (titleText != null)
             {
-                titleText.text = isVictory ? "승리!" : "게임 오버";
+                if (isCoopMode)
+                {
+                    titleText.text = isVictory ? "협동 승리!" : "협동 패배";
+                }
+                else
+                {
+                    titleText.text = isVictory ? "승리!" : "게임 오버";
+                }
                 titleText.color = isVictory ? new Color(0.2f, 1f, 0.3f) : new Color(1f, 0.2f, 0.2f);
             }
 
@@ -155,6 +203,9 @@ namespace LottoDefense.UI
                     contributionText.text = $"기여도: {contribution}점";
                 }
             }
+
+            // Update statistics
+            UpdateStatistics(survivalTime);
 
             if (confirmButtonText != null)
             {
@@ -267,6 +318,116 @@ namespace LottoDefense.UI
                 GameplayManager.CleanupAllGameplaySingletons();
                 UnityEngine.SceneManagement.SceneManager.LoadScene("MainGame");
             }
+        }
+        #endregion
+
+        #region Profile Display
+        /// <summary>
+        /// Setup player profiles display
+        /// </summary>
+        private void SetupPlayerProfiles()
+        {
+            UserProfile currentProfile = UserProfileManager.Instance?.CurrentProfile;
+
+            if (isCoopMode && coopProfileContainer != null)
+            {
+                // Show coop profiles
+                if (profileContainer != null)
+                    profileContainer.SetActive(false);
+                coopProfileContainer.SetActive(true);
+
+                // Player 1 profile
+                if (currentProfile != null)
+                {
+                    if (player1Avatar != null && currentProfile.CurrentAvatar != null)
+                        player1Avatar.sprite = currentProfile.CurrentAvatar;
+                    if (player1Nickname != null)
+                        player1Nickname.text = currentProfile.Nickname;
+                }
+
+                // Player 2 profile (guest or second player)
+                if (player2Avatar != null)
+                {
+                    // Use default avatar for player 2
+                }
+                if (player2Nickname != null)
+                    player2Nickname.text = "Player 2";
+            }
+            else if (profileContainer != null)
+            {
+                // Show single player profile
+                profileContainer.SetActive(true);
+                if (coopProfileContainer != null)
+                    coopProfileContainer.SetActive(false);
+
+                if (currentProfile != null)
+                {
+                    if (playerAvatar != null && currentProfile.CurrentAvatar != null)
+                        playerAvatar.sprite = currentProfile.CurrentAvatar;
+                    if (playerNickname != null)
+                        playerNickname.text = currentProfile.Nickname;
+                    if (playerLevel != null)
+                        playerLevel.text = $"Lv. {currentProfile.Level}";
+                }
+            }
+        }
+
+        /// <summary>
+        /// Update statistics display
+        /// </summary>
+        private void UpdateStatistics(float survivalTime)
+        {
+            // Enemies defeated
+            if (enemiesDefeatedText != null)
+            {
+                enemiesDefeatedText.text = $"적 처치: {enemiesDefeated}";
+            }
+
+            // Units placed
+            if (unitsPlacedText != null)
+            {
+                unitsPlacedText.text = $"유닛 배치: {unitsPlaced}";
+            }
+
+            // Survival time
+            if (survivalTimeText != null)
+            {
+                int minutes = Mathf.FloorToInt(survivalTime / 60);
+                int seconds = Mathf.FloorToInt(survivalTime % 60);
+                survivalTimeText.text = $"생존 시간: {minutes:00}:{seconds:00}";
+            }
+
+            // Accuracy
+            if (accuracyText != null)
+            {
+                float accuracy = totalShots > 0 ? (shotsHit * 100f / totalShots) : 0f;
+                accuracyText.text = $"명중률: {accuracy:F1}%";
+            }
+        }
+
+        /// <summary>
+        /// Track enemy defeated (call from external systems)
+        /// </summary>
+        public void TrackEnemyDefeated()
+        {
+            enemiesDefeated++;
+        }
+
+        /// <summary>
+        /// Track unit placed (call from external systems)
+        /// </summary>
+        public void TrackUnitPlaced()
+        {
+            unitsPlaced++;
+        }
+
+        /// <summary>
+        /// Track shot statistics (call from external systems)
+        /// </summary>
+        public void TrackShot(bool hit)
+        {
+            totalShots++;
+            if (hit) shotsHit++;
         }
         #endregion
     }
