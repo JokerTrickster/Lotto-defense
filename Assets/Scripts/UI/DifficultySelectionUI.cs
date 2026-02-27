@@ -114,6 +114,8 @@ namespace LottoDefense.UI
         {
             bool isUnlocked = LobbyDataManager.IsDifficultyUnlocked(difficulty);
 
+            Color lockedColor = Color.Lerp(color, new Color(0.75f, 0.73f, 0.7f), 0.6f);
+
             GameObject btnObj = new GameObject($"{difficulty}Button");
             btnObj.transform.SetParent(popupPanel.transform, false);
 
@@ -121,7 +123,7 @@ namespace LottoDefense.UI
             le.preferredHeight = 88;
 
             Image btnImage = btnObj.AddComponent<Image>();
-            btnImage.color = isUnlocked ? color : new Color(0.65f, 0.63f, 0.6f);
+            btnImage.color = isUnlocked ? color : lockedColor;
             Sprite btnRounded = CuteUIHelper.GetRoundedRectSprite(16);
             if (btnRounded != null)
             {
@@ -139,38 +141,70 @@ namespace LottoDefense.UI
             colors.normalColor = Color.white;
             colors.highlightedColor = new Color(1f, 0.98f, 0.95f);
             colors.pressedColor = new Color(0.85f, 0.82f, 0.78f);
-            colors.disabledColor = new Color(0.8f, 0.8f, 0.8f, 1f);
+            colors.disabledColor = new Color(0.92f, 0.92f, 0.92f, 1f);
             colors.fadeDuration = 0.08f;
             btn.colors = colors;
             btn.onClick.AddListener(() => OnDifficultyClicked(difficulty));
 
-            GameObject textObj = new GameObject("Text");
-            textObj.transform.SetParent(btnObj.transform, false);
-
-            RectTransform textRect = textObj.AddComponent<RectTransform>();
-            textRect.anchorMin = Vector2.zero;
-            textRect.anchorMax = Vector2.one;
-            textRect.offsetMin = new Vector2(16, 8);
-            textRect.offsetMax = new Vector2(-16, -8);
-
-            Text text = textObj.AddComponent<Text>();
-            text.font = font;
-            text.fontSize = 36;
-            text.alignment = TextAnchor.MiddleCenter;
-            text.fontStyle = FontStyle.Bold;
-            text.resizeTextForBestFit = true;
-            text.resizeTextMinSize = 18;
-            text.resizeTextMaxSize = 36;
-
             if (isUnlocked)
             {
+                GameObject textObj = new GameObject("Text");
+                textObj.transform.SetParent(btnObj.transform, false);
+                RectTransform textRect = textObj.AddComponent<RectTransform>();
+                textRect.anchorMin = Vector2.zero;
+                textRect.anchorMax = Vector2.one;
+                textRect.offsetMin = new Vector2(16, 8);
+                textRect.offsetMax = new Vector2(-16, -8);
+
+                Text text = textObj.AddComponent<Text>();
                 text.text = GetDifficultyDescription(difficulty);
+                text.font = font;
+                text.fontSize = 36;
                 text.color = CuteUIHelper.DarkText;
+                text.alignment = TextAnchor.MiddleCenter;
+                text.fontStyle = FontStyle.Bold;
+                text.resizeTextForBestFit = true;
+                text.resizeTextMinSize = 18;
+                text.resizeTextMaxSize = 36;
             }
             else
             {
-                text.text = GetLockedDescription(difficulty);
-                text.color = new Color(0.55f, 0.53f, 0.5f);
+                GameObject nameObj = new GameObject("Name");
+                nameObj.transform.SetParent(btnObj.transform, false);
+                RectTransform nameRect = nameObj.AddComponent<RectTransform>();
+                nameRect.anchorMin = new Vector2(0f, 0.45f);
+                nameRect.anchorMax = new Vector2(1f, 1f);
+                nameRect.offsetMin = new Vector2(16, 0);
+                nameRect.offsetMax = new Vector2(-16, -4);
+
+                Text nameText = nameObj.AddComponent<Text>();
+                nameText.text = GetDifficultyName(difficulty);
+                nameText.font = font;
+                nameText.fontSize = 32;
+                nameText.color = new Color(0.35f, 0.33f, 0.3f);
+                nameText.alignment = TextAnchor.MiddleCenter;
+                nameText.fontStyle = FontStyle.Bold;
+                nameText.raycastTarget = false;
+
+                GameObject hintObj = new GameObject("Hint");
+                hintObj.transform.SetParent(btnObj.transform, false);
+                RectTransform hintRect = hintObj.AddComponent<RectTransform>();
+                hintRect.anchorMin = new Vector2(0f, 0f);
+                hintRect.anchorMax = new Vector2(1f, 0.5f);
+                hintRect.offsetMin = new Vector2(16, 4);
+                hintRect.offsetMax = new Vector2(-16, 0);
+
+                Text hintText = hintObj.AddComponent<Text>();
+                hintText.text = GetLockHint(difficulty);
+                hintText.font = font;
+                hintText.fontSize = 22;
+                hintText.color = new Color(0.7f, 0.45f, 0.2f);
+                hintText.alignment = TextAnchor.MiddleCenter;
+                hintText.fontStyle = FontStyle.Bold;
+                hintText.raycastTarget = false;
+                hintText.resizeTextForBestFit = true;
+                hintText.resizeTextMinSize = 16;
+                hintText.resizeTextMaxSize = 22;
             }
         }
 
@@ -240,16 +274,24 @@ namespace LottoDefense.UI
             }
         }
 
-        private string GetLockedDescription(GameDifficulty difficulty)
+        private string GetDifficultyName(GameDifficulty difficulty)
         {
             switch (difficulty)
             {
-                case GameDifficulty.Hard:
-                    return "어려움\n🔒 보통 클리어 시 해금";
-                case GameDifficulty.VeryHard:
-                    return "매우 어려움\n🔒 어려움 클리어 시 해금";
-                default:
-                    return "잠김";
+                case GameDifficulty.Normal: return "보통";
+                case GameDifficulty.Hard: return "어려움";
+                case GameDifficulty.VeryHard: return "매우 어려움";
+                default: return "보통";
+            }
+        }
+
+        private string GetLockHint(GameDifficulty difficulty)
+        {
+            switch (difficulty)
+            {
+                case GameDifficulty.Hard: return "보통 클리어 시 해금";
+                case GameDifficulty.VeryHard: return "어려움 클리어 시 해금";
+                default: return "잠김";
             }
         }
 
