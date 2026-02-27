@@ -217,6 +217,34 @@ namespace LottoDefense.Networking
             }
         }
         #endregion
+
+        #region Unit Placement Sync
+        /// <summary>
+        /// Send unit placement information to server
+        /// </summary>
+        public void SendUnitPlacement(int playerNumber, Vector2Int position, string unitType)
+        {
+            // This would typically send to server via API
+            // For now, just log the action
+            Debug.Log($"[CoopStateSync] Player {playerNumber} placed {unitType} at {position}");
+
+            // In a real implementation:
+            // StartCoroutine(SendUnitPlacementToServer(playerNumber, position, unitType));
+        }
+
+        /// <summary>
+        /// Send unit removal information to server
+        /// </summary>
+        public void SendUnitRemoval(int playerNumber, Vector2Int position)
+        {
+            // This would typically send to server via API
+            // For now, just log the action
+            Debug.Log($"[CoopStateSync] Player {playerNumber} removed unit at {position}");
+
+            // In a real implementation:
+            // StartCoroutine(SendUnitRemovalToServer(playerNumber, position));
+        }
+        #endregion
     }
 
     #region Data Models

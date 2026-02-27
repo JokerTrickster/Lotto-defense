@@ -111,20 +111,30 @@ namespace LottoDefense.UI
             if (player1Profile != null && player1Container != null)
             {
                 if (player1Nickname != null)
-                    player1Nickname.text = player1Profile.Nickname;
+                    player1Nickname.text = player1Profile.nickname;
 
-                if (player1Avatar != null && player1Profile.CurrentAvatar != null)
-                    player1Avatar.sprite = player1Profile.CurrentAvatar;
+                // Get avatar sprite through UserProfileManager
+                if (player1Avatar != null && UserProfileManager.Instance != null)
+                {
+                    var avatarData = UserProfileManager.Instance.GetAvatarData(player1Profile.selectedAvatarId);
+                    if (avatarData != null && avatarData.avatarSprite != null)
+                        player1Avatar.sprite = avatarData.avatarSprite;
+                }
             }
 
             // Set Player 2 profile (for coop mode)
             if (player2Profile != null && player2Container != null)
             {
                 if (player2Nickname != null)
-                    player2Nickname.text = player2Profile.Nickname;
+                    player2Nickname.text = player2Profile.nickname;
 
-                if (player2Avatar != null && player2Profile.CurrentAvatar != null)
-                    player2Avatar.sprite = player2Profile.CurrentAvatar;
+                // Get avatar sprite through UserProfileManager
+                if (player2Avatar != null && UserProfileManager.Instance != null)
+                {
+                    var avatarData = UserProfileManager.Instance.GetAvatarData(player2Profile.selectedAvatarId);
+                    if (avatarData != null && avatarData.avatarSprite != null)
+                        player2Avatar.sprite = avatarData.avatarSprite;
+                }
             }
         }
         #endregion
@@ -236,8 +246,8 @@ namespace LottoDefense.UI
         /// </summary>
         private void SetupProfileDisplay()
         {
-            // Get current user profile
-            UserProfile currentProfile = UserProfileManager.Instance?.CurrentProfile;
+            // Get current user profile through UserProfileManager
+            UserProfileManager profileManager = UserProfileManager.Instance;
 
             if (_isCoopMode)
             {
@@ -264,9 +274,9 @@ namespace LottoDefense.UI
                 }
 
                 // Set profiles
-                if (currentProfile != null)
+                if (profileManager != null && profileManager.CurrentProfile != null)
                 {
-                    SetPlayerProfiles(currentProfile, CreateGuestProfile());
+                    SetPlayerProfiles(profileManager.CurrentProfile, CreateGuestProfile());
                 }
             }
             else
@@ -283,9 +293,9 @@ namespace LottoDefense.UI
                 if (vsText != null) vsText.gameObject.SetActive(false);
 
                 // Set profile
-                if (currentProfile != null)
+                if (profileManager != null && profileManager.CurrentProfile != null)
                 {
-                    SetPlayerProfiles(currentProfile);
+                    SetPlayerProfiles(profileManager.CurrentProfile);
                 }
             }
         }
@@ -295,8 +305,9 @@ namespace LottoDefense.UI
         /// </summary>
         private UserProfile CreateGuestProfile()
         {
-            UserProfile guestProfile = ScriptableObject.CreateInstance<UserProfile>();
-            guestProfile.Nickname = "Player 2";
+            UserProfile guestProfile = new UserProfile();
+            guestProfile.nickname = "Player 2";
+            guestProfile.selectedAvatarId = "avatar_default";
             // Guest uses default avatar or random avatar
             return guestProfile;
         }

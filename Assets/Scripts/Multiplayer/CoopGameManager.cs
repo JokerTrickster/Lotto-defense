@@ -188,7 +188,7 @@ namespace LottoDefense.Multiplayer
             // Start the actual gameplay
             if (GameplayManager.Instance != null)
             {
-                GameplayManager.Instance.StartGame();
+                GameplayManager.Instance.StartCountdown();
             }
 
             Debug.Log("[CoopGameManager] Coop game started successfully");
@@ -301,7 +301,7 @@ namespace LottoDefense.Multiplayer
                 // Game over - cooperative loss
                 EndCoopGame(false);
             }
-            else if (GameplayManager.Instance != null && GameplayManager.Instance.AllWavesComplete)
+            else if (GameplayManager.Instance != null && GameplayManager.Instance.CurrentRound >= 30) // Assuming 30 waves as complete
             {
                 // All waves complete and both players alive - victory!
                 EndCoopGame(true);
