@@ -113,8 +113,8 @@ namespace LottoDefense.UI
         public const float CommandPanelHeight = 440f;
         public const float CommandButtonHeight = 70f;
         public const int CommandButtonTextSize = 30;
-        public const float SynthFloatBtnWidth = 100f;
-        public const float SynthFloatBtnHeight = 44f;
+        public const float SynthFloatBtnWidth = 90f;
+        public const float SynthFloatBtnHeight = 40f;
         #endregion
 
         #region Quest UI Colors

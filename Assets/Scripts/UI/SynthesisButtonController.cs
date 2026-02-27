@@ -68,50 +68,35 @@ namespace LottoDefense.UI
         #region UI Setup
         private void CreateButtonUI()
         {
-            Image borderImage = gameObject.AddComponent<Image>();
-            borderImage.color = GameSceneDesignTokens.SynthFloatBtnBg;
-            borderImage.raycastTarget = true;
-            Sprite rounded = CuteUIHelper.GetRoundedRectSprite(12);
+            Image bgImage = gameObject.AddComponent<Image>();
+            bgImage.color = GameSceneDesignTokens.SynthFloatBtnBg;
+            bgImage.raycastTarget = true;
+            Sprite rounded = CuteUIHelper.GetRoundedRectSprite(14);
             if (rounded != null)
             {
-                borderImage.sprite = rounded;
-                borderImage.type = Image.Type.Sliced;
+                bgImage.sprite = rounded;
+                bgImage.type = Image.Type.Sliced;
             }
 
-            // Inner highlight strip for depth
-            GameObject highlightObj = new GameObject("Highlight");
-            highlightObj.transform.SetParent(transform, false);
-            RectTransform highlightRect = highlightObj.AddComponent<RectTransform>();
-            highlightRect.anchorMin = new Vector2(0, 0.5f);
-            highlightRect.anchorMax = Vector2.one;
-            highlightRect.offsetMin = new Vector2(3, 0);
-            highlightRect.offsetMax = new Vector2(-3, -2);
+            Outline outline = gameObject.AddComponent<Outline>();
+            outline.effectColor = new Color(0.85f, 0.65f, 0.1f, 0.7f);
+            outline.effectDistance = new Vector2(2, -2);
 
-            Image highlightImg = highlightObj.AddComponent<Image>();
-            highlightImg.color = new Color(1f, 1f, 1f, 0.2f);
-            highlightImg.raycastTarget = false;
-            Sprite hlRounded = CuteUIHelper.GetRoundedRectSprite(8);
-            if (hlRounded != null)
-            {
-                highlightImg.sprite = hlRounded;
-                highlightImg.type = Image.Type.Sliced;
-            }
+            Shadow shadow = gameObject.AddComponent<Shadow>();
+            shadow.effectColor = new Color(0f, 0f, 0f, 0.3f);
+            shadow.effectDistance = new Vector2(1, -2);
 
             Button button = gameObject.AddComponent<Button>();
-            button.targetGraphic = borderImage;
+            button.targetGraphic = bgImage;
 
             ColorBlock colors = button.colors;
             colors.normalColor = Color.white;
-            colors.highlightedColor = new Color(1f, 0.98f, 0.95f, 1f);
-            colors.pressedColor = new Color(0.85f, 0.82f, 0.78f, 1f);
+            colors.highlightedColor = new Color(1f, 0.95f, 0.85f, 1f);
+            colors.pressedColor = new Color(0.9f, 0.8f, 0.6f, 1f);
             colors.fadeDuration = 0.08f;
             button.colors = colors;
 
             button.onClick.AddListener(OnButtonClicked);
-
-            Shadow shadow = gameObject.AddComponent<Shadow>();
-            shadow.effectColor = CuteUIHelper.SoftShadow;
-            shadow.effectDistance = new Vector2(2, -3);
 
             GameObject textObj = new GameObject("Text");
             textObj.transform.SetParent(transform, false);
@@ -123,9 +108,9 @@ namespace LottoDefense.UI
             textRect.offsetMax = Vector2.zero;
 
             Text label = textObj.AddComponent<Text>();
-            label.text = "\u2728 \uC870\uD569";
+            label.text = "\uC870\uD569";
             label.font = GameFont.Get();
-            label.fontSize = 22;
+            label.fontSize = 20;
             label.fontStyle = FontStyle.Bold;
             label.color = GameSceneDesignTokens.SynthFloatBtnText;
             label.alignment = TextAnchor.MiddleCenter;

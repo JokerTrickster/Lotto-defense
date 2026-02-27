@@ -205,6 +205,7 @@ namespace LottoDefense.Profile
             {
                 string json = PlayerPrefs.GetString(PROFILE_SAVE_KEY);
                 _currentProfile = JsonUtility.FromJson<UserProfile>(json);
+                MigrateProfileIfNeeded();
                 _currentProfile.ValidateSelectedAvatar();
                 Debug.Log($"[UserProfileManager] Loaded profile: {_currentProfile.nickname}");
             }
@@ -215,6 +216,29 @@ namespace LottoDefense.Profile
                 SaveProfile();
                 Debug.Log("[UserProfileManager] Created new default profile");
             }
+        }
+
+        private void MigrateProfileIfNeeded()
+        {
+            if (_currentProfile.profileVersion >= 1) return;
+
+            var defaultOnly = new List<string>();
+            if (_availableAvatars != null)
+            {
+                foreach (var avatar in _availableAvatars)
+                {
+                    if (avatar.isDefaultUnlocked)
+                        defaultOnly.Add(avatar.avatarId);
+                }
+            }
+
+            if (defaultOnly.Count == 0)
+                defaultOnly.Add("avatar_default");
+
+            _currentProfile.unlockedAvatarIds = defaultOnly;
+            _currentProfile.profileVersion = 1;
+            SaveProfile();
+            Debug.Log("[UserProfileManager] Profile migrated to v1: reset non-default avatar unlocks");
         }
 
         /// <summary>

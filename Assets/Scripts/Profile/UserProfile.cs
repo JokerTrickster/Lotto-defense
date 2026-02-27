@@ -13,13 +13,14 @@ namespace LottoDefense.Profile
         public string nickname = "Player";
         public string selectedAvatarId = "avatar_default";
         public List<string> unlockedAvatarIds = new List<string>();
+        public int profileVersion = 0;
 
         public UserProfile()
         {
-            // Default constructor with sensible defaults
             nickname = "Player";
             selectedAvatarId = "avatar_default";
             unlockedAvatarIds = new List<string> { "avatar_default" };
+            profileVersion = 1;
         }
 
         public UserProfile(string nickname, string selectedAvatarId)
