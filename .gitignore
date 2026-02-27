@@ -84,3 +84,11 @@ crashlytics-build.properties
 # CCPM (Claude Code PM) 관련
 .claude/epics/
 .claude/settings.local.json
+
+# Unity temporary build files
+.utmp/
+aos_*_BackUpThisFolder_ButDontShipItWithYourGame/
+ios_*_BackUpThisFolder_ButDontShipItWithYourGame/
+
+# Performance test files
+Assets/Resources/PerformanceTest*
