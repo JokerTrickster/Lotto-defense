@@ -283,17 +283,23 @@ namespace LottoDefense.Units
         {
             if (unit == null || GridManager.Instance == null) return;
 
+            if (GridManager.Instance.IsOccupied(newPos))
+            {
+                Debug.LogWarning($"[UnitPlacementManager] Cannot move to occupied cell: {newPos}");
+                return;
+            }
+
             Vector2Int oldPos = unit.GridPosition;
 
-            // Remove unit from old position in grid
             GridManager.Instance.RemoveUnit(oldPos);
-
-            // Update unit's grid position
             unit.MoveTo(newPos);
 
-            // Place unit at new position in grid
-            GridManager.Instance.SetUnit(newPos, unit.gameObject);
-
+            if (!GridManager.Instance.SetUnit(newPos, unit.gameObject))
+            {
+                Debug.LogError($"[UnitPlacementManager] SetUnit failed at {newPos}, rolling back to {oldPos}");
+                unit.MoveTo(oldPos);
+                GridManager.Instance.SetUnit(oldPos, unit.gameObject);
+            }
         }
 
         /// <summary>
@@ -310,8 +316,11 @@ namespace LottoDefense.Units
             {
                 Vector2Int target = pendingEmptyCell.Value;
                 ClearPendingEmptyCell();
-                MoveUnitToPosition(clickedUnit, target);
-                DeselectPlacedUnit();
+                if (GridManager.Instance != null && !GridManager.Instance.IsOccupied(target))
+                {
+                    MoveUnitToPosition(clickedUnit, target);
+                    DeselectPlacedUnit();
+                }
                 return;
             }
 
@@ -519,8 +528,8 @@ namespace LottoDefense.Units
             if (SelectedPlacedUnit != null)
             {
                 SelectedPlacedUnit.Deselect();
-                SelectedPlacedUnit = null;
             }
+            SelectedPlacedUnit = null;
         }
 
         /// <summary>
@@ -529,10 +538,19 @@ namespace LottoDefense.Units
         private void SwapUnits(Unit unit1, Unit unit2)
         {
             if (unit1 == null || unit2 == null || GridManager.Instance == null)
+            {
+                DeselectPlacedUnit();
                 return;
+            }
 
             Vector2Int pos1 = unit1.GridPosition;
             Vector2Int pos2 = unit2.GridPosition;
+
+            if (pos1 == pos2)
+            {
+                DeselectPlacedUnit();
+                return;
+            }
 
             // Remove both units from grid
             GridManager.Instance.RemoveUnit(pos1);
