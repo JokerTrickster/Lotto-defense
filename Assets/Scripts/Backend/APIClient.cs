@@ -74,6 +74,11 @@ namespace LottoDefense.Backend
         #endregion
 
         #region Token Management
+        public void SetToken(string token)
+        {
+            SetToken(token, long.MaxValue);
+        }
+
         public void SetToken(string token, long expiryTime)
         {
             SecureTokenStorage.Instance.StoreAccessToken(token, expiryTime);

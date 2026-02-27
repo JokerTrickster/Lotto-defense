@@ -109,7 +109,7 @@ namespace LottoDefense.Networking
                 shouldReconnect = true;
                 if (websocket == null || websocket.State != WebSocketState.Open)
                 {
-                    await Connect(currentUrl);
+                    Connect(currentUrl);
                 }
             }
         }

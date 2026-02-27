@@ -234,15 +234,6 @@ namespace LottoDefense.Backend
                     break;
             }
 
-            // Copy headers
-            if (original.GetRequestHeaders() != null)
-            {
-                foreach (var header in original.GetRequestHeaders())
-                {
-                    cloned.SetRequestHeader(header.Key, header.Value);
-                }
-            }
-
             // Copy timeout
             cloned.timeout = original.timeout;
 
