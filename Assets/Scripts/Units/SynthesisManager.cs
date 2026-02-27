@@ -184,6 +184,10 @@ namespace LottoDefense.Units
             {
                 Unit resultUnit = UnitManager.Instance.PlaceUnit(resultData, resultPosition);
             }
+
+            // Clear placement selection so a destroyed unit cannot be used in a subsequent swap.
+            // If the user had one of the synthesized units selected, that reference is now stale.
+            UnitPlacementManager.Instance?.CancelPlacement();
         }
         #endregion
 
