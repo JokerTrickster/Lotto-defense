@@ -141,6 +141,7 @@ namespace LottoDefense.Backend
                 onComplete?.Invoke(false);
             }
         }
+        #endregion
 
         #region POST Requests
         public IEnumerator Post<TRequest, TResponse>(string endpoint, TRequest body, Action<TResponse> onSuccess, Action<string> onError)
