@@ -120,9 +120,13 @@ namespace LottoDefense.Gameplay
         {
             if (countdownText != null)
             {
-                countdownText.text = number.ToString();
+                string numStr = number.ToString();
+                countdownText.text = numStr;
 
-                // Apply color per number: 3=red, 2=yellow, 1=green
+                Text shadowText = countdownText.transform.Find("Shadow")?.GetComponent<Text>();
+                if (shadowText != null)
+                    shadowText.text = numStr;
+
                 switch (number)
                 {
                     case 3:
@@ -152,7 +156,6 @@ namespace LottoDefense.Gameplay
         /// </summary>
         private IEnumerator ShowStartText()
         {
-            // Hide countdown number
             if (countdownText != null)
             {
                 countdownText.gameObject.SetActive(false);
