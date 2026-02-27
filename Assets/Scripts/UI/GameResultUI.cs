@@ -312,9 +312,7 @@ namespace LottoDefense.UI
             }
             else
             {
-                // Fallback: cleanup and load synchronously.
-                // Cannot use coroutine because CleanupAllGameplaySingletons() destroys
-                // GameCanvas (our parent), which would kill the coroutine before LoadScene.
+                HideAllCanvases();
                 GameplayManager.CleanupAllGameplaySingletons();
                 UnityEngine.SceneManagement.SceneManager.LoadScene("MainGame");
             }
@@ -433,6 +431,13 @@ namespace LottoDefense.UI
         {
             totalShots++;
             if (hit) shotsHit++;
+        }
+
+        private static void HideAllCanvases()
+        {
+            Canvas[] canvases = Object.FindObjectsByType<Canvas>(FindObjectsSortMode.None);
+            foreach (Canvas c in canvases)
+                c.enabled = false;
         }
         #endregion
     }

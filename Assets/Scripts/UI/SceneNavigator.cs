@@ -20,12 +20,16 @@ namespace LottoDefense.UI
 
         public void LoadMainGame()
         {
-            // Cleanup then load synchronously. Destroy() is deferred to end-of-frame,
-            // so LoadScene executes before GameCanvas (our parent) is actually destroyed.
-            // Using a coroutine here would fail because CleanupAllGameplaySingletons()
-            // destroys GameCanvas, which kills this MonoBehaviour and its coroutines.
+            HideAllCanvases();
             GameplayManager.CleanupAllGameplaySingletons();
             SceneManager.LoadScene("MainGame");
+        }
+
+        private static void HideAllCanvases()
+        {
+            Canvas[] canvases = Object.FindObjectsByType<Canvas>(FindObjectsSortMode.None);
+            foreach (Canvas c in canvases)
+                c.enabled = false;
         }
 
         public void LoadLoginScene()
