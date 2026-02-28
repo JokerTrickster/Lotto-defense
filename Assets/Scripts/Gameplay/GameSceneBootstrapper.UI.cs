@@ -1633,6 +1633,12 @@ namespace LottoDefense.Gameplay
                 if (questUI != null)
                 {
                     questUI.Show();
+                    
+                    // 퀘스트 UI를 열면 배지 초기화
+                    if (QuestNotificationBadge.Instance != null)
+                    {
+                        QuestNotificationBadge.Instance.ResetCount();
+                    }
                 }
             });
 
@@ -1646,6 +1652,10 @@ namespace LottoDefense.Gameplay
 
             Text btnText = CreateText(textObj, "Q", 28, CuteUIHelper.DarkText);
             btnText.fontStyle = FontStyle.Bold;
+
+            // 알림 배지 추가
+            QuestNotificationBadge badge = btnObj.AddComponent<QuestNotificationBadge>();
+            badge.CreateBadge(btnObj.transform);
         }
         #endregion
 

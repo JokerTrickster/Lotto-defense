@@ -53,6 +53,12 @@ namespace LottoDefense.UI
                 questPanel.SetActive(true);
 
             RefreshQuestList();
+
+            // 퀘스트 UI를 열면 알림 배지 초기화
+            if (QuestNotificationBadge.Instance != null)
+            {
+                QuestNotificationBadge.Instance.ResetCount();
+            }
         }
 
         public void Hide()
