@@ -74,9 +74,11 @@ namespace LottoDefense.UI
         #endregion
 
         #region Synthesis Floating Button Colors
-        public static readonly Color SynthFloatBtnBg = new Color(1f, 0.82f, 0.35f, 1f);
-        public static readonly Color SynthFloatBtnBorder = new Color(1f, 0.9f, 0.55f, 0.9f);
-        public static readonly Color SynthFloatBtnText = new Color(0.3f, 0.2f, 0.05f, 1f);
+        public static readonly Color SynthFloatBtnBg = new Color(1f, 0.78f, 0.28f, 1f);
+        public static readonly Color SynthFloatBtnTopHighlight = new Color(1f, 0.92f, 0.6f, 1f);
+        public static readonly Color SynthFloatBtnBorder = new Color(0.82f, 0.58f, 0.08f, 1f);
+        public static readonly Color SynthFloatBtnText = new Color(0.35f, 0.2f, 0.02f, 1f);
+        public static readonly Color SynthFloatBtnShadow = new Color(0.6f, 0.4f, 0.05f, 0.5f);
         #endregion
 
         #region Countdown Colors
@@ -113,8 +115,8 @@ namespace LottoDefense.UI
         public const float CommandPanelHeight = 440f;
         public const float CommandButtonHeight = 70f;
         public const int CommandButtonTextSize = 30;
-        public const float SynthFloatBtnWidth = 90f;
-        public const float SynthFloatBtnHeight = 40f;
+        public const float SynthFloatBtnWidth = 130f;
+        public const float SynthFloatBtnHeight = 50f;
         #endregion
 
         #region Quest UI Colors
