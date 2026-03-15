@@ -54,8 +54,12 @@ namespace LottoDefense.UI
                 GameObject canvasObj = new GameObject("LoginCanvas");
                 canvas = canvasObj.AddComponent<Canvas>();
                 canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-                canvasObj.AddComponent<CanvasScaler>().uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-                canvasObj.GetComponent<CanvasScaler>().referenceResolution = new Vector2(1080, 1920);
+                
+                CanvasScaler scaler = canvasObj.AddComponent<CanvasScaler>();
+                scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+                scaler.referenceResolution = new Vector2(1080, 1920);
+                scaler.matchWidthOrHeight = 0.5f;  // 중간값으로 균형
+                
                 canvasObj.AddComponent<GraphicRaycaster>();
             }
 
@@ -63,13 +67,14 @@ namespace LottoDefense.UI
             if (defaultFont == null)
                 defaultFont = Resources.GetBuiltinResource<Font>("Arial.ttf");
 
-            // 메인 패널
+            // 메인 패널 (전체 화면)
             loginPanel = new GameObject("LoginPanel");
             loginPanel.transform.SetParent(canvas.transform, false);
             RectTransform panelRect = loginPanel.AddComponent<RectTransform>();
             panelRect.anchorMin = Vector2.zero;
             panelRect.anchorMax = Vector2.one;
-            panelRect.sizeDelta = Vector2.zero;
+            panelRect.offsetMin = Vector2.zero;
+            panelRect.offsetMax = Vector2.zero;
 
             // 그라데이션 배경
             CreateGradientBackground(loginPanel);
@@ -80,7 +85,8 @@ namespace LottoDefense.UI
             RectTransform safeAreaRect = safeAreaObj.AddComponent<RectTransform>();
             safeAreaRect.anchorMin = Vector2.zero;
             safeAreaRect.anchorMax = Vector2.one;
-            safeAreaRect.sizeDelta = Vector2.zero;
+            safeAreaRect.offsetMin = Vector2.zero;  // 완전히 채우기
+            safeAreaRect.offsetMax = Vector2.zero;
 
             // 로고 영역 (상단)
             CreateLogoSection(safeAreaObj, defaultFont);
@@ -104,7 +110,8 @@ namespace LottoDefense.UI
             RectTransform bgRect = bgObj.AddComponent<RectTransform>();
             bgRect.anchorMin = Vector2.zero;
             bgRect.anchorMax = Vector2.one;
-            bgRect.sizeDelta = Vector2.zero;
+            bgRect.offsetMin = Vector2.zero;  // 완전히 채우기
+            bgRect.offsetMax = Vector2.zero;
 
             // 간단한 그라데이션 (2개 이미지 오버레이)
             Image bottomBg = bgObj.AddComponent<Image>();
@@ -131,8 +138,8 @@ namespace LottoDefense.UI
             logoRect.anchorMin = new Vector2(0.5f, 1f);
             logoRect.anchorMax = new Vector2(0.5f, 1f);
             logoRect.pivot = new Vector2(0.5f, 1f);
-            logoRect.anchoredPosition = new Vector2(0, -100);
-            logoRect.sizeDelta = new Vector2(300, 350);
+            logoRect.anchoredPosition = new Vector2(0, -80);  // -100 → -80
+            logoRect.sizeDelta = new Vector2(250, 280);        // 300×350 → 250×280
 
             // 로고 배경 (핑크 둥근 사각형)
             GameObject logoBgObj = new GameObject("LogoBackground");
@@ -142,7 +149,7 @@ namespace LottoDefense.UI
             logoBgRect.anchorMax = new Vector2(0.5f, 1f);
             logoBgRect.pivot = new Vector2(0.5f, 1f);
             logoBgRect.anchoredPosition = Vector2.zero;
-            logoBgRect.sizeDelta = new Vector2(200, 200);
+            logoBgRect.sizeDelta = new Vector2(160, 160);  // 200×200 → 160×160
 
             logoBackground = logoBgObj.AddComponent<Image>();
             logoBackground.color = PINK_PRIMARY;
@@ -158,13 +165,13 @@ namespace LottoDefense.UI
             titleRect.anchorMin = new Vector2(0.5f, 0f);
             titleRect.anchorMax = new Vector2(0.5f, 0f);
             titleRect.pivot = new Vector2(0.5f, 0f);
-            titleRect.anchoredPosition = new Vector2(0, 80);
-            titleRect.sizeDelta = new Vector2(300, 60);
+            titleRect.anchoredPosition = new Vector2(0, 70);   // 80 → 70
+            titleRect.sizeDelta = new Vector2(250, 50);        // 300×60 → 250×50
 
             titleText = titleObj.AddComponent<Text>();
             titleText.text = "커플\n보드게임";
             titleText.font = font;
-            titleText.fontSize = 32;
+            titleText.fontSize = 26;  // 32 → 26
             titleText.fontStyle = FontStyle.Bold;
             titleText.color = BLACK;
             titleText.alignment = TextAnchor.MiddleCenter;
@@ -177,22 +184,22 @@ namespace LottoDefense.UI
             subtitleRect.anchorMin = new Vector2(0.5f, 0f);
             subtitleRect.anchorMax = new Vector2(0.5f, 0f);
             subtitleRect.pivot = new Vector2(0.5f, 0f);
-            subtitleRect.anchoredPosition = new Vector2(0, 40);
-            subtitleRect.sizeDelta = new Vector2(300, 30);
+            subtitleRect.anchoredPosition = new Vector2(0, 35);   // 40 → 35
+            subtitleRect.sizeDelta = new Vector2(250, 25);        // 300×30 → 250×25
 
             subtitleText = subtitleObj.AddComponent<Text>();
             subtitleText.text = "BOARD GAME";
             subtitleText.font = font;
-            subtitleText.fontSize = 18;
+            subtitleText.fontSize = 14;  // 18 → 14
             subtitleText.color = new Color(0.3f, 0.3f, 0.3f, 1f);
             subtitleText.alignment = TextAnchor.MiddleCenter;
         }
 
         private void CreateLoginButtons(GameObject parent, Font font)
         {
-            float buttonWidth = 500f;
-            float buttonHeight = 80f;
-            float spacing = 20f;
+            float buttonWidth = 350f;  // 500 → 350 (작게)
+            float buttonHeight = 60f;  // 80 → 60 (작게)
+            float spacing = 15f;       // 20 → 15
             float startY = -500f;
 
             // 구글 로그인 버튼
@@ -275,7 +282,7 @@ namespace LottoDefense.UI
             Text btnText = textObj.AddComponent<Text>();
             btnText.text = text;
             btnText.font = font;
-            btnText.fontSize = 24;
+            btnText.fontSize = 18;  // 24 → 18
             btnText.color = textColor;
             btnText.alignment = TextAnchor.MiddleCenter;
 
@@ -291,12 +298,12 @@ namespace LottoDefense.UI
             dividerRect.anchorMax = new Vector2(0.5f, 1f);
             dividerRect.pivot = new Vector2(0.5f, 0.5f);
             dividerRect.anchoredPosition = position;
-            dividerRect.sizeDelta = new Vector2(500, 40);
+            dividerRect.sizeDelta = new Vector2(350, 30);  // 500×40 → 350×30
 
             Text dividerText = dividerObj.AddComponent<Text>();
             dividerText.text = text;
             dividerText.font = font;
-            dividerText.fontSize = 18;
+            dividerText.fontSize = 14;  // 18 → 14
             dividerText.color = new Color(0.5f, 0.5f, 0.5f, 1f);
             dividerText.alignment = TextAnchor.MiddleCenter;
         }
@@ -310,13 +317,13 @@ namespace LottoDefense.UI
             termsRect.anchorMin = new Vector2(0.5f, 0f);
             termsRect.anchorMax = new Vector2(0.5f, 0f);
             termsRect.pivot = new Vector2(0.5f, 0f);
-            termsRect.anchoredPosition = new Vector2(0, 250);
-            termsRect.sizeDelta = new Vector2(500, 40);
+            termsRect.anchoredPosition = new Vector2(0, 190);  // 250 → 190
+            termsRect.sizeDelta = new Vector2(350, 30);        // 500×40 → 350×30
 
             termsText = termsObj.AddComponent<Text>();
             termsText.text = "로그인하면  I  이용약관 동의";
             termsText.font = font;
-            termsText.fontSize = 16;
+            termsText.fontSize = 12;  // 16 → 12
             termsText.color = new Color(0.4f, 0.4f, 0.4f, 1f);
             termsText.alignment = TextAnchor.MiddleCenter;
 
@@ -327,8 +334,8 @@ namespace LottoDefense.UI
             startBtnRect.anchorMin = new Vector2(0.5f, 0f);
             startBtnRect.anchorMax = new Vector2(0.5f, 0f);
             startBtnRect.pivot = new Vector2(0.5f, 0f);
-            startBtnRect.anchoredPosition = new Vector2(0, 120);
-            startBtnRect.sizeDelta = new Vector2(500, 100);
+            startBtnRect.anchoredPosition = new Vector2(0, 100);  // 120 → 100
+            startBtnRect.sizeDelta = new Vector2(350, 70);        // 500×100 → 350×70
 
             Image startBtnImage = startBtnObj.AddComponent<Image>();
             startBtnImage.color = PINK_PRIMARY;
@@ -352,7 +359,7 @@ namespace LottoDefense.UI
             Text startText = startTextObj.AddComponent<Text>();
             startText.text = "시작";
             startText.font = font;
-            startText.fontSize = 32;
+            startText.fontSize = 24;  // 32 → 24
             startText.fontStyle = FontStyle.Bold;
             startText.color = WHITE;
             startText.alignment = TextAnchor.MiddleCenter;
@@ -382,7 +389,7 @@ namespace LottoDefense.UI
             Text loadingText = textObj.AddComponent<Text>();
             loadingText.text = "로그인 중...";
             loadingText.font = font;
-            loadingText.fontSize = 28;
+            loadingText.fontSize = 20;  // 28 → 20
             loadingText.color = WHITE;
             loadingText.alignment = TextAnchor.MiddleCenter;
 
